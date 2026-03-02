@@ -28,5 +28,9 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
+import java.util.Date;
+
 public abstract class Participation{
+    private Date entryDate;
+    private String nickName;
 }

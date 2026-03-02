@@ -28,5 +28,10 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
+import java.util.Date;
+
 public class Submission{
+    private Date submittedAt;
+    private String description;
+    private String title;
 }

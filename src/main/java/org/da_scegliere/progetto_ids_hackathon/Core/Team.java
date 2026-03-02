@@ -28,5 +28,9 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
+import java.util.List;
+
 public class Team{
+    String name;
+    List<User> members;
 }

@@ -28,6 +28,14 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
-public class Hackathon {
+import java.util.List;
 
+public class Hackathon {
+    private HackathonState hackathonState;
+    private String description;
+    private List<Participation> participations;
+    private Team winner;
+    private List<StaffAssignment> staff;
+
+    public void changeState(IHackathonState hackathonState) {}
 }

@@ -29,4 +29,9 @@
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
 public class HackathonState{
+    private Hackathon hackathon;
+
+    public void setHackathon( Hackathon hackathon ) {
+        this.hackathon = hackathon;
+    }
 }

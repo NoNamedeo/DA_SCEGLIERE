@@ -28,5 +28,9 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
-public class TeamParticipation{
+import java.util.List;
+
+public class TeamParticipation extends Participation{
+    private Team team;
+    private List<Submission> submissions;
 }

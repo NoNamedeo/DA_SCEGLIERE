@@ -28,5 +28,15 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Application;
 
-public class PaymentService{
+import java.util.Objects;
+
+public class PaymentService implements IPaymentService{
+    IPaymentService paymentService;
+
+    public PaymentService(IPaymentService paymentService){
+        this.paymentService = Objects.requireNonNull(paymentService);
+    }
+
+    @Override
+    public void awardPrize(){}
 }
