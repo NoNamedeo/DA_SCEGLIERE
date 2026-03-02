@@ -10,4 +10,6 @@ public class ProgettoIdSHackathonApplication {
         SpringApplication.run(ProgettoIdSHackathonApplication.class, args);
     }
 
+
+
 }
