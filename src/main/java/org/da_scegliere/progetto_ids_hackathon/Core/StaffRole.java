@@ -29,4 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
 public enum StaffRole {
+
+    ORGANIZER, MENTOR, JUDGE
+
 }

@@ -29,4 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
 public class Manager extends AbstractUser {
+
+    public int id;
+
 }

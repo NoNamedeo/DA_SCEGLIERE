@@ -28,5 +28,10 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Application;
 
+import java.util.Date;
+
 public interface ICalendar {
+
+    public void reserveCallSlot(Date start, Date end);
+
 }

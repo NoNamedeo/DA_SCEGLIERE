@@ -29,4 +29,10 @@
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
 public abstract class AbstractUser {
+
+    public String Name;
+    public int age;
+    public String email;
+    public boolean suspended;
+
 }

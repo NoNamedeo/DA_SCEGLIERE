@@ -29,4 +29,11 @@
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
 public class SupportRequestState implements ISupportRequestState {
+
+    public SupportRequest supportRequest;
+
+    public void setSupportRequest(SupportRequest supportRequest) {
+        this.supportRequest = supportRequest;
+    }
+
 }

@@ -28,5 +28,12 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Application;
 
+import org.da_scegliere.progetto_ids_hackathon.Core.SupportRequest;
+
 public class CalendarService {
+
+    public ICalendar calendar;
+
+    public void reserveCallSlot(SupportRequest request) {}
+
 }

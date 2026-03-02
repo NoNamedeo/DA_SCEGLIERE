@@ -28,5 +28,13 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
+import java.util.Date;
+
 public class StaffAssignment {
+
+    public Date assignmentDate;
+    public StaffRole staffRole;
+    public StaffMember staffMember;
+    public Hackathon hackathon;
+
 }

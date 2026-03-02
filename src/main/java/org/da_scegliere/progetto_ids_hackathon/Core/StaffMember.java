@@ -28,5 +28,10 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
+import java.util.List;
+
 public class StaffMember extends AbstractUser {
+
+    public List<StaffAssignment> staffAssignmentList;
+
 }

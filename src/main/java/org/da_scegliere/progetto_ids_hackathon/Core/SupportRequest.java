@@ -28,5 +28,19 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
+import java.util.Date;
+import java.util.List;
+
 public class SupportRequest {
+
+    public Date date;
+    public ISupportRequestState state;
+    public List<StaffAssignment> selectedMentors;
+    public StaffAssignment acceptingMentor;
+    public Team sendingTeam;
+
+    public void changeState(ISupportRequestState state){
+        this.state = state;
+    }
+
 }
