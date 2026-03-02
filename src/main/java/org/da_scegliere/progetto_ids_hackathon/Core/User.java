@@ -28,6 +28,5 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
-public class Hackathon {
-
+public class User extends AbstractUser {
 }

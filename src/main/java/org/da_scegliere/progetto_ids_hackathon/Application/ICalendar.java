@@ -26,8 +26,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core;
+package org.da_scegliere.progetto_ids_hackathon.Application;
 
-public class Hackathon {
-
+public interface ICalendar {
 }
