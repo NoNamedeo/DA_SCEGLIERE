@@ -28,10 +28,19 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+
 import java.util.List;
 
 public class StaffMember extends AbstractUser {
 
-    public List<StaffAssignment> staffAssignmentList;
+    @NotNull
+    @Getter
+    private List<StaffAssignment> staffAssignmentList;
 
+    protected StaffMember(String name, int age, String email, List<StaffAssignment> staffAssignmentList) {
+        super(name, age, email);
+        this.staffAssignmentList = staffAssignmentList;
+    }
 }

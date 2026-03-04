@@ -28,8 +28,17 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
+import lombok.Getter;
+import org.hibernate.validator.constraints.UUID;
+
 public class Manager extends AbstractUser {
 
-    public int id;
+    @UUID
+    @Getter
+    private UUID id;
 
+    protected Manager(String name, int age, String email, UUID id) {
+        super(name, age, email);
+        this.id = id;
+    }
 }

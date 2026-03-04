@@ -28,10 +28,11 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
+import lombok.Setter;
+
 public class HackathonState{
+
+    @Setter
     private Hackathon hackathon;
 
-    public void setHackathon( Hackathon hackathon ) {
-        this.hackathon = hackathon;
-    }
 }

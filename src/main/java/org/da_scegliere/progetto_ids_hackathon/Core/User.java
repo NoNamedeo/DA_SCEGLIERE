@@ -28,8 +28,15 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
+import lombok.Getter;
+
 public class User extends AbstractUser {
 
-    public Team team = null;
+    @Getter
+    private Team team = null;
 
+    protected User(String name, int age, String email, Team team) {
+        super(name, age, email);
+        this.team = team;
+    }
 }

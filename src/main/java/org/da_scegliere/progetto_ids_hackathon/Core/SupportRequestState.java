@@ -28,12 +28,12 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class SupportRequestState implements ISupportRequestState {
 
-    public SupportRequest supportRequest;
-
-    public void setSupportRequest(SupportRequest supportRequest) {
-        this.supportRequest = supportRequest;
-    }
+    @Setter
+    private SupportRequest supportRequest;
 
 }

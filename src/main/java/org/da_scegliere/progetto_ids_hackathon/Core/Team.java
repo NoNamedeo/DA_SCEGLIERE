@@ -28,9 +28,23 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
+import jakarta.validation.constraints.NotEmpty;
+import lombok.Getter;
+
 import java.util.List;
 
-public class Team{
-    String name;
-    List<User> members;
+public class Team {
+
+    @NotEmpty
+    @Getter
+    private String name;
+
+    @NotEmpty
+    @Getter
+    private List<User> members;
+
+    protected Team(String name, List<User> members) {
+        this.name = name;
+        this.members = members;
+    }
 }

@@ -28,19 +28,46 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.Date;
 import java.util.List;
 
 public class SupportRequest {
 
-    public Date date;
-    public ISupportRequestState state;
-    public List<StaffAssignment> selectedMentors;
-    public StaffAssignment acceptingMentor;
-    public Team sendingTeam;
+    @NotNull
+    @PastOrPresent
+    @Getter
+    private Date date;
 
-    public void changeState(ISupportRequestState state){
-        this.state = state;
+    @NotNull
+    @Getter
+    @Setter
+    private ISupportRequestState state; //TODO aggiungi stato default
+
+    @NotEmpty
+    @Getter
+    private List<StaffAssignment> selectedMentors;
+
+    @NotNull
+    @Getter
+    private StaffAssignment acceptingMentor;
+
+    @NotNull
+    @Getter
+    private Team sendingTeam;
+
+    protected SupportRequest(Date date, Team sendingTeam, List<StaffAssignment> selectedMentors) {
+        this.date = date;
+        this.sendingTeam = sendingTeam;
+        this.selectedMentors = selectedMentors;
     }
 
+    public void acceptedBy(StaffAssignment acceptingMentor) {
+        this.acceptingMentor = acceptingMentor;
+    }
 }

@@ -28,13 +28,34 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import lombok.Getter;
+
 import java.util.Date;
 
 public class StaffAssignment {
 
-    public Date assignmentDate;
-    public StaffRole staffRole;
-    public StaffMember staffMember;
-    public Hackathon hackathon;
+    @PastOrPresent
+    @Getter
+    private Date assignmentDate;
 
+    @NotNull
+    @Getter
+    private StaffRole staffRole;
+
+    @NotNull
+    @Getter
+    private StaffMember staffMember;
+
+    @NotNull
+    @Getter
+    private Hackathon hackathon;
+
+    protected StaffAssignment(Date assignmentDate, StaffRole staffRole, StaffMember staffMember, Hackathon hackathon) {
+        this.assignmentDate = assignmentDate;
+        this.staffRole = staffRole;
+        this.staffMember = staffMember;
+        this.hackathon = hackathon;
+    }
 }
