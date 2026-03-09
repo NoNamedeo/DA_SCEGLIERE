@@ -28,37 +28,9 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
-public class Hackathon {
-
-    @NotNull
-    @Getter
+public class HackathonRegistrationState implements IHackathonState {
     @Setter
-    private IHackathonState hackathonState; //TODO aggiungi stato default
-
-    @NotNull
-    @Getter
-    private String description;
-
-    @NotNull
-    @Getter
-    private List<Participation> participations;
-
-    @Getter
-    private Team winner;
-
-    @NotEmpty
-    @Getter
-    private List<StaffAssignment> staff;
-
-    protected Hackathon(String description, List<Participation> participations) {
-        this.description = description;
-        this.participations = participations;
-    }
+    private Hackathon hackathon;
 }

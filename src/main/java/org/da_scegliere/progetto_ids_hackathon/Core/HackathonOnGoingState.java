@@ -30,9 +30,7 @@ package org.da_scegliere.progetto_ids_hackathon.Core;
 
 import lombok.Setter;
 
-public class HackathonState{
-
+public class HackathonOnGoingState implements IHackathonState {
     @Setter
     private Hackathon hackathon;
-
 }
