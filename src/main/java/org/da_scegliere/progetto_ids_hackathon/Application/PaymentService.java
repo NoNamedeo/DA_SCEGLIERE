@@ -33,8 +33,8 @@ import java.util.Objects;
 public class PaymentService implements IPaymentService{
     IPaymentService paymentService;
 
-    public PaymentService(IPaymentService paymentService){
-        this.paymentService = Objects.requireNonNull(paymentService);
+    public PaymentService(PaymentStrategy paymentStrategy){
+        this.paymentStrategy = Objects.requireNonNull(paymentStrategy);
     }
 
     public void awardPrize( BigDecimal price, Team team ){
