@@ -37,6 +37,7 @@ public class PaymentService implements IPaymentService{
         this.paymentService = Objects.requireNonNull(paymentService);
     }
 
-    @Override
-    public void awardPrize(){}
+    public void awardPrize( BigDecimal price, Team team ){
+        paymentStrategy.awardPrize(price, team);
+    }
 }
