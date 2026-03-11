@@ -26,39 +26,26 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core;
+package org.da_scegliere.progetto_ids_hackathon.Core.entities;
 
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.team.Team;
 
-import java.util.List;
+@Getter
+@Entity
+public class User extends AbstractUser{
 
-public class Hackathon {
+    @ManyToOne
+    @JoinColumn(name = "team_id")
+    private Team team = null;
 
-    @NotNull
-    @Getter
-    @Setter
-    private IHackathonState hackathonState; //TODO aggiungi stato default
+    protected User(String name, int age, String email, Team team) {
+        super(name, age, email);
+        this.team = team;
+    }
 
-    @NotNull
-    @Getter
-    private String description;
-
-    @NotNull
-    @Getter
-    private List<Participation> participations;
-
-    @Getter
-    private Team winner;
-
-    @NotEmpty
-    @Getter
-    private List<StaffAssignment> staff;
-
-    protected Hackathon(String description, List<Participation> participations) {
-        this.description = description;
-        this.participations = participations;
+    protected User() {
+        super();
     }
 }

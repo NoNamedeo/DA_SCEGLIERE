@@ -26,24 +26,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core;
+package org.da_scegliere.progetto_ids_hackathon.Application.ports.repositories;
 
-import jakarta.validation.constraints.PastOrPresent;
-import lombok.Getter;
-
-import java.util.Date;
-
-public abstract class Participation {
-
-    @PastOrPresent
-    @Getter
-    private Date entryDate;
-
-    @Getter
-    private String nickname;
-
-    protected Participation(Date entryDate, String nickName) {
-        this.entryDate = entryDate;
-        this.nickname = nickName;
-    }
+public interface IUserRepository{
 }

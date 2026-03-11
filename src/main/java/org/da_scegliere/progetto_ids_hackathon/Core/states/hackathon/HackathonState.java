@@ -26,8 +26,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Application;
+package org.da_scegliere.progetto_ids_hackathon.Core.states.hackathon;
 
-public interface IPaymentService{
-    void awardPrize();
+public enum HackathonState {
 }

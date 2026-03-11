@@ -26,11 +26,29 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core;
+package org.da_scegliere.progetto_ids_hackathon.Core.entities.staff;
 
-import lombok.Setter;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.AbstractUser;
 
-public class HackathonOnGoingState implements IHackathonState {
-    @Setter
-    private Hackathon hackathon;
+import java.util.List;
+
+@Getter
+@Entity
+public class StaffMember extends AbstractUser{
+
+    @NotNull
+    @OneToMany(mappedBy = "staffMember", cascade = CascadeType.ALL)
+    private List<StaffAssignment> staffAssignmentList;
+
+    protected StaffMember(String name, int age, String email, List<StaffAssignment> staffAssignmentList) {
+        super(name, age, email);
+        this.staffAssignmentList = staffAssignmentList;
+    }
+
+    protected StaffMember() {}
 }

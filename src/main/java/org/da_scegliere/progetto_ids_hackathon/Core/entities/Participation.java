@@ -26,36 +26,36 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core;
+package org.da_scegliere.progetto_ids_hackathon.Core.entities;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.Getter;
 
 import java.util.Date;
 
-public class StaffAssignment {
+@Getter
+@Entity
+public abstract class Participation {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private long id;
 
     @PastOrPresent
-    @Getter
-    private Date assignmentDate;
+    private Date entryDate;
 
-    @NotNull
-    @Getter
-    private StaffRole staffRole;
+    private String nickname;
 
-    @NotNull
-    @Getter
-    private StaffMember staffMember;
-
-    @NotNull
-    @Getter
+    @ManyToOne
+    @JoinColumn(name = "hackathon_id")
     private Hackathon hackathon;
 
-    protected StaffAssignment(Date assignmentDate, StaffRole staffRole, StaffMember staffMember, Hackathon hackathon) {
-        this.assignmentDate = assignmentDate;
-        this.staffRole = staffRole;
-        this.staffMember = staffMember;
+    protected Participation(Date entryDate, String nickName, Hackathon hackathon) {
+        this.entryDate = entryDate;
+        this.nickname = nickName;
         this.hackathon = hackathon;
     }
+
+    protected Participation() {}
 }

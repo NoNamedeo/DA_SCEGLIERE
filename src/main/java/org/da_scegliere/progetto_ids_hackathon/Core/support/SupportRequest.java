@@ -28,12 +28,48 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.Getter;
 import lombok.Setter;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.StaffAssignment;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.Team;
 
-public class SupportRequestState implements ISupportRequestState {
+import java.util.Date;
+import java.util.List;
 
+public class SupportRequest {
+
+    @NotNull
+    @PastOrPresent
+    @Getter
+    private Date date;
+
+    @NotNull
+    @Getter
     @Setter
-    private SupportRequest supportRequest;
+    private ISupportRequestState state; //TODO aggiungi stato default
 
+    @NotEmpty
+    @Getter
+    private List<StaffAssignment> selectedMentors;
+
+    @NotNull
+    @Getter
+    private StaffAssignment acceptingMentor;
+
+    @NotNull
+    @Getter
+    private Team sendingTeam;
+
+    protected SupportRequest(Date date, Team sendingTeam, List<StaffAssignment> selectedMentors) {
+        this.date = date;
+        this.sendingTeam = sendingTeam;
+        this.selectedMentors = selectedMentors;
+    }
+
+    public void acceptedBy(StaffAssignment acceptingMentor) {
+        this.acceptingMentor = acceptingMentor;
+    }
 }

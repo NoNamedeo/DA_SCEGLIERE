@@ -26,11 +26,36 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core;
+package org.da_scegliere.progetto_ids_hackathon.Core.entities.team;
 
-import lombok.Setter;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.Participation;
 
-public class HackathonEndedState implements IHackathonState {
-    @Setter
-    private Hackathon hackathon;
+import java.util.Date;
+import java.util.List;
+
+@Getter
+@Entity
+public class TeamParticipation extends Participation{
+
+    @NotNull
+    @ManyToOne
+    @JoinColumn(name = "team_id", nullable = false)
+    private Team team;
+
+    @OneToMany(mappedBy = "teamParticipation", cascade = CascadeType.ALL)
+    private List<Submission> submissions;
+
+    protected TeamParticipation( Date entryDate, String nickName, Hackathon hackathon, Team team, List<Submission> submissions) {
+        super(entryDate, nickName, hackathon);
+        this.team = team;
+        this.submissions = submissions;
+    }
+
+    protected TeamParticipation() {
+        super();
+    }
 }

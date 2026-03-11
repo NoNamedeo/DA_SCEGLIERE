@@ -28,19 +28,12 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Core;
 
-import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
+import lombok.Setter;
+import org.da_scegliere.progetto_ids_hackathon.Core.support.SupportRequest;
 
-import java.util.List;
+public class SupportRequestState implements ISupportRequestState {
 
-public class StaffMember extends AbstractUser {
+    @Setter
+    private SupportRequest supportRequest;
 
-    @NotNull
-    @Getter
-    private List<StaffAssignment> staffAssignmentList;
-
-    protected StaffMember(String name, int age, String email, List<StaffAssignment> staffAssignmentList) {
-        super(name, age, email);
-        this.staffAssignmentList = staffAssignmentList;
-    }
 }

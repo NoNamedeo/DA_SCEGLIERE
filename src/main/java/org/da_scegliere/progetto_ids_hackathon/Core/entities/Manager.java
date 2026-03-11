@@ -26,8 +26,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core;
+package org.da_scegliere.progetto_ids_hackathon.Core.entities;
 
-public interface IHackathonState{
+import jakarta.persistence.Entity;
 
+@Entity
+public class Manager extends AbstractUser{
+
+    protected Manager(String name, int age, String email) {
+        super(name, age, email);
+    }
+
+    protected Manager() {}
 }

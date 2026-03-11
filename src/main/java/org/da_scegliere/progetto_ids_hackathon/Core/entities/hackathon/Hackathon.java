@@ -26,19 +26,51 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core;
+package org.da_scegliere.progetto_ids_hackathon.Core.entities;
 
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import org.hibernate.validator.constraints.UUID;
+import lombok.Setter;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.staff.StaffAssignment;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.team.Team;
+import org.da_scegliere.progetto_ids_hackathon.Core.states.hackathon.HackathonState;
 
-public class Manager extends AbstractUser {
+import java.util.List;
 
-    @UUID
-    @Getter
-    private UUID id;
+@Getter
+@Entity
+public class Hackathon {
 
-    protected Manager(String name, int age, String email, UUID id) {
-        super(name, age, email);
-        this.id = id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
+    @NotNull
+    @Setter
+    @Enumerated(EnumType.STRING)
+    private HackathonState hackathonState;
+
+    @NotNull
+    private String description;
+
+    @NotNull
+    @OneToMany(mappedBy = "hackathon")
+    private List<Participation> participations;
+
+    @ManyToOne
+    @JoinColumn( name = "winner_team_id")
+    private Team winner;
+
+    @NotEmpty
+    @OneToMany(mappedBy = "hackathon")
+    private List<StaffAssignment> staff;
+
+    protected Hackathon(String description, List<Participation> participations) {
+        this.description = description;
+        this.participations = participations;
     }
+
+    protected Hackathon() {}
 }

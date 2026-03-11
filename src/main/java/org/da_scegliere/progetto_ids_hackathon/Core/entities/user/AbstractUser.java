@@ -26,12 +26,45 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Application;
+package org.da_scegliere.progetto_ids_hackathon.Core.entities;
 
-import java.util.Date;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.validation.constraints.*;
+import lombok.Getter;
+import lombok.Setter;
 
-public interface ICalendar {
+@Getter
+@Entity
+public abstract class AbstractUser {
 
-    public void reserveCallSlot(Date start, Date end);
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private long id;
 
+    @NotBlank
+    @Size(min = 2, max = 50)
+    private String name;
+
+    @Min(18)
+    @Max(120)
+    private int age;
+
+    @NotBlank
+    @Email
+    private String email;
+
+    @Setter
+    private boolean suspended;
+
+    protected AbstractUser(String name, int age, String email) {
+        this.name = name;
+        this.age = age;
+        this.email = email;
+        this.suspended = false;
+    }
+
+    protected AbstractUser() {}
 }

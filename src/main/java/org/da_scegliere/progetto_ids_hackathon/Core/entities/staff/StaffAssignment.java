@@ -26,25 +26,50 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core;
+package org.da_scegliere.progetto_ids_hackathon.Core.entities.staff;
 
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.Getter;
+import lombok.Setter;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.Core.enums.StaffRole;
 
-import java.util.List;
+import java.util.Date;
 
-public class Team {
+@Getter
+@Entity
+public class StaffAssignment {
 
-    @NotEmpty
-    @Getter
-    private String name;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private long id;
 
-    @NotEmpty
-    @Getter
-    private List<User> members;
+    @PastOrPresent
+    private Date assignmentDate;
 
-    protected Team(String name, List<User> members) {
-        this.name = name;
-        this.members = members;
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private StaffRole staffRole;
+
+    @NotNull
+    @ManyToOne
+    @JoinColumn(name = "staff_member_id", nullable = false)
+    private StaffMember staffMember;
+
+    @ManyToOne
+    @JoinColumn(name = "hackathon_id")
+    @NotNull
+    @Setter
+    private Hackathon hackathon;
+
+    protected StaffAssignment(Date assignmentDate, StaffRole staffRole, StaffMember staffMember, Hackathon hackathon) {
+        this.assignmentDate = assignmentDate;
+        this.staffRole = staffRole;
+        this.staffMember = staffMember;
+        this.hackathon = hackathon;
     }
+
+    protected StaffAssignment() {}
 }

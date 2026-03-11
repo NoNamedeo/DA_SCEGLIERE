@@ -26,8 +26,43 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core;
+package org.da_scegliere.progetto_ids_hackathon.Core.entities.team;
 
-public interface ISupportRequestState {
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import lombok.Getter;
 
+import java.util.Date;
+
+@Getter
+@Entity
+public class Submission {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private long id;
+
+    @PastOrPresent
+    private Date submittedAt;
+
+    @NotNull
+    private String description;
+
+    @NotEmpty
+    private String title;
+
+    @ManyToOne
+    @JoinColumn(name = "team_participation_id")
+    private TeamParticipation teamParticipation;
+
+    protected Submission(Date date, String description, String title, TeamParticipation teamParticipation) {
+        this.submittedAt = date;
+        this.description = description;
+        this.title = title;
+        this.teamParticipation = teamParticipation;
+    }
+
+    protected Submission() {}
 }

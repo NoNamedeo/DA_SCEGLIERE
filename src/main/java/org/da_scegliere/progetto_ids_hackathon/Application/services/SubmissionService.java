@@ -26,37 +26,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core;
+package org.da_scegliere.progetto_ids_hackathon.Application.services;
 
-import jakarta.validation.constraints.*;
-import lombok.Getter;
-import lombok.Setter;
-
-public abstract class AbstractUser {
-
-    @NotBlank
-    @Size(min = 2, max = 50)
-    @Getter
-    private String name;
-
-    @Min(18)
-    @Max(120)
-    @Getter
-    private int age;
-
-    @NotBlank
-    @Email
-    @Getter
-    private String email;
-
-    @Getter
-    @Setter
-    private boolean suspended;
-
-    protected AbstractUser(String name, int age, String email) {
-        this.name = name;
-        this.age = age;
-        this.email = email;
-        this.suspended = false;
-    }
+public class SubmissionService {
 }

@@ -26,17 +26,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core;
+package org.da_scegliere.progetto_ids_hackathon.Application.services;
 
-import lombok.Getter;
-
-public class User extends AbstractUser {
-
-    @Getter
-    private Team team = null;
-
-    protected User(String name, int age, String email, Team team) {
-        super(name, age, email);
-        this.team = team;
-    }
+public class SupportRequestService {
 }

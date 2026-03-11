@@ -26,48 +26,34 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core;
+package org.da_scegliere.progetto_ids_hackathon.Core.entities.team;
 
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
 import lombok.Getter;
-import lombok.Setter;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.User;
 
-import java.util.Date;
 import java.util.List;
 
-public class SupportRequest {
+@Getter
+@Entity
+public class Team {
 
-    @NotNull
-    @PastOrPresent
-    @Getter
-    private Date date;
-
-    @NotNull
-    @Getter
-    @Setter
-    private ISupportRequestState state; //TODO aggiungi stato default
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private long id;
 
     @NotEmpty
-    @Getter
-    private List<StaffAssignment> selectedMentors;
+    private String name;
 
-    @NotNull
-    @Getter
-    private StaffAssignment acceptingMentor;
+    @NotEmpty
+    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL)
+    private List<User> members;
 
-    @NotNull
-    @Getter
-    private Team sendingTeam;
-
-    protected SupportRequest(Date date, Team sendingTeam, List<StaffAssignment> selectedMentors) {
-        this.date = date;
-        this.sendingTeam = sendingTeam;
-        this.selectedMentors = selectedMentors;
+    protected Team(String name, List<User> members) {
+        this.name = name;
+        this.members = members;
     }
 
-    public void acceptedBy(StaffAssignment acceptingMentor) {
-        this.acceptingMentor = acceptingMentor;
-    }
+    protected Team() {}
 }

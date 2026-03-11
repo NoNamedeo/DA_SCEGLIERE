@@ -26,18 +26,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Application;
+package org.da_scegliere.progetto_ids_hackathon.Application.ports.repositories;
 
-import java.util.Objects;
-
-public class PaymentService implements IPaymentService{
-    IPaymentService paymentService;
-
-    public PaymentService(PaymentStrategy paymentStrategy){
-        this.paymentStrategy = Objects.requireNonNull(paymentStrategy);
-    }
-
-    public void awardPrize( BigDecimal price, Team team ){
-        paymentStrategy.awardPrize(price, team);
-    }
+public class ITeamRepository {
 }

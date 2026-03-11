@@ -26,26 +26,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core;
+package org.da_scegliere.progetto_ids_hackathon.Application.ports.repositories;
 
-import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-
-import java.util.Date;
-import java.util.List;
-
-public class TeamParticipation extends Participation {
-
-    @NotNull
-    @Getter
-    private Team team;
-
-    @Getter
-    private List<Submission> submissions;
-
-    protected TeamParticipation(Date entryDate, String nickName, Team team, List<Submission> submissions) {
-        super(entryDate, nickName);
-        this.team = team;
-        this.submissions = submissions;
-    }
+public interface IHackathonRepository {
 }

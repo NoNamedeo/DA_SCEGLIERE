@@ -28,10 +28,20 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Application;
 
+import org.da_scegliere.progetto_ids_hackathon.Application.ports.PaymentStrategy;
 import org.da_scegliere.progetto_ids_hackathon.Core.Team;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
-public interface PaymentStrategy{
-    void awardPrize( BigDecimal prize, Team team );
+public class PaymentService{
+    PaymentStrategy paymentStrategy;
+
+    public PaymentService(PaymentStrategy paymentStrategy){
+        this.paymentStrategy = Objects.requireNonNull(paymentStrategy);
+    }
+
+    public void awardPrize( BigDecimal price, Team team ){
+        paymentStrategy.awardPrize(price, team);
+    }
 }

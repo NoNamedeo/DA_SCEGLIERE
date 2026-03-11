@@ -26,33 +26,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core;
+package org.da_scegliere.progetto_ids_hackathon.Application.services;
 
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
-import lombok.Getter;
-
-import java.util.Date;
-
-public class Submission {
-
-    @PastOrPresent
-    @Getter
-    private Date submittedAt;
-
-    @NotNull
-    @Getter
-    private String description;
-
-    @NotEmpty
-    @Getter
-    private String title;
-
-    protected Submission(Date date, String description, String title) {
-        this.submittedAt = date;
-        this.description = description;
-        this.title = title;
-    }
-
+public class HackathonService {
 }
