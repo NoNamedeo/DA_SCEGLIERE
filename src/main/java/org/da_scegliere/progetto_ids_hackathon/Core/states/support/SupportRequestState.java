@@ -26,14 +26,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core;
+package org.da_scegliere.progetto_ids_hackathon.Core.states.support;
 
 import lombok.Setter;
 import org.da_scegliere.progetto_ids_hackathon.Core.support.SupportRequest;
 
-public class SupportRequestState implements ISupportRequestState {
+public enum SupportRequestState {
 
-    @Setter
-    private SupportRequest supportRequest;
+    OPEN,
+    IN_PROGRESS,
+    RESOLVED,
+    REJECTED
 
 }

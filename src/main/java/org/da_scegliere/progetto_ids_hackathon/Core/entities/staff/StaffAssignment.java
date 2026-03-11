@@ -33,18 +33,19 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.Getter;
 import lombok.Setter;
-import org.da_scegliere.progetto_ids_hackathon.Core.entities.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.Core.enums.StaffRole;
 
 import java.util.Date;
+import java.util.UUID;
 
 @Getter
 @Entity
 public class StaffAssignment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @PastOrPresent
     private Date assignmentDate;

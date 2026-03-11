@@ -28,5 +28,5 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Application.services;
 
-public class SupportRequestService {
+public class SupportRequestService{
 }

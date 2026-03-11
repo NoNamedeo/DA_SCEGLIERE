@@ -28,5 +28,12 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Application.ports.repositories;
 
-public class ITeamRepository {
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.team.Team;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.UUID;
+
+@Repository
+public interface ITeamRepository extends JpaRepository<Team, UUID>{
 }

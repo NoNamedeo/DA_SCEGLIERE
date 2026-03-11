@@ -31,16 +31,18 @@ package org.da_scegliere.progetto_ids_hackathon.Core.entities;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.Getter;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.hackathon.Hackathon;
 
 import java.util.Date;
+import java.util.UUID;
 
 @Getter
 @Entity
 public abstract class Participation {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @PastOrPresent
     private Date entryDate;

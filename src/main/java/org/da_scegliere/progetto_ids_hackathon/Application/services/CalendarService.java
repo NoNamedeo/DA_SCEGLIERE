@@ -26,13 +26,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Application;
+package org.da_scegliere.progetto_ids_hackathon.Application.services;
 
-import org.da_scegliere.progetto_ids_hackathon.Core.SupportRequest;
+import org.da_scegliere.progetto_ids_hackathon.Application.ports.repositories.IHackathonRepository;
+import org.da_scegliere.progetto_ids_hackathon.Core.support.SupportRequest;
+import org.springframework.stereotype.Service;
 
+@Service
 public class CalendarService {
-
-    public ICalendar calendar;
 
     public void reserveCallSlot(SupportRequest request) {}
 

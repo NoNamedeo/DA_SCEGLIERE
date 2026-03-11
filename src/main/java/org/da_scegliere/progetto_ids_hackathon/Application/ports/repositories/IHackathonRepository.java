@@ -28,5 +28,12 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Application.ports.repositories;
 
-public interface IHackathonRepository {
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.hackathon.Hackathon;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.UUID;
+
+@Repository
+public interface IHackathonRepository extends JpaRepository<Hackathon, UUID>{
 }

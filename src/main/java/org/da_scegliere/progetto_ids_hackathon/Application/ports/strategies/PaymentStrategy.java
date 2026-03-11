@@ -26,9 +26,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Application.ports;
+package org.da_scegliere.progetto_ids_hackathon.Application.ports.strategies;
 
-import org.da_scegliere.progetto_ids_hackathon.Core.entities.Team;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.team.Team;
 
 import java.math.BigDecimal;
 

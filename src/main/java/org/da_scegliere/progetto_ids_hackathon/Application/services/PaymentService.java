@@ -26,10 +26,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Application;
+package org.da_scegliere.progetto_ids_hackathon.Application.services;
 
-import org.da_scegliere.progetto_ids_hackathon.Application.ports.PaymentStrategy;
-import org.da_scegliere.progetto_ids_hackathon.Core.Team;
+import org.da_scegliere.progetto_ids_hackathon.Application.ports.strategies.PaymentStrategy;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.team.Team;
 
 import java.math.BigDecimal;
 import java.util.Objects;

@@ -29,15 +29,24 @@
 package org.da_scegliere.progetto_ids_hackathon.Infrastructure;
 
 import lombok.extern.log4j.Log4j2;
-import org.da_scegliere.progetto_ids_hackathon.Application.PaymentStrategy;
-import org.da_scegliere.progetto_ids_hackathon.Core.Team;
+import org.da_scegliere.progetto_ids_hackathon.Application.ports.strategies.PaymentStrategy;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.team.Team;
 
 import java.math.BigDecimal;
 
 @Log4j2
 public class PayPalPaymentStrategy implements PaymentStrategy{
+
+    /*******************
+    TODO: use paypal api
+     *******************/
     @Override
-    public void awardPrize( BigDecimal prize, Team team){
-        log.info("PayPal payment strategy award.\n prize: {} \nteam: {}\n" , prize , team.getName());
+    public void awardPrize(BigDecimal prize, Team team){
+        team.getMembers().forEach( member -> {
+            log.info("PayPal payment strategy award.\n prize: {} \nteam member: {}\n" ,
+                    prize ,
+                    member.getName()
+            );
+        });
     }
 }

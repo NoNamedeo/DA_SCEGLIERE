@@ -28,5 +28,12 @@
 
 package org.da_scegliere.progetto_ids_hackathon.Application.ports.repositories;
 
-public class IStaffMemberRepository {
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.staff.StaffMember;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.UUID;
+
+@Repository
+public interface IStaffMemberRepository extends JpaRepository<StaffMember, UUID>{
 }

@@ -26,7 +26,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core.entities;
+package org.da_scegliere.progetto_ids_hackathon.Core.entities.user;
 
 import jakarta.persistence.*;
 import lombok.Getter;

@@ -29,6 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.Core.entities;
 
 import jakarta.persistence.Entity;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.user.AbstractUser;
 
 @Entity
 public class Manager extends AbstractUser{

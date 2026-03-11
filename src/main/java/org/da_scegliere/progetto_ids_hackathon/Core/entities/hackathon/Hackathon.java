@@ -26,26 +26,28 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core.entities;
+package org.da_scegliere.progetto_ids_hackathon.Core.entities.hackathon;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.Participation;
 import org.da_scegliere.progetto_ids_hackathon.Core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.Core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.Core.states.hackathon.HackathonState;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Entity
 public class Hackathon {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @NotNull
     @Setter

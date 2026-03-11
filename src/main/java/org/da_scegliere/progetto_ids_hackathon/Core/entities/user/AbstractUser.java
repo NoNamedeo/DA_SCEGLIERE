@@ -26,7 +26,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core.entities;
+package org.da_scegliere.progetto_ids_hackathon.Core.entities.user;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -36,13 +36,15 @@ import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Entity
 public abstract class AbstractUser {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @NotBlank
     @Size(min = 2, max = 50)

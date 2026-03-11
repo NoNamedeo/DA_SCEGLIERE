@@ -31,17 +31,18 @@ package org.da_scegliere.progetto_ids_hackathon.Core.entities.team;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
-import org.da_scegliere.progetto_ids_hackathon.Core.entities.User;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.user.User;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Entity
 public class Team {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @NotEmpty
     private String name;

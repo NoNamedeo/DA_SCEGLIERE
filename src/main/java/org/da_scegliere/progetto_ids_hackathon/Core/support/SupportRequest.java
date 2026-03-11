@@ -26,41 +26,55 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Core;
+package org.da_scegliere.progetto_ids_hackathon.Core.support;
 
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.Getter;
 import lombok.Setter;
-import org.da_scegliere.progetto_ids_hackathon.Core.entities.StaffAssignment;
-import org.da_scegliere.progetto_ids_hackathon.Core.entities.Team;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.staff.StaffAssignment;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.team.Team;
+import org.da_scegliere.progetto_ids_hackathon.Core.states.support.SupportRequestState;
 
 import java.util.Date;
 import java.util.List;
 
+@Getter
+@Entity
 public class SupportRequest {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
     @NotNull
     @PastOrPresent
-    @Getter
     private Date date;
 
     @NotNull
-    @Getter
     @Setter
-    private ISupportRequestState state; //TODO aggiungi stato default
+    @Enumerated(EnumType.STRING)
+    private SupportRequestState state;
 
-    @NotEmpty
-    @Getter
+    @ManyToMany
+    @JoinTable(
+            name = "support_request_mentors",
+            joinColumns = @JoinColumn(name = "support_request_id"),
+            inverseJoinColumns = @JoinColumn(name = "staff_assignment_id")
+    )
     private List<StaffAssignment> selectedMentors;
 
+    @Setter
     @NotNull
-    @Getter
+    @ManyToOne
+    @JoinColumn(name = "accepting_mentor_id")
     private StaffAssignment acceptingMentor;
 
+    @Setter
     @NotNull
-    @Getter
+    @OneToOne
+    @JoinColumn(name = "sending_team_id")
     private Team sendingTeam;
 
     protected SupportRequest(Date date, Team sendingTeam, List<StaffAssignment> selectedMentors) {
@@ -69,7 +83,10 @@ public class SupportRequest {
         this.selectedMentors = selectedMentors;
     }
 
+    protected SupportRequest() { }
+
     public void acceptedBy(StaffAssignment acceptingMentor) {
         this.acceptingMentor = acceptingMentor;
     }
+
 }

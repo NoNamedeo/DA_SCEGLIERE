@@ -35,14 +35,15 @@ import jakarta.validation.constraints.PastOrPresent;
 import lombok.Getter;
 
 import java.util.Date;
+import java.util.UUID;
 
 @Getter
 @Entity
 public class Submission {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @PastOrPresent
     private Date submittedAt;

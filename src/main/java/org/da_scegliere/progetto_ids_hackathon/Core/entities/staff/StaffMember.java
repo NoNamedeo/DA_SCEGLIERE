@@ -33,7 +33,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import org.da_scegliere.progetto_ids_hackathon.Core.entities.AbstractUser;
+import org.da_scegliere.progetto_ids_hackathon.Core.entities.user.AbstractUser;
 
 import java.util.List;
 

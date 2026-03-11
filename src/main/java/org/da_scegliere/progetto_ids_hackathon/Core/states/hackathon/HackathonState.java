@@ -29,4 +29,10 @@
 package org.da_scegliere.progetto_ids_hackathon.Core.states.hackathon;
 
 public enum HackathonState {
+
+    REGISTRATION,
+    ONGOING,
+    EVALUATION,
+    ENDED
+
 }
