@@ -104,4 +104,24 @@ public class TeamService{
         team.setName(newName);
         return teamRepository.save(team);
     }
+
+    /**
+     * add a team member to the team.
+     */
+    @Transactional
+    public Team addMemberToTeam(UUID teamId, User user) {
+        Team team = getTeamById(teamId);
+        team.addMember(user);
+        return teamRepository.save(team);
+    }
+
+    /**
+     * remove a team member from the team.
+     */
+    @Transactional
+    public Team removeMemberFromTeam(UUID teamId, User user) {
+        Team team = getTeamById(teamId);
+        team.removeMember(user);
+        return teamRepository.save(team);
+    }
 }
