@@ -26,30 +26,47 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Infrastructure;
+package org.da_scegliere.progetto_ids_hackathon.core.entities.user;
 
-import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.PaymentStrategy;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.validation.constraints.*;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.math.BigDecimal;
+import java.util.UUID;
 
-@Component
-@Primary
-public class PayPalPaymentStrategy implements PaymentStrategy {
+@Getter
+@Entity
+public abstract class AbstractUser {
 
-    /**
-     * TODO: integrate PayPal API.
-     */
-    @Override
-    public void awardPrize(BigDecimal prize, Team team) {
-        if (prize == null || prize.signum() <= 0) {
-            throw new IllegalArgumentException("prize must be a positive amount.");
-        }
-        if (team == null) {
-            throw new IllegalArgumentException("team must not be null.");
-        }
-        // Integration point with external payment provider.
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @NotBlank
+    @Size(min = 2, max = 50)
+    private String name;
+
+    @Min(18)
+    @Max(120)
+    private int age;
+
+    @NotBlank
+    @Email
+    private String email;
+
+    @Setter
+    private boolean suspended;
+
+    protected AbstractUser(String name, int age, String email) {
+        this.name = name;
+        this.age = age;
+        this.email = email;
+        this.suspended = false;
     }
+
+    protected AbstractUser() {}
 }

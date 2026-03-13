@@ -26,30 +26,29 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Infrastructure;
+package org.da_scegliere.progetto_ids_hackathon.core.entities.staff;
 
-import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.PaymentStrategy;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.user.AbstractUser;
 
-import java.math.BigDecimal;
+import java.util.List;
 
-@Component
-@Primary
-public class PayPalPaymentStrategy implements PaymentStrategy {
+@Getter
+@Entity
+public class StaffMember extends AbstractUser{
 
-    /**
-     * TODO: integrate PayPal API.
-     */
-    @Override
-    public void awardPrize(BigDecimal prize, Team team) {
-        if (prize == null || prize.signum() <= 0) {
-            throw new IllegalArgumentException("prize must be a positive amount.");
-        }
-        if (team == null) {
-            throw new IllegalArgumentException("team must not be null.");
-        }
-        // Integration point with external payment provider.
+    @NotNull
+    @OneToMany(mappedBy = "staffMember", cascade = CascadeType.ALL)
+    private List<StaffAssignment> staffAssignmentList;
+
+    protected StaffMember(String name, int age, String email, List<StaffAssignment> staffAssignmentList) {
+        super(name, age, email);
+        this.staffAssignmentList = staffAssignmentList;
     }
+
+    protected StaffMember() {}
 }

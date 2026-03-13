@@ -26,30 +26,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Infrastructure;
+package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team;
 
-import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.PaymentStrategy;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
+import java.util.UUID;
 
-import java.math.BigDecimal;
+public class TeamNotFoundException extends RuntimeException{
+    public TeamNotFoundException( UUID teamId ) {
+        super("Team with id '" + teamId + "' was not found.");
+    }
 
-@Component
-@Primary
-public class PayPalPaymentStrategy implements PaymentStrategy {
-
-    /**
-     * TODO: integrate PayPal API.
-     */
-    @Override
-    public void awardPrize(BigDecimal prize, Team team) {
-        if (prize == null || prize.signum() <= 0) {
-            throw new IllegalArgumentException("prize must be a positive amount.");
-        }
-        if (team == null) {
-            throw new IllegalArgumentException("team must not be null.");
-        }
-        // Integration point with external payment provider.
+    public TeamNotFoundException( String teamName ) {
+        super("Team with name '" + teamName + "' was not found.");
     }
 }

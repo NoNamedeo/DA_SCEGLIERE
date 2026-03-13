@@ -26,30 +26,42 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Infrastructure;
+package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.PaymentStrategy;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
-@Component
-@Primary
-public class PayPalPaymentStrategy implements PaymentStrategy {
+@Service
+public class PaymentService {
+
+    private final PaymentStrategy paymentStrategy;
+
+    public PaymentService(PaymentStrategy paymentStrategy) {
+        this.paymentStrategy = Objects.requireNonNull(paymentStrategy, "paymentStrategy must not be null");
+    }
 
     /**
-     * TODO: integrate PayPal API.
+     * Awards the provided prize to the specified team via the configured payment strategy.
      */
-    @Override
     public void awardPrize(BigDecimal prize, Team team) {
+        validatePrize(prize);
+        validateTeam(team);
+        paymentStrategy.awardPrize(prize, team);
+    }
+
+    private static void validatePrize(BigDecimal prize) {
         if (prize == null || prize.signum() <= 0) {
-            throw new IllegalArgumentException("prize must be a positive amount.");
+            throw new IllegalArgumentException("prize must be a positive value.");
         }
+    }
+
+    private static void validateTeam(Team team) {
         if (team == null) {
             throw new IllegalArgumentException("team must not be null.");
         }
-        // Integration point with external payment provider.
     }
 }

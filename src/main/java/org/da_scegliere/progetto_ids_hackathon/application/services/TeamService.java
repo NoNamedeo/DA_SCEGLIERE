@@ -26,11 +26,25 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Application.services;
+package org.da_scegliere.progetto_ids_hackathon.application.services;
 
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamRepository;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+
+@Service
+@Transactional(readOnly = true)
 public class TeamService{
 
-    private ITeamRepository teamRepository;
+    private final ITeamRepository teamRepository;
 
     @Autowired
     public TeamService(ITeamRepository teamRepository) {
@@ -66,7 +80,7 @@ public class TeamService{
         if(name.isBlank()) {
             throw new IllegalArgumentException("name must not be blank");
         }
-        return teamRepository.findByName(name)
+        return teamRepository.findTeamByName(name)
                 .orElseThrow(() -> new TeamNotFoundException(name));
     }
 
@@ -88,8 +102,16 @@ public class TeamService{
      */
     @Transactional
     public Team createTeam(String name, List<User> members) {
-        Team team = new Team(name, members);
-        return teamRepository.save(team);
+        return teamRepository.save(new Team(name, members));
+    }
+
+    /**
+     * Deletes a team by id.
+     */
+    @Transactional
+    public void deleteTeam(UUID teamId) {
+        Team team = getTeamById(teamId);
+        teamRepository.delete(team);
     }
 
     /**
@@ -102,7 +124,7 @@ public class TeamService{
         }
         Team team = getTeamById(teamId);
         team.setName(newName);
-        return teamRepository.save(team);
+        return team;
     }
 
     /**
@@ -112,7 +134,7 @@ public class TeamService{
     public Team addMemberToTeam(UUID teamId, User user) {
         Team team = getTeamById(teamId);
         team.addMember(user);
-        return teamRepository.save(team);
+        return team;
     }
 
     /**
@@ -122,6 +144,6 @@ public class TeamService{
     public Team removeMemberFromTeam(UUID teamId, User user) {
         Team team = getTeamById(teamId);
         team.removeMember(user);
-        return teamRepository.save(team);
+        return team;
     }
 }

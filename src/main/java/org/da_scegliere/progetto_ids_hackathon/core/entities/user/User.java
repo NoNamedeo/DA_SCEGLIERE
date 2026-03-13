@@ -26,30 +26,28 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Infrastructure;
+package org.da_scegliere.progetto_ids_hackathon.core.entities.user;
 
-import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.PaymentStrategy;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
+@Getter
+@Entity
+public class User extends AbstractUser{
 
-@Component
-@Primary
-public class PayPalPaymentStrategy implements PaymentStrategy {
+    @ManyToOne
+    @JoinColumn(name = "team_id")
+    @Setter
+    private Team team = null;
 
-    /**
-     * TODO: integrate PayPal API.
-     */
-    @Override
-    public void awardPrize(BigDecimal prize, Team team) {
-        if (prize == null || prize.signum() <= 0) {
-            throw new IllegalArgumentException("prize must be a positive amount.");
-        }
-        if (team == null) {
-            throw new IllegalArgumentException("team must not be null.");
-        }
-        // Integration point with external payment provider.
+    protected User(String name, int age, String email, Team team) {
+        super(name, age, email);
+        this.team = team;
+    }
+
+    protected User() {
+        super();
     }
 }

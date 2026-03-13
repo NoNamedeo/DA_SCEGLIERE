@@ -26,30 +26,45 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Infrastructure;
+package org.da_scegliere.progetto_ids_hackathon.core.entities.team;
 
-import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.PaymentStrategy;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import lombok.Getter;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Date;
+import java.util.UUID;
 
-@Component
-@Primary
-public class PayPalPaymentStrategy implements PaymentStrategy {
+@Getter
+@Entity
+public class Submission {
 
-    /**
-     * TODO: integrate PayPal API.
-     */
-    @Override
-    public void awardPrize(BigDecimal prize, Team team) {
-        if (prize == null || prize.signum() <= 0) {
-            throw new IllegalArgumentException("prize must be a positive amount.");
-        }
-        if (team == null) {
-            throw new IllegalArgumentException("team must not be null.");
-        }
-        // Integration point with external payment provider.
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @PastOrPresent
+    private LocalDate submittedAt;
+
+    @NotNull
+    private String description;
+
+    @NotEmpty
+    private String title;
+
+    @ManyToOne
+    @JoinColumn(name = "team_participation_id")
+    private TeamParticipation teamParticipation;
+
+    public Submission(LocalDate date, String description, String title, TeamParticipation teamParticipation) {
+        this.submittedAt = date;
+        this.description = description;
+        this.title = title;
+        this.teamParticipation = teamParticipation;
     }
+
+    public Submission() {}
 }

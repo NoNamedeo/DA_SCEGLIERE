@@ -26,30 +26,48 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Infrastructure;
+package org.da_scegliere.progetto_ids_hackathon.core.entities.team;
 
-import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.PaymentStrategy;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
+import lombok.Getter;
+import lombok.Setter;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 
-import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
 
-@Component
-@Primary
-public class PayPalPaymentStrategy implements PaymentStrategy {
+@Getter
+@Entity
+public class Team {
 
-    /**
-     * TODO: integrate PayPal API.
-     */
-    @Override
-    public void awardPrize(BigDecimal prize, Team team) {
-        if (prize == null || prize.signum() <= 0) {
-            throw new IllegalArgumentException("prize must be a positive amount.");
-        }
-        if (team == null) {
-            throw new IllegalArgumentException("team must not be null.");
-        }
-        // Integration point with external payment provider.
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @NotEmpty
+    @Setter
+    private String name;
+
+    @NotEmpty
+    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL)
+    private List<User> members;
+
+    public Team(String name, List<User> members) {
+        this.name = name;
+        this.members = members;
+    }
+
+    public Team() {}
+
+    public void addMember(User user) {
+        members.add(user);
+        user.setTeam(this);
+    }
+
+    public void removeMember(User user) {
+        members.remove(user);
+        user.setTeam(null);
     }
 }

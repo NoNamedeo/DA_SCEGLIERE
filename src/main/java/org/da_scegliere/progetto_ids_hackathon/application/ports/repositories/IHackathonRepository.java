@@ -26,30 +26,18 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Infrastructure;
+package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
 
-import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.PaymentStrategy;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
+import jakarta.validation.constraints.NotBlank;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
+import java.lang.ScopedValue;
+import java.util.Optional;
+import java.util.UUID;
 
-@Component
-@Primary
-public class PayPalPaymentStrategy implements PaymentStrategy {
-
-    /**
-     * TODO: integrate PayPal API.
-     */
-    @Override
-    public void awardPrize(BigDecimal prize, Team team) {
-        if (prize == null || prize.signum() <= 0) {
-            throw new IllegalArgumentException("prize must be a positive amount.");
-        }
-        if (team == null) {
-            throw new IllegalArgumentException("team must not be null.");
-        }
-        // Integration point with external payment provider.
-    }
+@Repository
+public interface IHackathonRepository extends JpaRepository<Hackathon, UUID>{
+    Optional<Hackathon> findHackathonByName( String name );
 }

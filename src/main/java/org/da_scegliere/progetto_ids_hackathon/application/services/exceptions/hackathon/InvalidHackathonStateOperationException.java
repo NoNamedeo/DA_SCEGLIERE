@@ -26,30 +26,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Infrastructure;
+package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon;
 
-import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.PaymentStrategy;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
+import org.da_scegliere.progetto_ids_hackathon.core.states.hackathon.HackathonState;
 
-import java.math.BigDecimal;
+public class InvalidHackathonStateOperationException extends RuntimeException{
 
-@Component
-@Primary
-public class PayPalPaymentStrategy implements PaymentStrategy {
-
-    /**
-     * TODO: integrate PayPal API.
-     */
-    @Override
-    public void awardPrize(BigDecimal prize, Team team) {
-        if (prize == null || prize.signum() <= 0) {
-            throw new IllegalArgumentException("prize must be a positive amount.");
-        }
-        if (team == null) {
-            throw new IllegalArgumentException("team must not be null.");
-        }
-        // Integration point with external payment provider.
+    public InvalidHackathonStateOperationException( HackathonState hackathonState, String OperationName ) {
+        super("Cannot do the operation: '" + OperationName + "' within state '" + hackathonState + "'.");
     }
 }

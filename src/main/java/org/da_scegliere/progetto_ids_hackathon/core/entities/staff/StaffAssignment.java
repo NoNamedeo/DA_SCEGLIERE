@@ -26,30 +26,51 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Infrastructure;
+package org.da_scegliere.progetto_ids_hackathon.core.entities.staff;
 
-import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.PaymentStrategy;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import lombok.Getter;
+import lombok.Setter;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 
-import java.math.BigDecimal;
+import java.util.Date;
+import java.util.UUID;
 
-@Component
-@Primary
-public class PayPalPaymentStrategy implements PaymentStrategy {
+@Getter
+@Entity
+public class StaffAssignment {
 
-    /**
-     * TODO: integrate PayPal API.
-     */
-    @Override
-    public void awardPrize(BigDecimal prize, Team team) {
-        if (prize == null || prize.signum() <= 0) {
-            throw new IllegalArgumentException("prize must be a positive amount.");
-        }
-        if (team == null) {
-            throw new IllegalArgumentException("team must not be null.");
-        }
-        // Integration point with external payment provider.
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @PastOrPresent
+    private Date assignmentDate;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private StaffRole staffRole;
+
+    @NotNull
+    @ManyToOne
+    @JoinColumn(name = "staff_member_id", nullable = false)
+    private StaffMember staffMember;
+
+    @ManyToOne
+    @JoinColumn(name = "hackathon_id")
+    @NotNull
+    @Setter
+    private Hackathon hackathon;
+
+    public StaffAssignment(LocalDate assignmentDate, StaffRole staffRole, StaffMember staffMember, Hackathon hackathon) {
+        this.assignmentDate = assignmentDate;
+        this.staffRole = staffRole;
+        this.staffMember = staffMember;
+        this.hackathon = hackathon;
     }
+
+    public StaffAssignment() {}
 }

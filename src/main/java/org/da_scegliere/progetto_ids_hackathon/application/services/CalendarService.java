@@ -26,30 +26,38 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Infrastructure;
+package org.da_scegliere.progetto_ids_hackathon.application.services;
 
-import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.PaymentStrategy;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
+import org.da_scegliere.progetto_ids_hackathon.core.support.SupportRequest;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Objects;
 
-@Component
-@Primary
-public class PayPalPaymentStrategy implements PaymentStrategy {
+@Service
+@Transactional(readOnly = true)
+public class CalendarService {
 
     /**
-     * TODO: integrate PayPal API.
+     * Reserves a call slot for the provided support request.
+     * Slot conflict checks must be delegated to the external calendar integration.
      */
-    @Override
-    public void awardPrize(BigDecimal prize, Team team) {
-        if (prize == null || prize.signum() <= 0) {
-            throw new IllegalArgumentException("prize must be a positive amount.");
+    @Transactional
+    public void reserveCallSlot(SupportRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("request must not be null.");
         }
-        if (team == null) {
-            throw new IllegalArgumentException("team must not be null.");
+        // Placeholder for external calendar integration.
+    }
+
+    /**
+     * Validates whether a call slot can be requested by date.
+     */
+    public void validateCallDate(LocalDate callDate) {
+        Objects.requireNonNull(callDate, "callDate must not be null.");
+        if (callDate.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("callDate must be today or in the future.");
         }
-        // Integration point with external payment provider.
     }
 }
