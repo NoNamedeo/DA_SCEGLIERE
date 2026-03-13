@@ -26,29 +26,21 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.entities.staff;
+package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.user.AbstractUser;
+import org.da_scegliere.progetto_ids_hackathon.core.states.hackathon.HackathonState;
 
-import java.util.List;
+public class InvalidHackathonStateTransitionException extends RuntimeException {
 
-@Getter
-@Entity
-public class StaffMember extends AbstractUser{
-
-    @NotNull
-    @OneToMany(mappedBy = "staffMember", cascade = CascadeType.ALL)
-    private List<StaffAssignment> staffAssignmentList;
-
-    public StaffMember(String name, int age, String email, List<StaffAssignment> staffAssignmentList) {
-        super(name, age, email);
-        this.staffAssignmentList = staffAssignmentList;
+    public InvalidHackathonStateTransitionException(HackathonState from, HackathonState to, Throwable cause) {
+        super(buildMessage(from, to), cause);
     }
 
-    public StaffMember() {}
+    private static String buildMessage(HackathonState from, HackathonState to) {
+        String sourceState = from == null ? "UNDEFINED" : from.name();
+        if (to == null) {
+            return "Unable to advance hackathon from state " + sourceState + ".";
+        }
+        return "Invalid hackathon state transition from " + sourceState + " to " + to.name() + ".";
+    }
 }

@@ -26,29 +26,17 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.entities.staff;
+package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.user.AbstractUser;
+import java.util.UUID;
 
-import java.util.List;
+public class HackathonNotFoundException extends RuntimeException {
 
-@Getter
-@Entity
-public class StaffMember extends AbstractUser{
-
-    @NotNull
-    @OneToMany(mappedBy = "staffMember", cascade = CascadeType.ALL)
-    private List<StaffAssignment> staffAssignmentList;
-
-    public StaffMember(String name, int age, String email, List<StaffAssignment> staffAssignmentList) {
-        super(name, age, email);
-        this.staffAssignmentList = staffAssignmentList;
+    public HackathonNotFoundException(UUID hackathonId) {
+        super("Hackathon with id '" + hackathonId + "' was not found.");
     }
 
-    public StaffMember() {}
+    public HackathonNotFoundException(String hackathonName) {
+        super("Hackathon with name '" + hackathonName + "' was not found.");
+    }
 }

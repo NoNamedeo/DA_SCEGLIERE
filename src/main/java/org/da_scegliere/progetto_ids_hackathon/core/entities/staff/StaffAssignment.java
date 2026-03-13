@@ -36,6 +36,7 @@ import lombok.Setter;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.UUID;
 
@@ -48,7 +49,7 @@ public class StaffAssignment {
     private UUID id;
 
     @PastOrPresent
-    private Date assignmentDate;
+    private LocalDate assignmentDate;
 
     @NotNull
     @Enumerated(EnumType.STRING)

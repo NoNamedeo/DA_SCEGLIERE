@@ -33,6 +33,7 @@ import jakarta.validation.constraints.PastOrPresent;
 import lombok.Getter;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.UUID;
 
@@ -45,7 +46,7 @@ public abstract class Participation {
     private UUID id;
 
     @PastOrPresent
-    private Date entryDate;
+    private LocalDate entryDate;
 
     private String nickname;
 
@@ -53,11 +54,11 @@ public abstract class Participation {
     @JoinColumn(name = "hackathon_id")
     private Hackathon hackathon;
 
-    protected Participation(Date entryDate, String nickName, Hackathon hackathon) {
+    public Participation(LocalDate entryDate, String nickName, Hackathon hackathon) {
         this.entryDate = entryDate;
         this.nickname = nickName;
         this.hackathon = hackathon;
     }
 
-    protected Participation() {}
+    public Participation() {}
 }

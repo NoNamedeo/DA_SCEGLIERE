@@ -37,6 +37,7 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignme
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.states.support.SupportRequestState;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -50,7 +51,7 @@ public class SupportRequest {
 
     @NotNull
     @PastOrPresent
-    private Date date;
+    private LocalDate date;
 
     @NotNull
     @Setter
@@ -77,7 +78,7 @@ public class SupportRequest {
     @JoinColumn(name = "sending_team_id")
     private Team sendingTeam;
 
-    protected SupportRequest(Date date, Team sendingTeam, List<StaffAssignment> selectedMentors) {
+    public SupportRequest(LocalDate date, Team sendingTeam, List<StaffAssignment> selectedMentors) {
         this.date = date;
         this.sendingTeam = sendingTeam;
         this.selectedMentors = selectedMentors;

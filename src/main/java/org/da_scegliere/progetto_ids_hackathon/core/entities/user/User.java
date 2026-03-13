@@ -42,12 +42,12 @@ public class User extends AbstractUser{
     @Setter
     private Team team = null;
 
-    protected User(String name, int age, String email, Team team) {
+    public User(String name, int age, String email, Team team) {
         super(name, age, email);
         this.team = team;
     }
 
-    protected User() {
+    public User() {
         super();
     }
 }

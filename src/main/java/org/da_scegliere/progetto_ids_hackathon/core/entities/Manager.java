@@ -34,9 +34,9 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.user.AbstractUser;
 @Entity
 public class Manager extends AbstractUser{
 
-    protected Manager(String name, int age, String email) {
+    public Manager(String name, int age, String email) {
         super(name, age, email);
     }
 
-    protected Manager() {}
+    public Manager() {}
 }

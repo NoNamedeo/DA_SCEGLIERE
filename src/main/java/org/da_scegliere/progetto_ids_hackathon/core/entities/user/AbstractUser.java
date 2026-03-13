@@ -61,12 +61,12 @@ public abstract class AbstractUser {
     @Setter
     private boolean suspended;
 
-    protected AbstractUser(String name, int age, String email) {
+    public AbstractUser(String name, int age, String email) {
         this.name = name;
         this.age = age;
         this.email = email;
         this.suspended = false;
     }
 
-    protected AbstractUser() {}
+    public AbstractUser() {}
 }
