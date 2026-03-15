@@ -26,7 +26,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.states.support;
+package org.da_scegliere.progetto_ids_hackathon.core.enums.states.support;
 
 public enum SupportRequestState {
 

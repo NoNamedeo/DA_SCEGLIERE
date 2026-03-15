@@ -28,7 +28,6 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
 
-import jakarta.validation.constraints.NotEmpty;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -41,4 +40,6 @@ public interface ITeamRepository extends JpaRepository<Team, UUID>{
     Optional<Team> findByMembers_id(UUID memberId);
 
     Optional<Team> findTeamByName(String teamName);
+
+    Team findTeamById( UUID id );
 }

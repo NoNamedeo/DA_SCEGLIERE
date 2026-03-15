@@ -26,50 +26,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.entities.staff;
+package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
-import lombok.Getter;
-import lombok.Setter;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
-
-import java.time.LocalDate;
-import java.util.UUID;
-
-@Getter
-@Entity
-public class StaffAssignment {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-
-    @PastOrPresent
-    private LocalDate assignmentDate;
-
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    private StaffRole staffRole;
-
-    @NotNull
-    @ManyToOne
-    @JoinColumn(name = "staff_member_id", nullable = false)
-    private StaffMember staffMember;
-
-    @ManyToOne
-    @JoinColumn(name = "hackathon_id", nullable = true)
-    @Setter
-    private Hackathon hackathon;
-
-    public StaffAssignment(LocalDate assignmentDate, StaffRole staffRole, StaffMember staffMember, Hackathon hackathon) {
-        this.assignmentDate = assignmentDate;
-        this.staffRole = staffRole;
-        this.staffMember = staffMember;
-        this.hackathon = hackathon;
+public class SupportRequestNotFoundException extends RuntimeException {
+    public SupportRequestNotFoundException(Long requestId) {
+        super("Support request (id: " + requestId + ") not found.");
     }
-
-    public StaffAssignment() {}
 }

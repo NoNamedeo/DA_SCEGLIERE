@@ -26,7 +26,17 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.services;
+package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
 
-public class SubmissionService{
+import org.da_scegliere.progetto_ids_hackathon.core.support.SupportRequest;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.UUID;
+
+@Repository
+public interface ISupportRequestRepository extends JpaRepository<SupportRequest, Long> {
+
+    List<SupportRequest> findBySendingTeam_id(UUID teamId);
 }

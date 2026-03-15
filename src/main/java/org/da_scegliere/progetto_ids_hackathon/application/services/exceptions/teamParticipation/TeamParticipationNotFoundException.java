@@ -26,13 +26,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.states.hackathon;
+package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation;
 
-public enum HackathonState {
+import java.util.UUID;
 
-    REGISTRATION,
-    ONGOING,
-    EVALUATION,
-    ENDED
-
+public class TeamParticipationNotFoundException extends RuntimeException{
+    public TeamParticipationNotFoundException( UUID teamParticipationId ) {
+        super("Team participation (id: " + teamParticipationId + ") not found.");
+    }
 }

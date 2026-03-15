@@ -28,7 +28,7 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon;
 
-import org.da_scegliere.progetto_ids_hackathon.core.states.hackathon.HackathonState;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.states.hackathon.HackathonState;
 
 public class InvalidHackathonStateTransitionException extends RuntimeException {
 

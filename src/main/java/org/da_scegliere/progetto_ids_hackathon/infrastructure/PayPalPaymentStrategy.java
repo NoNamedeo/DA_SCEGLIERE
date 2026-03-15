@@ -26,9 +26,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.Infrastructure;
+package org.da_scegliere.progetto_ids_hackathon.infrastructure;
 
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.PaymentStrategy;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.PaymentProviderException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -50,6 +51,10 @@ public class PayPalPaymentStrategy implements PaymentStrategy {
         if (team == null) {
             throw new IllegalArgumentException("team must not be null.");
         }
-        // Integration point with external payment provider.
+        try {
+            // Integration point with external payment provider.
+        } catch (RuntimeException ex) {
+            throw new PaymentProviderException("Failed to process payment through PayPal.", ex);
+        }
     }
 }

@@ -31,26 +31,30 @@ package org.da_scegliere.progetto_ids_hackathon.core.entities.team;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.Participation;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 
 import java.time.LocalDate;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Entity
-public class TeamParticipation extends Participation{
+public class TeamParticipation extends Participation {
 
     @NotNull
     @ManyToOne
     @JoinColumn(name = "team_id", nullable = false)
     private Team team;
 
-    @OneToMany(mappedBy = "teamParticipation", cascade = CascadeType.ALL)
-    private List<Submission> submissions;
+    @OneToMany(
+            mappedBy = "teamParticipation",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Submission> submissions = new ArrayList<>();
 
-    public TeamParticipation( LocalDate entryDate, String nickName, Hackathon hackathon, Team team, List<Submission> submissions) {
+    public TeamParticipation(LocalDate entryDate, String nickName, Hackathon hackathon, Team team, List<Submission> submissions) {
         super(entryDate, nickName, hackathon);
         this.team = team;
         this.submissions = submissions;
@@ -58,5 +62,18 @@ public class TeamParticipation extends Participation{
 
     public TeamParticipation() {
         super();
+    }
+
+    public void addSubmission(Submission submission) {
+        if (submission != null && !submissions.contains(submission)) {
+            submissions.add(submission);
+            submission.setTeamParticipation(this);
+        }
+    }
+
+    public void removeSubmission(Submission submission) {
+        if (submission != null && submissions.remove(submission)) {
+            submission.setTeamParticipation(null);
+        }
     }
 }

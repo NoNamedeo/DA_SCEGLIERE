@@ -26,50 +26,21 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.entities.staff;
+package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
-import lombok.Getter;
-import lombok.Setter;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Submission;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-@Getter
-@Entity
-public class StaffAssignment {
+@Repository
+public interface ITeamParticipationRepository extends JpaRepository<TeamParticipation, UUID> {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    Optional<TeamParticipation> findBySubmissions_id(UUID submissionsId);
 
-    @PastOrPresent
-    private LocalDate assignmentDate;
-
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    private StaffRole staffRole;
-
-    @NotNull
-    @ManyToOne
-    @JoinColumn(name = "staff_member_id", nullable = false)
-    private StaffMember staffMember;
-
-    @ManyToOne
-    @JoinColumn(name = "hackathon_id", nullable = true)
-    @Setter
-    private Hackathon hackathon;
-
-    public StaffAssignment(LocalDate assignmentDate, StaffRole staffRole, StaffMember staffMember, Hackathon hackathon) {
-        this.assignmentDate = assignmentDate;
-        this.staffRole = staffRole;
-        this.staffMember = staffMember;
-        this.hackathon = hackathon;
-    }
-
-    public StaffAssignment() {}
+    List<TeamParticipation> findByTeam_id(UUID teamId);
 }

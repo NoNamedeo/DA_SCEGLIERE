@@ -1,27 +1,20 @@
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
-import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IHackathonRepository;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.InvalidHackathonStateTransitionException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.HackathonCrudService;
+import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.HackathonLifecycleService;
+import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.HackathonStaffService;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
-import org.da_scegliere.progetto_ids_hackathon.core.states.hackathon.HackathonState;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.states.hackathon.HackathonState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,55 +22,55 @@ import static org.mockito.Mockito.when;
 class HackathonServiceTest {
 
     @Mock
-    private IHackathonRepository hackathonRepository;
+    private HackathonCrudService hackathonCrudService;
+
+    @Mock
+    private HackathonLifecycleService hackathonLifecycleService;
+
+    @Mock
+    private HackathonStaffService hackathonStaffService;
 
     private HackathonService hackathonService;
 
     @BeforeEach
     void setUp() {
-        hackathonService = new HackathonService(hackathonRepository);
+        hackathonService = new HackathonService(hackathonCrudService, hackathonLifecycleService, hackathonStaffService);
     }
 
     @Test
-    void getHackathonByIdWhenNotFoundThrowsException() {
+    void getHackathonByIdDelegatesToCrudService() {
         UUID id = UUID.randomUUID();
-        when(hackathonRepository.findById(id)).thenReturn(Optional.empty());
+        Hackathon expected = new Hackathon();
+        when(hackathonCrudService.getHackathonById(id)).thenReturn(expected);
 
-        assertThrows(HackathonNotFoundException.class, () -> hackathonService.getHackathonById(id));
+        Hackathon actual = hackathonService.getHackathonById(id);
+
+        assertSame(expected, actual);
+        verify(hackathonCrudService).getHackathonById(id);
     }
 
     @Test
-    void transitionHackathonStateWhenTransitionIsInvalidThrowsTypedException() {
+    void transitionHackathonStateDelegatesToLifecycleService() {
         UUID id = UUID.randomUUID();
-        Hackathon hackathon = mock(Hackathon.class);
+        Hackathon expected = new Hackathon();
+        when(hackathonLifecycleService.transitionHackathonState(id, HackathonState.ONGOING)).thenReturn(expected);
 
-        when(hackathonRepository.findById(id)).thenReturn(Optional.of(hackathon));
-        when(hackathon.getHackathonState()).thenReturn(HackathonState.ENDED);
-        doThrow(new IllegalStateException("Invalid transition"))
-                .when(hackathon)
-                .transitionTo(HackathonState.ONGOING);
+        Hackathon actual = hackathonService.transitionHackathonState(id, HackathonState.ONGOING);
 
-        assertThrows(
-                InvalidHackathonStateTransitionException.class,
-                () -> hackathonService.transitionHackathonState(id, HackathonState.ONGOING)
-        );
-        verify(hackathonRepository, never()).save(any(Hackathon.class));
+        assertSame(expected, actual);
+        verify(hackathonLifecycleService).transitionHackathonState(id, HackathonState.ONGOING);
     }
 
     @Test
-    void createHackathonPersistsNewAggregate() {
-        List<StaffAssignment> staffAssignments = List.of(mock(StaffAssignment.class));
-        when(hackathonRepository.save(any(Hackathon.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    void assignWinnerDelegatesToLifecycleService() {
+        UUID id = UUID.randomUUID();
+        Team winner = new Team();
+        Hackathon expected = new Hackathon();
+        when(hackathonLifecycleService.assignWinner(id, winner)).thenReturn(expected);
 
-        Hackathon createdHackathon = hackathonService.createHackathon("Main event", List.of(), staffAssignments);
+        Hackathon actual = hackathonService.assignWinner(id, winner);
 
-        assertEquals("Main event", createdHackathon.getDescription());
-        assertEquals(HackathonState.REGISTRATION, createdHackathon.getHackathonState());
-        verify(hackathonRepository).save(any(Hackathon.class));
-    }
-
-    @Test
-    void existsByIdWithNullIdThrowsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () -> hackathonService.existsById(null));
+        assertSame(expected, actual);
+        verify(hackathonLifecycleService).assignWinner(id, winner);
     }
 }

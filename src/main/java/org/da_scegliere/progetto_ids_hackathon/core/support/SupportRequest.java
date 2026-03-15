@@ -29,17 +29,17 @@
 package org.da_scegliere.progetto_ids_hackathon.core.support;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
 import lombok.Getter;
 import lombok.Setter;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
-import org.da_scegliere.progetto_ids_hackathon.core.states.support.SupportRequestState;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.states.support.SupportRequestState;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Entity
@@ -49,9 +49,12 @@ public class SupportRequest {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    /**
+     * Requested calendar slot date for the mentor-team call.
+     */
     @NotNull
-    @PastOrPresent
-    private LocalDate date;
+    @FutureOrPresent
+    private LocalDate dateSlot;
 
     @NotNull
     @Setter
@@ -67,7 +70,6 @@ public class SupportRequest {
     private List<StaffAssignment> selectedMentors;
 
     @Setter
-    @NotNull
     @ManyToOne
     @JoinColumn(name = "accepting_mentor_id")
     private StaffAssignment acceptingMentor;
@@ -78,16 +80,42 @@ public class SupportRequest {
     @JoinColumn(name = "sending_team_id")
     private Team sendingTeam;
 
-    public SupportRequest(LocalDate date, Team sendingTeam, List<StaffAssignment> selectedMentors) {
-        this.date = date;
+    public SupportRequest(LocalDate dateSlot, Team sendingTeam, List<StaffAssignment> selectedMentors) {
+        this.dateSlot = dateSlot;
         this.sendingTeam = sendingTeam;
         this.selectedMentors = selectedMentors;
+        this.state = SupportRequestState.OPEN;
     }
 
     protected SupportRequest() { }
 
+    /**
+     * Explicit semantic accessor for calendar use cases.
+     */
+    public LocalDate getRequestedCallDate() {
+        return dateSlot;
+    }
+
     public void acceptedBy(StaffAssignment acceptingMentor) {
-        this.acceptingMentor = acceptingMentor;
+        this.acceptingMentor = Objects.requireNonNull(acceptingMentor, "acceptingMentor must not be null.");
+    }
+
+    public void transitionTo(SupportRequestState targetState) {
+        Objects.requireNonNull(targetState, "targetState must not be null.");
+
+        if (this.state == targetState) {
+            return;
+        }
+        boolean valid = switch (this.state) {
+            case OPEN -> targetState == SupportRequestState.IN_PROGRESS;
+            case IN_PROGRESS -> targetState == SupportRequestState.RESOLVED || targetState == SupportRequestState.REJECTED;
+            case RESOLVED, REJECTED -> false;
+        };
+
+        if (!valid) {
+            throw new IllegalStateException("Invalid support request state transition from '" + this.state + "' to '" + targetState + "'.");
+        }
+        this.state = targetState;
     }
 
 }

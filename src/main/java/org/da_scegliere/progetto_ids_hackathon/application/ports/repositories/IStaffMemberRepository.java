@@ -35,6 +35,5 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface IStaffMemberRepository extends JpaRepository<StaffMember, UUID>{
-    StaffMember getStaffMemberById( UUID id );
+public interface IStaffMemberRepository extends JpaRepository<StaffMember, UUID> {
 }
