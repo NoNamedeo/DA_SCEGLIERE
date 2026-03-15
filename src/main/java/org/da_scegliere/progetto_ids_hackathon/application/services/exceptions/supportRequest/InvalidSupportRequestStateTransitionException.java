@@ -26,46 +26,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.entities.user;
+package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.supportRequest;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
-import lombok.Getter;
-import lombok.Setter;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.states.support.SupportRequestState;
 
-import java.util.UUID;
+public class InvalidSupportRequestStateTransitionException extends RuntimeException {
 
-@Getter
-@Entity
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public abstract class AbstractUser {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-
-    @NotBlank
-    @Size(min = 2, max = 50)
-    @Setter
-    private String name;
-
-    @Min(18)
-    @Max(120)
-    private int age;
-
-    @NotBlank
-    @Email
-    private String email;
-
-    @Setter
-    private boolean suspended;
-
-    public AbstractUser(String name, int age, String email) {
-        this.name = name;
-        this.age = age;
-        this.email = email;
-        this.suspended = false;
+    public InvalidSupportRequestStateTransitionException(SupportRequestState from, SupportRequestState to) {
+        super("Invalid support request state transition from '" + from + "' to '" + to + "'.");
     }
-
-    public AbstractUser() {}
 }
