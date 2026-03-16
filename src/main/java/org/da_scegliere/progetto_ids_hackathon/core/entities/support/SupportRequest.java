@@ -26,7 +26,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.support;
+package org.da_scegliere.progetto_ids_hackathon.core.entities.support;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.FutureOrPresent;

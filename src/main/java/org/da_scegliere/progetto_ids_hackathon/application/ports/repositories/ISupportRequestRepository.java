@@ -28,7 +28,7 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
 
-import org.da_scegliere.progetto_ids_hackathon.core.support.SupportRequest;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

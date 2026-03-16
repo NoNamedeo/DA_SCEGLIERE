@@ -32,7 +32,10 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.states.user.AccountState;
 
+import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -57,15 +60,85 @@ public abstract class AbstractUser {
     @Email
     private String email;
 
-    @Setter
-    private boolean suspended;
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private AccountState accountStatus;
 
-    public AbstractUser(String name, int age, String email) {
+    @Setter
+    @Size(max = 500)
+    private String moderationNote;
+
+    private LocalDateTime accountStatusUpdatedAt;
+
+    protected AbstractUser(String name, int age, String email) {
         this.name = name;
         this.age = age;
         this.email = email;
-        this.suspended = false;
+        this.accountStatus = AccountState.ACTIVE;
+        this.moderationNote = null;
+        this.accountStatusUpdatedAt = LocalDateTime.now();
     }
 
-    public AbstractUser() {}
+    protected AbstractUser() {}
+
+    @PrePersist
+    protected void initializeAccountStatusDefaults() {
+        if (this.accountStatus == null) {
+            this.accountStatus = AccountState.ACTIVE;
+        }
+        if (this.accountStatusUpdatedAt == null) {
+            this.accountStatusUpdatedAt = LocalDateTime.now();
+        }
+    }
+
+    public boolean isSuspended() {
+        return accountStatus == AccountState.SUSPENDED;
+    }
+
+    public boolean isRevoked() {
+        return accountStatus == AccountState.REVOKED;
+    }
+
+    public void suspend(String note) {
+        validateModerationNote(note);
+        if (isRevoked()) {
+            throw new IllegalStateException("Cannot suspend a revoked user.");
+        }
+        if (isSuspended()) {
+            throw new IllegalStateException("User is already suspended.");
+        }
+        this.accountStatus = AccountState.SUSPENDED;
+        this.moderationNote = note.trim();
+        this.accountStatusUpdatedAt = LocalDateTime.now();
+    }
+
+    public void reinstate(String note) {
+        validateModerationNote(note);
+        if (isRevoked()) {
+            throw new IllegalStateException("Cannot reinstate a revoked user.");
+        }
+        if (this.accountStatus == AccountState.ACTIVE) {
+            throw new IllegalStateException("User is already active.");
+        }
+        this.accountStatus = AccountState.ACTIVE;
+        this.moderationNote = note.trim();
+        this.accountStatusUpdatedAt = LocalDateTime.now();
+    }
+
+    public void revoke(String note) {
+        validateModerationNote(note);
+        if (isRevoked()) {
+            throw new IllegalStateException("User account is already revoked.");
+        }
+        this.accountStatus = AccountState.REVOKED;
+        this.moderationNote = note.trim();
+        this.accountStatusUpdatedAt = LocalDateTime.now();
+    }
+
+    private static void validateModerationNote(String note) {
+        Objects.requireNonNull(note, "moderation note must not be null.");
+        if (note.isBlank()) {
+            throw new IllegalArgumentException("moderation note must not be blank.");
+        }
+    }
 }

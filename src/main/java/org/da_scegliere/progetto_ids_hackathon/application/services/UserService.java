@@ -31,7 +31,6 @@ package org.da_scegliere.progetto_ids_hackathon.application.services;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.UserNotFoundException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
@@ -97,6 +96,22 @@ public class UserService{
     }
 
     /**
+     * Retrieves a user by email.
+     *
+     * @param email user email.
+     * @return the requested user.
+     * @throws IllegalArgumentException when {@code email} is {@code null}.
+     * @throws UserNotFoundException when no user exists for the provided email.
+     */
+    public User getUserByEmail(String email) {
+        if(email == null || email.isBlank()){
+            throw new IllegalArgumentException("Email must not be blank or null.");
+        }
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException(email));
+    }
+
+    /**
      * Retrieves a user by name.
      *
      * @param name user name.
@@ -104,12 +119,11 @@ public class UserService{
      * @throws IllegalArgumentException when {@code name} is blank.
      */
     public User getUserByName(String name) {
-        if (name.isBlank()) {
-            throw new IllegalArgumentException("name must not be blank");
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("name must not be blank or null.");
         }
-
         return userRepository.findUserByName(name)
-                .orElseThrow(() -> new HackathonNotFoundException(name));
+                .orElseThrow(() -> new UserNotFoundException(name));
     }
 
     /**

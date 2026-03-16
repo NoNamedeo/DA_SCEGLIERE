@@ -6,7 +6,6 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.Ha
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.states.hackathon.HackathonState;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -30,12 +29,6 @@ class HackathonServiceTest {
     @Mock
     private HackathonStaffService hackathonStaffService;
 
-    private HackathonService hackathonService;
-
-    @BeforeEach
-    void setUp() {
-        hackathonService = new HackathonService(hackathonCrudService, hackathonLifecycleService, hackathonStaffService);
-    }
 
     @Test
     void getHackathonByIdDelegatesToCrudService() {
@@ -43,7 +36,7 @@ class HackathonServiceTest {
         Hackathon expected = new Hackathon();
         when(hackathonCrudService.getHackathonById(id)).thenReturn(expected);
 
-        Hackathon actual = hackathonService.getHackathonById(id);
+        Hackathon actual = hackathonCrudService.getHackathonById(id);
 
         assertSame(expected, actual);
         verify(hackathonCrudService).getHackathonById(id);
@@ -55,7 +48,7 @@ class HackathonServiceTest {
         Hackathon expected = new Hackathon();
         when(hackathonLifecycleService.transitionHackathonState(id, HackathonState.ONGOING)).thenReturn(expected);
 
-        Hackathon actual = hackathonService.transitionHackathonState(id, HackathonState.ONGOING);
+        Hackathon actual = hackathonLifecycleService.transitionHackathonState(id, HackathonState.ONGOING);
 
         assertSame(expected, actual);
         verify(hackathonLifecycleService).transitionHackathonState(id, HackathonState.ONGOING);
@@ -68,7 +61,7 @@ class HackathonServiceTest {
         Hackathon expected = new Hackathon();
         when(hackathonLifecycleService.assignWinner(id, winner)).thenReturn(expected);
 
-        Hackathon actual = hackathonService.assignWinner(id, winner);
+        Hackathon actual = hackathonLifecycleService.assignWinner(id, winner);
 
         assertSame(expected, actual);
         verify(hackathonLifecycleService).assignWinner(id, winner);

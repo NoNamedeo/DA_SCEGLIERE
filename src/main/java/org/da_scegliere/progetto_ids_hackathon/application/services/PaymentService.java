@@ -38,38 +38,26 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Objects;
 
 /**
  * Application service responsible for winner prize disbursement orchestration.
- * <p>
- * Responsibilities:
- * <ul>
- *     <li>Validate payment preconditions at application level.</li>
- *     <li>Invoke the configured payment strategy for provider integration.</li>
- *     <li>Map provider errors to stable application exceptions.</li>
- *     <li>Enforce idempotency by checking and recording payment status on the hackathon aggregate.</li>
- * </ul>
  */
 @Service
 @Transactional(readOnly = true)
 public class PaymentService {
 
     private final PaymentStrategy paymentStrategy;
-    private final Clock clock;
 
     /**
      * Creates a new service instance.
      *
      * @param paymentStrategy strategy adapter used to perform prize disbursement.
-     * @param clock application clock used to timestamp successful payments.
      * @throws NullPointerException when any dependency is {@code null}.
      */
-    public PaymentService(PaymentStrategy paymentStrategy, Clock clock) {
+    public PaymentService(PaymentStrategy paymentStrategy) {
         this.paymentStrategy = Objects.requireNonNull(paymentStrategy, "paymentStrategy must not be null");
-        this.clock = Objects.requireNonNull(clock, "clock must not be null");
     }
 
     /**
@@ -97,7 +85,7 @@ public class PaymentService {
         }
 
         executePayment(prize, winner);
-        safeHackathon.markPrizeAsPaid(LocalDate.now(clock));
+        safeHackathon.markPrizeAsPaid(LocalDate.now());
         return true;
     }
 

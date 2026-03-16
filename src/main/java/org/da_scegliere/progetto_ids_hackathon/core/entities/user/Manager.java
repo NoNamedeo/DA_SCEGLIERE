@@ -26,10 +26,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.entities;
+package org.da_scegliere.progetto_ids_hackathon.core.entities.user;
 
 import jakarta.persistence.Entity;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.user.AbstractUser;
 
 @Entity
 public class Manager extends AbstractUser{

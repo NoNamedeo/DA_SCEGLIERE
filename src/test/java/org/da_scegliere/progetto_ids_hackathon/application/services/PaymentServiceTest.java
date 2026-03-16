@@ -13,10 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.Clock;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -42,8 +39,7 @@ class PaymentServiceTest {
 
     @BeforeEach
     void setUp() {
-        Clock fixedClock = Clock.fixed(Instant.parse("2026-03-14T10:00:00Z"), ZoneOffset.UTC);
-        paymentService = new PaymentService(paymentStrategy, fixedClock);
+        paymentService = new PaymentService(paymentStrategy);
     }
 
     @Test

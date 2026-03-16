@@ -28,6 +28,7 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
@@ -40,4 +41,6 @@ import java.util.UUID;
 @Repository
 public interface IUserRepository extends JpaRepository<User, UUID>{
     Optional<User> findUserByName( @NotBlank @Size(min = 2, max = 50) String name );
+
+    Optional<User> findByEmail(@NotBlank @Email String email);
 }

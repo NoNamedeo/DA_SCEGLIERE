@@ -29,7 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.infrastructure;
 
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.CalendarStrategy;
-import org.da_scegliere.progetto_ids_hackathon.core.support.SupportRequest;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 

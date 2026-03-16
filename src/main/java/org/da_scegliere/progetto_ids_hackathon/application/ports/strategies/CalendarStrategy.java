@@ -28,7 +28,7 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.ports.strategies;
 
-import org.da_scegliere.progetto_ids_hackathon.core.support.SupportRequest;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
 
 public interface CalendarStrategy {
 

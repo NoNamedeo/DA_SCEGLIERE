@@ -33,10 +33,9 @@ import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exce
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.CalendarProviderUnavailableException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.calendar.CalendarConflictException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.calendar.CalendarUnavailableException;
-import org.da_scegliere.progetto_ids_hackathon.core.support.SupportRequest;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
 import org.springframework.stereotype.Service;
 
-import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Objects;
 
