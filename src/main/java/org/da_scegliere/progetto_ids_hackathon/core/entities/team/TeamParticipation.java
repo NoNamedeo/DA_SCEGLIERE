@@ -31,7 +31,7 @@ package org.da_scegliere.progetto_ids_hackathon.core.entities.team;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.Participation;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Participation;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 
 import java.time.LocalDate;

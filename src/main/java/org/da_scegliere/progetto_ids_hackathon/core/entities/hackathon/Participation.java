@@ -26,15 +26,37 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions;
+package org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon;
 
+import jakarta.persistence.*;
+import jakarta.validation.constraints.PastOrPresent;
+import lombok.Getter;
+
+import java.time.LocalDate;
 import java.util.UUID;
 
-public class UserNotFoundException extends RuntimeException{
-    public UserNotFoundException( UUID userId ) {
-        super("User: " + userId + " not found.");
+@Getter
+@Entity
+public abstract class Participation {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @PastOrPresent
+    private LocalDate entryDate;
+
+    private String nickname;
+
+    @ManyToOne
+    @JoinColumn(name = "hackathon_id")
+    private Hackathon hackathon;
+
+    public Participation(LocalDate entryDate, String nickName, Hackathon hackathon) {
+        this.entryDate = entryDate;
+        this.nickname = nickName;
+        this.hackathon = hackathon;
     }
-    public UserNotFoundException( String name ) {
-        super("User: " + name + " not found.");
-    }
+
+    public Participation() {}
 }

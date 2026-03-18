@@ -30,7 +30,7 @@ package org.da_scegliere.progetto_ids_hackathon.application.services.hackathon;
 
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IHackathonRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.Participation;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Participation;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.springframework.stereotype.Service;

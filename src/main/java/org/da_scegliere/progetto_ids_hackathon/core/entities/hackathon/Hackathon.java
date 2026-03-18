@@ -34,7 +34,6 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.Participation;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.hackathon.winner.WinnerAssignmentContext;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;

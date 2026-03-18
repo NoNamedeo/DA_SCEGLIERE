@@ -26,7 +26,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions;
+package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.supportRequest;
 
 public class SupportRequestNotFoundException extends RuntimeException {
     public SupportRequestNotFoundException(Long requestId) {
