@@ -220,6 +220,7 @@ public class Hackathon {
         return removedCount;
     }
 
+
     private List<TeamParticipation> getTeamParticipations() {
         if (participations == null) {
             return Collections.emptyList();
