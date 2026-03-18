@@ -4,6 +4,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.Paym
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.PaymentProviderException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.payment.PaymentFailedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.payment.WinnerNotProclaimedException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.HackathonCrudService;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,6 +31,9 @@ class PaymentServiceTest {
     private PaymentStrategy paymentStrategy;
 
     @Mock
+    private HackathonCrudService hackathonCrudService;
+
+    @Mock
     private Hackathon hackathon;
 
     @Mock
@@ -39,7 +43,7 @@ class PaymentServiceTest {
 
     @BeforeEach
     void setUp() {
-        paymentService = new PaymentService(paymentStrategy);
+        paymentService = new PaymentService(paymentStrategy, hackathonCrudService);
     }
 
     @Test

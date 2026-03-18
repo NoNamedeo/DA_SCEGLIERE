@@ -28,6 +28,7 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.services.hackathon;
 
+import lombok.RequiredArgsConstructor;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffMemberRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.InvalidHackathonStateOperationException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
@@ -38,6 +39,7 @@ import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.Hackat
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -58,25 +60,12 @@ import java.util.stream.Collectors;
  */
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class HackathonStaffService {
 
     private final HackathonCrudService hackathonCrudService;
     private final IStaffMemberRepository staffMemberRepository;
-
-    /**
-     * Creates a new service instance.
-     *
-     * @param hackathonCrudService dependency used to resolve hackathon aggregates.
-     * @param staffMemberRepository repository used to resolve existing staff members.
-     * @throws NullPointerException when any dependency is {@code null}.
-     */
-    public HackathonStaffService(
-            HackathonCrudService hackathonCrudService,
-            IStaffMemberRepository staffMemberRepository
-    ) {
-        this.hackathonCrudService = Objects.requireNonNull(hackathonCrudService, "hackathonCrudService must not be null.");
-        this.staffMemberRepository = Objects.requireNonNull(staffMemberRepository, "staffMemberRepository must not be null.");
-    }
+    private final Clock clock;
 
     /**
      * Assigns multiple staff members to a hackathon.
@@ -100,7 +89,7 @@ public class HackathonStaffService {
         }
 
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
-        validateStaffManagementState(hackathon);
+        validateStaffManagementState(hackathon, LocalDate.now(clock));
 
         for (Map.Entry<UUID, StaffRole> entry : staffMembersIdMap.entrySet()) {
             UUID staffId = entry.getKey();
@@ -111,7 +100,7 @@ public class HackathonStaffService {
 
             StaffMember member = staffMemberRepository.findById(staffId)
                     .orElseThrow(() -> new IllegalArgumentException("Staff member not found: " + staffId + "."));
-            StaffAssignment assignment = new StaffAssignment(LocalDate.now(), role, member, null);
+            StaffAssignment assignment = new StaffAssignment(LocalDate.now(clock), role, member, null);
             hackathon.addStaffAssignment(assignment);
         }
 
@@ -143,7 +132,7 @@ public class HackathonStaffService {
         }
 
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
-        validateStaffManagementState(hackathon);
+        validateStaffManagementState(hackathon, LocalDate.now(clock));
 
         Set<UUID> idsToDelete = staffMembersId.stream().collect(Collectors.toSet());
         int removedCount = hackathon.removeStaffAssignmentsByStaffMemberIds(idsToDelete);
@@ -153,8 +142,8 @@ public class HackathonStaffService {
         return hackathon;
     }
 
-    private static void validateStaffManagementState(Hackathon hackathon) {
-        HackathonState hackathonState = hackathon.getHackathonState();
+    private static void validateStaffManagementState(Hackathon hackathon, LocalDate referenceDate) {
+        HackathonState hackathonState = hackathon.getHackathonStateAt(referenceDate);
         if (hackathonState == HackathonState.EVALUATION || hackathonState == HackathonState.ENDED) {
             throw new InvalidHackathonStateOperationException(hackathonState, "Staff management");
         }

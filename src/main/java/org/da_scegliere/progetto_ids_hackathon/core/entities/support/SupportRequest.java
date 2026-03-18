@@ -51,8 +51,8 @@ import java.util.UUID;
 public class SupportRequest {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     /**
      * Requested calendar slot date for the mentor-team call.

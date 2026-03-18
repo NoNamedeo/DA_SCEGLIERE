@@ -26,26 +26,31 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.state.hackathon.state;
+package org.da_scegliere.progetto_ids_hackathon.presentation;
 
-import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
+import lombok.RequiredArgsConstructor;
+import org.da_scegliere.progetto_ids_hackathon.application.services.TeamService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-public interface HackathonLifecycleState {
-    /**
-     * @return lifecycle state represented by this strategy.
-     */
-    HackathonState getState();
+import java.util.UUID;
 
-    /**
-     * Transitions from this state to the target one.
-     *
-     * @param targetState target lifecycle state.
-     * @return resulting lifecycle state.
-     */
-    HackathonState transitionTo( HackathonState targetState);
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/teams")
+public class TeamController {
 
-    /**
-     * @return next lifecycle state.
-     */
-    HackathonState next();
+    private final TeamService teamService;
+
+    @DeleteMapping("/{teamId}/members/{userId}")
+    public ResponseEntity<Void> removeMemberFromTeam(
+            @PathVariable UUID teamId,
+            @PathVariable UUID userId
+    ) {
+        teamService.removeMemberFromTeam(teamId, userId);
+        return ResponseEntity.noContent().build();
+    }
 }

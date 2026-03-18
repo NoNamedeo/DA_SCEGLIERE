@@ -26,17 +26,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
+package org.da_scegliere.progetto_ids_hackathon.presentation.dto.request;
 
-import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import org.da_scegliere.progetto_ids_hackathon.presentation.HackathonController;
 
 import java.util.List;
-import java.util.UUID;
 
-@Repository
-public interface ISupportRequestRepository extends JpaRepository<SupportRequest, UUID> {
-
-    List<SupportRequest> findBySendingTeam_id(UUID teamId);
-}
+public record AddStaffAssignmentsRequest(
+        @NotEmpty List<@Valid StaffAssignmentInputRequest> staffAssignments
+) { }

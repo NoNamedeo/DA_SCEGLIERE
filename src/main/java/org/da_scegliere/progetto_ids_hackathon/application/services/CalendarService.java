@@ -28,6 +28,7 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
+import lombok.RequiredArgsConstructor;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.CalendarStrategy;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.CalendarProviderConflictException;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.CalendarProviderUnavailableException;
@@ -38,6 +39,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Application service that orchestrates interactions with the external calendar provider.
@@ -52,19 +54,23 @@ import java.util.Objects;
  * reservation semantics are delegated to the configured {@link CalendarStrategy}.
  */
 @Service
+@RequiredArgsConstructor
 public class CalendarService {
 
     private final CalendarStrategy calendarStrategy;
+    private final SupportRequestService supportRequestService;
 
     /**
-     * Creates a new service instance.
+     * Proposes a mentor call by support-request identifier.
      *
-     * @param calendarStrategy strategy adapter used to interact with the external calendar provider.
-     * @throws NullPointerException when {@code calendarStrategy} is {@code null}.
+     * @param supportRequestId support request identifier.
      */
-    public CalendarService(CalendarStrategy calendarStrategy) {
-        this.calendarStrategy =
-                Objects.requireNonNull(calendarStrategy, "calendarStrategy must not be null");
+    public void proposeCall(UUID supportRequestId) {
+        if (supportRequestId == null) {
+            throw new IllegalArgumentException("supportRequestId must not be null.");
+        }
+        SupportRequest request = supportRequestService.getSupportRequestById(supportRequestId);
+        proposeCall(request);
     }
 
     /**

@@ -26,27 +26,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.state.hackathon.state;
+package org.da_scegliere.progetto_ids_hackathon.presentation.dto.request;
 
-import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
 
-public final class EvaluationState implements HackathonLifecycleState {
+import java.math.BigDecimal;
 
-    @Override
-    public HackathonState getState() {
-        return HackathonState.EVALUATION;
-    }
-
-    @Override
-    public HackathonState transitionTo( HackathonState targetState) {
-        if (targetState == HackathonState.ENDED) {
-            return HackathonState.ENDED;
-        }
-        throw new IllegalStateException("Invalid state transition from " + HackathonState.EVALUATION + " to " + targetState + ".");
-    }
-
-    @Override
-    public HackathonState next() {
-        return HackathonState.ENDED;
-    }
-}
+public record PrizeAwardRequest(
+        @NotNull @DecimalMin(value = "0.01") BigDecimal prize
+) { }

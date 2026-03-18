@@ -26,29 +26,18 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.state.hackathon;
+package org.da_scegliere.progetto_ids_hackathon.presentation.dto.request;
 
-import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
-/**
- * Contract for hackathon lifecycle transitions.
- */
-public interface HackathonLifecycleStateMachine {
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
 
-    /**
-     * Transitions from current state to target state according to lifecycle rules.
-     *
-     * @param currentState current lifecycle state.
-     * @param targetState target lifecycle state.
-     * @return resulting lifecycle state.
-     */
-    HackathonState transition(HackathonState currentState, HackathonState targetState);
-
-    /**
-     * Advances to the next lifecycle state.
-     *
-     * @param currentState current lifecycle state.
-     * @return next lifecycle state.
-     */
-    HackathonState next(HackathonState currentState);
-}
+public record CreateSupportRequestRequest(
+        @NotNull @FutureOrPresent LocalDate dateSlot,
+        @NotNull UUID teamId,
+        @NotEmpty List<@NotNull UUID> staffAssignmentIds
+) { }

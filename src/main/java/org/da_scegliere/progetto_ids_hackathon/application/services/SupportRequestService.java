@@ -28,6 +28,8 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
+import lombok.RequiredArgsConstructor;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffAssignmentRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ISupportRequestRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamParticipationRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamRepository;
@@ -43,7 +45,6 @@ import org.da_scegliere.progetto_ids_hackathon.core.enums.state.support.SupportR
 import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.support.SupportRequestMentorSelectionContext;
 import org.da_scegliere.progetto_ids_hackathon.core.state.support.SupportRequestLifecycleStateMachine;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,47 +68,15 @@ import java.util.stream.Collectors;
  */
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class SupportRequestService {
 
     private final ISupportRequestRepository supportRequestRepository;
+    private final IStaffAssignmentRepository staffAssignmentRepository;
     private final ITeamRepository teamRepository;
     private final ITeamParticipationRepository teamParticipationRepository;
     private final SupportRequestLifecycleStateMachine supportRequestStateMachine;
     private final BusinessPolicy<SupportRequestMentorSelectionContext> mentorSelectionPolicy;
-
-    /**
-     * Creates a new service instance.
-     *
-     * @param supportRequestRepository repository for support-request persistence.
-     * @param teamRepository repository used to validate and resolve teams.
-     * @param teamParticipationRepository repository used to validate team enrolment in hackathons.
-     * @param supportRequestStateMachine support-request lifecycle state-machine dependency.
-     * @param mentorSelectionPolicy mentor-selection policy dependency.
-     * @throws NullPointerException when any dependency is {@code null}.
-     */
-    public SupportRequestService(
-            ISupportRequestRepository supportRequestRepository,
-            ITeamRepository teamRepository,
-            ITeamParticipationRepository teamParticipationRepository,
-            SupportRequestLifecycleStateMachine supportRequestStateMachine,
-            @Qualifier("supportRequestMentorSelectionPolicy")
-            BusinessPolicy<SupportRequestMentorSelectionContext> mentorSelectionPolicy
-    ) {
-        this.supportRequestRepository =
-                Objects.requireNonNull(supportRequestRepository, "supportRequestRepository must not be null.");
-        this.teamRepository =
-                Objects.requireNonNull(teamRepository, "teamRepository must not be null.");
-        this.teamParticipationRepository =
-                Objects.requireNonNull(teamParticipationRepository, "teamParticipationRepository must not be null.");
-        this.supportRequestStateMachine = Objects.requireNonNull(
-                supportRequestStateMachine,
-                "supportRequestStateMachine must not be null."
-        );
-        this.mentorSelectionPolicy = Objects.requireNonNull(
-                mentorSelectionPolicy,
-                "mentorSelectionPolicy must not be null."
-        );
-    }
 
     /**
      * Retrieves all support requests currently stored.
@@ -126,7 +95,7 @@ public class SupportRequestService {
      * @throws IllegalArgumentException when {@code requestId} is {@code null}.
      * @throws SupportRequestNotFoundException when the request does not exist.
      */
-    public SupportRequest getSupportRequestById(Long requestId) {
+    public SupportRequest getSupportRequestById(UUID requestId) {
         if (requestId == null) {
             throw new IllegalArgumentException("requestId must not be null.");
         }
@@ -181,6 +150,21 @@ public class SupportRequestService {
     }
 
     /**
+     * Creates a support request by resolving entities from identifiers.
+     *
+     * @param dateSlot requested support date.
+     * @param teamId sending team identifier.
+     * @param staffAssignmentIds selected mentors assignment identifiers.
+     * @return persisted support request.
+     */
+    @Transactional
+    public SupportRequest createSupportRequest(LocalDate dateSlot, UUID teamId, List<UUID> staffAssignmentIds) {
+        Team sendingTeam = ensureTeamExists(teamId);
+        List<StaffAssignment> staffAssignments = resolveStaffAssignments(staffAssignmentIds);
+        return createSupportRequest(dateSlot, sendingTeam, staffAssignments);
+    }
+
+    /**
      * Marks a support request as in progress and sets the accepting mentor.
      *
      * @param requestId support request identifier.
@@ -192,7 +176,7 @@ public class SupportRequestService {
      * @throws InvalidSupportRequestStateTransitionException when transition is not allowed from current state.
      */
     @Transactional
-    public SupportRequest markInProgress(Long requestId, StaffAssignment acceptingMentor) {
+    public SupportRequest markInProgress(UUID requestId, StaffAssignment acceptingMentor) {
         if (acceptingMentor == null) {
             throw new IllegalArgumentException("acceptingMentor must not be null.");
         }
@@ -221,7 +205,7 @@ public class SupportRequestService {
      * @throws InvalidSupportRequestStateTransitionException when transition is not allowed from current state.
      */
     @Transactional
-    public SupportRequest resolveRequest(Long requestId) {
+    public SupportRequest resolveRequest(UUID requestId) {
         SupportRequest request = getSupportRequestById(requestId);
         transitionRequest(request, SupportRequestState.RESOLVED);
         return request;
@@ -236,7 +220,7 @@ public class SupportRequestService {
      * @throws InvalidSupportRequestStateTransitionException when transition is not allowed from current state.
      */
     @Transactional
-    public SupportRequest rejectRequest(Long requestId) {
+    public SupportRequest rejectRequest(UUID requestId) {
         SupportRequest request = getSupportRequestById(requestId);
         transitionRequest(request, SupportRequestState.REJECTED);
         return request;
@@ -249,11 +233,14 @@ public class SupportRequestService {
      * @throws SupportRequestNotFoundException when the request does not exist.
      */
     @Transactional
-    public void deleteSupportRequest(Long requestId) {
+    public void deleteSupportRequest(UUID requestId) {
         supportRequestRepository.delete(getSupportRequestById(requestId));
     }
 
     private Team ensureTeamExists(UUID teamId) {
+        if (teamId == null) {
+            throw new IllegalArgumentException("teamId must not be null.");
+        }
         Team team = teamRepository.findTeamById(teamId);
         if (team == null) {
             throw new TeamNotFoundException(teamId);
@@ -295,5 +282,28 @@ public class SupportRequestService {
                 && second != null
                 && first.getId() != null
                 && Objects.equals(first.getId(), second.getId());
+    }
+
+    private List<StaffAssignment> resolveStaffAssignments(List<UUID> staffAssignmentIds) {
+        if (staffAssignmentIds == null || staffAssignmentIds.isEmpty()) {
+            throw new IllegalArgumentException("staffAssignmentIds must not be null or empty.");
+        }
+        if (staffAssignmentIds.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("staffAssignmentIds must not contain null values.");
+        }
+
+        List<UUID> uniqueIds = staffAssignmentIds.stream().distinct().toList();
+        List<StaffAssignment> assignments = staffAssignmentRepository.findAllById(uniqueIds);
+        if (assignments.size() != uniqueIds.size()) {
+            Set<UUID> foundIds = assignments.stream()
+                    .map(StaffAssignment::getId)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+            List<UUID> missingIds = uniqueIds.stream()
+                    .filter(id -> !foundIds.contains(id))
+                    .toList();
+            throw new IllegalArgumentException("Staff assignments not found: " + missingIds + ".");
+        }
+        return assignments;
     }
 }

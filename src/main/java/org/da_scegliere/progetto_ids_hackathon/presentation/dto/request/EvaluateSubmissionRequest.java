@@ -26,24 +26,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.state.hackathon.state;
+package org.da_scegliere.progetto_ids_hackathon.presentation.dto.request;
 
-import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
 
-public final class EndedState implements HackathonLifecycleState{
+import jakarta.validation.constraints.*;
 
-    @Override
-    public HackathonState getState() {
-        return HackathonState.ENDED;
-    }
-
-    @Override
-    public HackathonState transitionTo( HackathonState targetState) {
-        throw new IllegalStateException("Invalid state transition from " + HackathonState.ENDED + " to " + targetState + ".");
-    }
-
-    @Override
-    public HackathonState next() {
-        throw new IllegalStateException("Hackathon already ended.");
-    }
-}
+public record EvaluateSubmissionRequest(
+        @NotNull @Min(0) @Max(10) Integer score,
+        @NotBlank @Size(max = 500) String judgement
+) { }

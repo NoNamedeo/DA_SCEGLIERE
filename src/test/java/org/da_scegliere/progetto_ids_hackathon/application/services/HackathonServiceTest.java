@@ -43,15 +43,15 @@ class HackathonServiceTest {
     }
 
     @Test
-    void transitionHackathonStateDelegatesToLifecycleService() {
+    void determineCurrentStateDelegatesToLifecycleService() {
         UUID id = UUID.randomUUID();
-        Hackathon expected = new Hackathon();
-        when(hackathonLifecycleService.transitionHackathonState(id, HackathonState.ONGOING)).thenReturn(expected);
+        HackathonState expected = HackathonState.ONGOING;
+        when(hackathonLifecycleService.determineCurrentState(id)).thenReturn(expected);
 
-        Hackathon actual = hackathonLifecycleService.transitionHackathonState(id, HackathonState.ONGOING);
+        HackathonState actual = hackathonLifecycleService.determineCurrentState(id);
 
         assertSame(expected, actual);
-        verify(hackathonLifecycleService).transitionHackathonState(id, HackathonState.ONGOING);
+        verify(hackathonLifecycleService).determineCurrentState(id);
     }
 
     @Test

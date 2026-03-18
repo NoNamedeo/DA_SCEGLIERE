@@ -28,6 +28,7 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.services.hackathon;
 
+import lombok.RequiredArgsConstructor;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IHackathonRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Participation;
@@ -54,19 +55,10 @@ import java.util.UUID;
  */
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class HackathonCrudService {
 
     private final IHackathonRepository hackathonRepository;
-
-    /**
-     * Creates a new service instance.
-     *
-     * @param hackathonRepository repository for hackathon persistence and lookup operations.
-     * @throws NullPointerException when {@code hackathonRepository} is {@code null}.
-     */
-    public HackathonCrudService(IHackathonRepository hackathonRepository) {
-        this.hackathonRepository = Objects.requireNonNull(hackathonRepository, "hackathonRepository must not be null.");
-    }
 
     /**
      * Retrieves all hackathons.

@@ -28,16 +28,19 @@ class CalendarServiceTest {
     @Mock
     private CalendarStrategy calendarStrategy;
 
+    @Mock
+    private SupportRequestService supportRequestService;
+
     private CalendarService calendarService;
 
     @BeforeEach
     void setUp() {
-        calendarService = new CalendarService(calendarStrategy);
+        calendarService = new CalendarService(calendarStrategy, supportRequestService);
     }
 
     @Test
     void proposeCallWithNullRequestThrowsException() {
-        assertThrows(IllegalArgumentException.class, () -> calendarService.proposeCall(null));
+        assertThrows(IllegalArgumentException.class, () -> calendarService.proposeCall((SupportRequest) null));
         verifyNoInteractions(calendarStrategy);
     }
 

@@ -28,20 +28,21 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.services.hackathon;
 
+import lombok.RequiredArgsConstructor;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.InvalidHackathonStateOperationException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.InvalidHackathonStateTransitionException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.WinnerAssignmentNotAllowedException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.hackathon.winner.WinnerAssignmentContext;
-import org.da_scegliere.progetto_ids_hackathon.core.state.hackathon.HackathonLifecycleStateMachine;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.UUID;
 
 /**
@@ -49,86 +50,41 @@ import java.util.UUID;
  * <p>
  * Responsibilities:
  * <ul>
- *     <li>Orchestrate state transitions of a hackathon aggregate.</li>
+ *     <li>Resolve time-driven hackathon lifecycle state.</li>
  *     <li>Delegate winner assignment to domain logic and map domain failures into application exceptions.</li>
  * </ul>
  */
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class HackathonLifecycleService {
 
     private final HackathonCrudService hackathonCrudService;
-    private final HackathonLifecycleStateMachine lifecycleStateMachine;
+    private final ITeamRepository teamRepository;
+    private final Clock clock;
     private final BusinessPolicy<WinnerAssignmentContext> winnerAssignmentPolicy;
 
     /**
-     * Creates a new service instance.
+     * Resolves the current time-driven lifecycle state of a hackathon.
      *
-     * @param hackathonCrudService dependency used to resolve hackathon aggregates.
-     * @param lifecycleStateMachine domain state-machine dependency.
-     * @param winnerAssignmentPolicy domain winner-assignment policy.
-     * @throws NullPointerException when any dependency is {@code null}.
+     * @param hackathonId hackathon identifier.
+     * @return lifecycle state at current clock date.
      */
-    public HackathonLifecycleService(
-            HackathonCrudService hackathonCrudService,
-            HackathonLifecycleStateMachine lifecycleStateMachine,
-            @Qualifier("winnerAssignmentPolicy")
-            BusinessPolicy<WinnerAssignmentContext> winnerAssignmentPolicy
-    ) {
-        this.hackathonCrudService = Objects.requireNonNull(hackathonCrudService, "hackathonCrudService must not be null.");
-        this.lifecycleStateMachine = Objects.requireNonNull(
-                lifecycleStateMachine,
-                "lifecycleStateMachine must not be null."
-        );
-        this.winnerAssignmentPolicy = Objects.requireNonNull(
-                winnerAssignmentPolicy,
-                "winnerAssignmentPolicy must not be null."
-        );
+    public HackathonState determineCurrentState(UUID hackathonId) {
+        Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
+        return hackathon.getHackathonStateAt(LocalDate.now(clock));
     }
 
     /**
-     * Transitions a hackathon to an explicit target state.
+     * Concludes a hackathon by forcing ENDED state with time-driven timeline adjustment.
      *
      * @param hackathonId hackathon identifier.
-     * @param targetState target lifecycle state.
-     * @return hackathon after transition.
-     * @throws IllegalArgumentException when {@code targetState} is {@code null}.
-     * @throws org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException
-     *         when hackathon does not exist.
-     * @throws InvalidHackathonStateTransitionException when transition is not valid according to domain rules.
+     * @return updated hackathon aggregate.
      */
     @Transactional
-    public Hackathon transitionHackathonState(UUID hackathonId, HackathonState targetState) {
-        if (targetState == null) {
-            throw new IllegalArgumentException("targetState must not be null.");
-        }
-
+    public Hackathon concludeHackathon(UUID hackathonId) {
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
-        try {
-            hackathon.transitionTo(targetState, lifecycleStateMachine);
-        } catch (IllegalStateException ex) {
-            throw new InvalidHackathonStateTransitionException(hackathon.getHackathonState(), targetState, ex);
-        }
-        return hackathon;
-    }
-
-    /**
-     * Advances a hackathon to its next lifecycle state.
-     *
-     * @param hackathonId hackathon identifier.
-     * @return hackathon after state advancement.
-     * @throws org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException
-     *         when hackathon does not exist.
-     * @throws InvalidHackathonStateTransitionException when advancement is not allowed.
-     */
-    @Transactional
-    public Hackathon advanceHackathonState(UUID hackathonId) {
-        Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
-        try {
-            hackathon.advanceState(lifecycleStateMachine);
-        } catch (IllegalStateException ex) {
-            throw new InvalidHackathonStateTransitionException(hackathon.getHackathonState(), null, ex);
-        }
+        hackathon.concludeAt(LocalDate.now(clock));
         return hackathon;
     }
 
@@ -136,7 +92,7 @@ public class HackathonLifecycleService {
      * Assigns the winner team to the hackathon.
      * <p>
      * Business validation is delegated to the domain aggregate
-     * ({@link Hackathon#assignWinner(Team, BusinessPolicy)}), while this method maps domain failures
+     * ({@link Hackathon#assignWinner(Team, LocalDate, BusinessPolicy)}), while this method maps domain failures
      * into application-level exceptions.
      *
      * @param hackathonId hackathon identifier.
@@ -158,16 +114,35 @@ public class HackathonLifecycleService {
         }
 
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
+        LocalDate today = LocalDate.now(clock);
+        HackathonState currentState = hackathon.getHackathonStateAt(today);
         try {
-            hackathon.assignWinner(winnerTeam, winnerAssignmentPolicy);
+            hackathon.assignWinner(winnerTeam, today, winnerAssignmentPolicy);
         } catch (IllegalStateException ex) {
-            if (hackathon.getHackathonState() != HackathonState.EVALUATION) {
-                throw new InvalidHackathonStateOperationException(hackathon.getHackathonState(), "Assign winner");
+            if (currentState != HackathonState.EVALUATION) {
+                throw new InvalidHackathonStateOperationException(currentState, "Assign winner");
             }
             throw new WinnerAssignmentNotAllowedException(ex.getMessage());
         } catch (IllegalArgumentException ex) {
             throw new WinnerAssignmentNotAllowedException(ex.getMessage());
         }
         return hackathon;
+    }
+
+    /**
+     * Assigns winner team resolving the team by identifier.
+     *
+     * @param hackathonId hackathon identifier.
+     * @param winnerTeamId winner team identifier.
+     * @return hackathon with assigned winner.
+     */
+    @Transactional
+    public Hackathon assignWinner(UUID hackathonId, UUID winnerTeamId) {
+        if (winnerTeamId == null) {
+            throw new IllegalArgumentException("winnerTeamId must not be null.");
+        }
+        Team winnerTeam = teamRepository.findById(winnerTeamId)
+                .orElseThrow(() -> new TeamNotFoundException(winnerTeamId));
+        return assignWinner(hackathonId, winnerTeam);
     }
 }

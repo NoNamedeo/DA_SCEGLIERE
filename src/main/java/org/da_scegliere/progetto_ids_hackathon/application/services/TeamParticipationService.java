@@ -28,6 +28,7 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
+import lombok.RequiredArgsConstructor;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamParticipationRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.InvalidHackathonStateOperationException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.InvalidSubmissionEvaluationException;
@@ -39,8 +40,10 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Submission;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
@@ -57,6 +60,8 @@ import java.util.UUID;
  * </ul>
  */
 @Transactional(readOnly = true)
+@Service
+@RequiredArgsConstructor
 public class TeamParticipationService {
 
     private static final String OP_CREATE_SUBMISSION = "Create submission";
@@ -65,19 +70,8 @@ public class TeamParticipationService {
     private static final String OP_UPDATE_SUBMISSION_EVALUATION = "Update submission evaluation";
 
     private final ITeamParticipationRepository teamParticipationRepository;
+    private final Clock clock;
 
-    /**
-     * Creates a new service instance.
-     *
-     * @param teamParticipationRepository repository for team-participation aggregate persistence and lookups.
-     * @throws NullPointerException when {@code teamParticipationRepository} is {@code null}.
-     */
-    public TeamParticipationService(ITeamParticipationRepository teamParticipationRepository) {
-        this.teamParticipationRepository = Objects.requireNonNull(
-                teamParticipationRepository,
-                "teamParticipationRepository must not be null"
-        );
-    }
 
     /**
      * Retrieves a team participation by id.
@@ -126,11 +120,12 @@ public class TeamParticipationService {
     @Transactional
     public Submission createSubmission(UUID teamParticipationId, String title, String description) {
         TeamParticipation participation = getTeamParticipationById(teamParticipationId);
-        validateSubmissionWindow(participation, OP_CREATE_SUBMISSION);
+        LocalDate today = LocalDate.now(clock);
+        validateSubmissionWindow(participation, OP_CREATE_SUBMISSION, today);
         validateSubmissionContent(title, description);
 
         Submission submission = new Submission(
-                LocalDate.now(),
+                today,
                 description,
                 title,
                 null
@@ -156,7 +151,8 @@ public class TeamParticipationService {
     @Transactional
     public Submission updateSubmission(UUID submissionId, String newTitle, String newDescription) {
         SubmissionContext context = resolveSubmissionContext(submissionId);
-        validateSubmissionWindow(context.teamParticipation(), OP_UPDATE_SUBMISSION);
+        LocalDate today = LocalDate.now(clock);
+        validateSubmissionWindow(context.teamParticipation(), OP_UPDATE_SUBMISSION, today);
         validateSubmissionContent(newTitle, newDescription);
 
         context.submission().updateContent(newTitle, newDescription);
@@ -177,11 +173,12 @@ public class TeamParticipationService {
      * @throws InvalidHackathonStateOperationException when hackathon state does not allow the operation.
      */
     @Transactional
-    public Submission evaluateSubmission(UUID submissionId, int score, String judgement) {
+    public Submission evaluateSubmission(UUID submissionId, Integer score, String judgement) {
         SubmissionContext context = resolveSubmissionContext(submissionId);
-        validateEvaluationWindow(context.teamParticipation(), OP_EVALUATE_SUBMISSION);
+        LocalDate today = LocalDate.now(clock);
+        validateEvaluationWindow(context.teamParticipation(), OP_EVALUATE_SUBMISSION, today);
 
-        context.submission().evaluate(score, judgement, LocalDate.now());
+        context.submission().evaluate(score, judgement, today);
         return context.submission();
     }
 
@@ -203,13 +200,14 @@ public class TeamParticipationService {
     @Transactional
     public Submission updateSubmissionEvaluation(UUID submissionId, int score, String judgement) {
         SubmissionContext context = resolveSubmissionContext(submissionId);
-        validateEvaluationWindow(context.teamParticipation(), OP_UPDATE_SUBMISSION_EVALUATION);
+        LocalDate today = LocalDate.now(clock);
+        validateEvaluationWindow(context.teamParticipation(), OP_UPDATE_SUBMISSION_EVALUATION, today);
 
         if (!context.submission().hasEvaluation()) {
             throw new SubmissionEvaluationNotFoundException(submissionId);
         }
 
-        context.submission().evaluate(score, judgement, LocalDate.now());
+        context.submission().evaluate(score, judgement, today);
         return context.submission();
     }
 
@@ -230,7 +228,7 @@ public class TeamParticipationService {
      * <p>
      * Operation allowed only during hackathon {@code ONGOING} phase and before submission deadline.
      *
-     * @param submission submission instance to attach.
+     * @param submissionId submission instance to attach.
      * @param teamParticipationId participation identifier.
      * @throws IllegalArgumentException when input is invalid.
      * @throws TeamParticipationNotFoundException when participation does not exist.
@@ -238,13 +236,11 @@ public class TeamParticipationService {
      * @throws SubmissionDeadlineExceededException when deadline has passed.
      */
     @Transactional
-    public void addSubmissionTo(Submission submission, UUID teamParticipationId) {
-        if (submission == null) {
-            throw new IllegalArgumentException("submission must not be null.");
-        }
+    public void addSubmissionTo(UUID submissionId, UUID teamParticipationId) {
+        Submission submission = getSubmissionById(submissionId);
 
         TeamParticipation participation = getTeamParticipationById(teamParticipationId);
-        validateSubmissionWindow(participation, OP_CREATE_SUBMISSION);
+        validateSubmissionWindow(participation, OP_CREATE_SUBMISSION, LocalDate.now(clock));
         validateSubmissionContent(submission.getTitle(), submission.getDescription());
 
         participation.addSubmission(submission);
@@ -274,22 +270,24 @@ public class TeamParticipationService {
         }
     }
 
-    private void validateSubmissionWindow(TeamParticipation participation, String operationName) {
+    private void validateSubmissionWindow(TeamParticipation participation, String operationName, LocalDate referenceDate) {
         Hackathon hackathon = extractHackathon(participation);
-        if (hackathon.getHackathonState() != HackathonState.ONGOING) {
-            throw new InvalidHackathonStateOperationException(hackathon.getHackathonState(), operationName);
+        HackathonState currentState = hackathon.getHackathonStateAt(referenceDate);
+        if (currentState != HackathonState.ONGOING) {
+            throw new InvalidHackathonStateOperationException(currentState, operationName);
         }
 
         LocalDate submissionDeadline = hackathon.getSubmissionDeadline();
-        if (submissionDeadline != null && LocalDate.now().isAfter(submissionDeadline)) {
+        if (submissionDeadline != null && referenceDate.isAfter(submissionDeadline)) {
             throw new SubmissionDeadlineExceededException(submissionDeadline);
         }
     }
 
-    private void validateEvaluationWindow(TeamParticipation participation, String operationName) {
+    private void validateEvaluationWindow(TeamParticipation participation, String operationName, LocalDate referenceDate) {
         Hackathon hackathon = extractHackathon(participation);
-        if (hackathon.getHackathonState() != HackathonState.EVALUATION) {
-            throw new InvalidHackathonStateOperationException(hackathon.getHackathonState(), operationName);
+        HackathonState currentState = hackathon.getHackathonStateAt(referenceDate);
+        if (currentState != HackathonState.EVALUATION) {
+            throw new InvalidHackathonStateOperationException(currentState, operationName);
         }
     }
 

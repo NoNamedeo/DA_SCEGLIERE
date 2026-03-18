@@ -28,6 +28,7 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
+import lombok.RequiredArgsConstructor;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IManagerRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IModerationReportRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffMemberRepository;
@@ -68,6 +69,7 @@ import java.util.UUID;
  */
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class ManagerService {
 
     private final IManagerRepository managerRepository;
@@ -76,35 +78,6 @@ public class ManagerService {
     private final IUserReportRepository userReportRepository;
     private final IStaffMemberRepository staffMemberRepository;
     private final AccountLifecycleStateMachine accountStateMachine;
-
-    /**
-     * Creates a new service instance.
-     *
-     * @param managerRepository manager repository.
-     * @param userRepository user repository.
-     * @param moderationReportRepository generic moderation report repository.
-     * @param userReportRepository user-report repository.
-     * @param staffMemberRepository staff repository.
-     * @param accountStateMachine account lifecycle state-machine dependency.
-     */
-    public ManagerService(
-            IManagerRepository managerRepository,
-            IUserRepository userRepository,
-            IModerationReportRepository moderationReportRepository,
-            IUserReportRepository userReportRepository,
-            IStaffMemberRepository staffMemberRepository,
-            AccountLifecycleStateMachine accountStateMachine
-    ) {
-        this.managerRepository = Objects.requireNonNull(managerRepository, "managerRepository must not be null.");
-        this.userRepository = Objects.requireNonNull(userRepository, "userRepository must not be null.");
-        this.moderationReportRepository = Objects.requireNonNull(
-                moderationReportRepository,
-                "moderationReportRepository must not be null."
-        );
-        this.userReportRepository = Objects.requireNonNull(userReportRepository, "userReportRepository must not be null.");
-        this.staffMemberRepository = Objects.requireNonNull(staffMemberRepository, "staffMemberRepository must not be null.");
-        this.accountStateMachine = Objects.requireNonNull(accountStateMachine, "accountStateMachine must not be null.");
-    }
 
     /**
      * Retrieves all moderation reports, regardless of specific target type.

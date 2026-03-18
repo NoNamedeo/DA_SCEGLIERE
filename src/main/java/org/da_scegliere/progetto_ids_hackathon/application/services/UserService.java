@@ -28,13 +28,13 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
+import lombok.RequiredArgsConstructor;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,22 +53,11 @@ import java.util.UUID;
  */
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class UserService{
 
     private final IUserRepository userRepository;
-    private final ITeamRepository teamRepository;
-
-    /**
-     * Creates a new service instance.
-     *
-     * @param userRepository repository for user persistence and lookup operations.
-     * @param teamRepository repository used to resolve teams for membership queries.
-     */
-    @Autowired
-    public UserService(IUserRepository userRepository, ITeamRepository teamRepository) {
-        this.userRepository = userRepository;
-        this.teamRepository = teamRepository;
-    }
+    private final TeamService teamService;
 
     /**
      * Retrieves all users.
@@ -135,10 +124,7 @@ public class UserService{
      * @throws TeamNotFoundException when the team does not exist.
      */
     public List<User> getUserByTeam(UUID teamId) {
-        if(teamId == null){
-            throw new IllegalArgumentException("TeamId cannot be null.");
-        }
-        Team team = teamRepository.findTeamById(teamId);
+        Team team = teamService.getTeamById(teamId);
         if(team == null){
             throw new TeamNotFoundException(teamId);
         }
@@ -151,11 +137,12 @@ public class UserService{
      * @param name user display name.
      * @param age user age.
      * @param email user e-mail.
-     * @param team team currently associated to the user.
+     * @param teamId team currently associated to the user.
      * @return persisted user.
      */
     @Transactional
-    public User createUser(String name, int age, String email, Team team){
+    public User createUser(String name, int age, String email, UUID teamId){
+        Team team = teamService.getTeamById(teamId);
         User user = new User(name, age, email, team);
         return userRepository.save(user);
     }
@@ -164,7 +151,7 @@ public class UserService{
      * Updates the user's name.
      *
      * @param userId user identifier.
-     * @param name new user name.
+     * @param name new username.
      * @return persisted updated user.
      * @throws UserNotFoundException when user does not exist.
      */

@@ -84,7 +84,7 @@ public class Submission {
         this.description = requireText(description, "description");
     }
 
-    public void evaluate(int score, String judgement, LocalDate evaluationDate) {
+    public void evaluate(Integer score, String judgement, LocalDate evaluationDate) {
         validateScore(score);
         this.judgeJudgement = requireText(judgement, "judgeJudgement");
         this.judgeScore = score;

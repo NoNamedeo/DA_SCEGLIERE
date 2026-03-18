@@ -28,10 +28,12 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
+import lombok.RequiredArgsConstructor;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.PaymentStrategy;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.PaymentProviderException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.payment.PaymentFailedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.payment.WinnerNotProclaimedException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.HackathonCrudService;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.springframework.stereotype.Service;
@@ -39,25 +41,33 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Application service responsible for winner prize disbursement orchestration.
  */
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class PaymentService {
 
     private final PaymentStrategy paymentStrategy;
+    private final HackathonCrudService hackathonCrudService;
 
     /**
-     * Creates a new service instance.
+     * Awards the prize to a winner by resolving hackathon identifier.
      *
-     * @param paymentStrategy strategy adapter used to perform prize disbursement.
-     * @throws NullPointerException when any dependency is {@code null}.
+     * @param prize prize amount.
+     * @param hackathonId hackathon identifier.
+     * @return {@code true} when payment executed, {@code false} when already paid.
      */
-    public PaymentService(PaymentStrategy paymentStrategy) {
-        this.paymentStrategy = Objects.requireNonNull(paymentStrategy, "paymentStrategy must not be null");
+    @Transactional
+    public boolean awardPrizeToWinner(BigDecimal prize, UUID hackathonId) {
+        if (hackathonId == null) {
+            throw new IllegalArgumentException("hackathonId must not be null.");
+        }
+        Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
+        return awardPrizeToWinner(prize, hackathon);
     }
 
     /**

@@ -28,8 +28,10 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.supportRequest;
 
+import java.util.UUID;
+
 public class SupportRequestNotFoundException extends RuntimeException {
-    public SupportRequestNotFoundException(Long requestId) {
-        super("Support request (id: " + requestId + ") not found.");
+    public SupportRequestNotFoundException( UUID requestId) {
+        super("Support request (id: " + requestId.toString() + ") not found.");
     }
 }

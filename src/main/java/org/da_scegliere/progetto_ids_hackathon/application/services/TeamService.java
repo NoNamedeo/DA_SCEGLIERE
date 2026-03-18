@@ -28,16 +28,17 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
+import lombok.RequiredArgsConstructor;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamRepository;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserRepository;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -52,20 +53,11 @@ import java.util.UUID;
  */
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class TeamService{
 
     private final ITeamRepository teamRepository;
-
-    /**
-     * Creates a new service instance.
-     *
-     * @param teamRepository repository for team persistence and lookup operations.
-     * @throws NullPointerException when {@code teamRepository} is {@code null}.
-     */
-    @Autowired
-    public TeamService(ITeamRepository teamRepository) {
-        this.teamRepository = Objects.requireNonNull(teamRepository, "teamRepository must not be null.");
-    }
+    private final IUserRepository userRepository;
 
     /**
      * Returns all teams currently stored.
@@ -171,29 +163,48 @@ public class TeamService{
      * Adds a user to a team.
      *
      * @param teamId team identifier.
-     * @param user user to add.
+     * @param userId user to add.
      * @return updated team aggregate.
      * @throws TeamNotFoundException if the team does not exist.
      */
     @Transactional
-    public Team addMemberToTeam(UUID teamId, User user) {
+    public Team addMemberToTeam(UUID teamId, UUID userId) {
         Team team = getTeamById(teamId);
+        User user = getUserById(userId);
         team.addMember(user);
         return team;
     }
 
     /**
-     * Removes a user from a team.
+     * Removes a user from a team resolving entities by id.
      *
      * @param teamId team identifier.
-     * @param user user to remove.
+     * @param userId user identifier.
      * @return updated team aggregate.
-     * @throws TeamNotFoundException if the team does not exist.
      */
     @Transactional
-    public Team removeMemberFromTeam(UUID teamId, User user) {
+    public Team removeMemberFromTeam(UUID teamId, UUID userId) {
         Team team = getTeamById(teamId);
+        User user = getUserById(userId);
+        validateMembership(team, userId);
         team.removeMember(user);
         return team;
+    }
+
+    private static void validateMembership(Team team, UUID userId) {
+        boolean isMember = team.getMembers() != null
+                && team.getMembers().stream()
+                .anyMatch(member -> member != null && userId.equals(member.getId()));
+        if (!isMember) {
+            throw new IllegalArgumentException("User is not a member of the specified team.");
+        }
+    }
+
+    private User getUserById( UUID userId ) {
+        if(userId == null) {
+            throw new IllegalArgumentException("userId must not be null");
+        }
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 }

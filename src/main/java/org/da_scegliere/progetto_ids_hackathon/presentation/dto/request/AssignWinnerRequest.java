@@ -26,27 +26,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.state.hackathon.state;
+package org.da_scegliere.progetto_ids_hackathon.presentation.dto.request;
 
-import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
+import jakarta.validation.constraints.NotNull;
 
-public final class OngoingState implements HackathonLifecycleState {
+import java.util.UUID;
 
-    @Override
-    public HackathonState getState() {
-        return HackathonState.ONGOING;
-    }
-
-    @Override
-    public HackathonState transitionTo( HackathonState targetState) {
-        if (targetState == HackathonState.EVALUATION) {
-            return HackathonState.EVALUATION;
-        }
-        throw new IllegalStateException("Invalid state transition from " + HackathonState.ONGOING + " to " + targetState + ".");
-    }
-
-    @Override
-    public HackathonState next() {
-        return HackathonState.EVALUATION;
-    }
-}
+public record AssignWinnerRequest(
+        @NotNull UUID winnerTeamId
+) { }

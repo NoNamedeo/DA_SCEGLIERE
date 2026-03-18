@@ -26,21 +26,34 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon;
+package org.da_scegliere.progetto_ids_hackathon.presentation;
 
-import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.da_scegliere.progetto_ids_hackathon.application.services.PaymentService;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.PrizeAwardRequest;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-public class InvalidHackathonStateTransitionException extends RuntimeException {
+import java.util.UUID;
 
-    public InvalidHackathonStateTransitionException(HackathonState from, HackathonState to, Throwable cause) {
-        super(buildMessage(from, to), cause);
-    }
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/hackathons")
+public class PaymentController {
 
-    private static String buildMessage(HackathonState from, HackathonState to) {
-        String sourceState = from == null ? "UNDEFINED" : from.name();
-        if (to == null) {
-            return "Unable to advance hackathon from state " + sourceState + ".";
-        }
-        return "Invalid hackathon state transition from " + sourceState + " to " + to.name() + ".";
+    private final PaymentService paymentService;
+
+    @PostMapping("/{hackathonId}/prize-awards")
+    public ResponseEntity<Void> awardPrize(
+            @PathVariable UUID hackathonId,
+            @Valid @RequestBody PrizeAwardRequest request
+    ) {
+        paymentService.awardPrizeToWinner(request.prize(), hackathonId);
+        return ResponseEntity.ok().build();
     }
 }

@@ -28,7 +28,6 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.config;
 
-import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.support.SupportRequestState;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.user.AccountState;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
@@ -37,13 +36,6 @@ import org.da_scegliere.progetto_ids_hackathon.core.policies.hackathon.winner.Wi
 import org.da_scegliere.progetto_ids_hackathon.core.policies.support.SupportRequestMentorSelectionContext;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.support.SupportRequestMentorSelectionPolicy;
 import org.da_scegliere.progetto_ids_hackathon.core.state.common.StateRegistry;
-import org.da_scegliere.progetto_ids_hackathon.core.state.hackathon.DefaultHackathonLifecycleStateMachine;
-import org.da_scegliere.progetto_ids_hackathon.core.state.hackathon.HackathonLifecycleStateMachine;
-import org.da_scegliere.progetto_ids_hackathon.core.state.hackathon.state.EndedState;
-import org.da_scegliere.progetto_ids_hackathon.core.state.hackathon.state.EvaluationState;
-import org.da_scegliere.progetto_ids_hackathon.core.state.hackathon.state.HackathonLifecycleState;
-import org.da_scegliere.progetto_ids_hackathon.core.state.hackathon.state.OngoingState;
-import org.da_scegliere.progetto_ids_hackathon.core.state.hackathon.state.RegistrationState;
 import org.da_scegliere.progetto_ids_hackathon.core.state.support.DefaultSupportRequestLifecycleStateMachine;
 import org.da_scegliere.progetto_ids_hackathon.core.state.support.SupportRequestLifecycleStateMachine;
 import org.da_scegliere.progetto_ids_hackathon.core.state.support.state.InProgressSupportRequestState;
@@ -60,6 +52,7 @@ import org.da_scegliere.progetto_ids_hackathon.core.state.user.state.SuspendedAc
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Clock;
 import java.util.List;
 
 /**
@@ -69,18 +62,8 @@ import java.util.List;
 public class DomainCompositionConfiguration {
 
     @Bean
-    public HackathonLifecycleStateMachine hackathonLifecycleStateMachine() {
-        StateRegistry<HackathonState, HackathonLifecycleState> stateRegistry = new StateRegistry<>(
-                List.of(
-                        new RegistrationState(),
-                        new OngoingState(),
-                        new EvaluationState(),
-                        new EndedState()
-                ),
-                HackathonLifecycleState::getState,
-                state -> "Unsupported hackathon state: " + state + "."
-        );
-        return new DefaultHackathonLifecycleStateMachine(stateRegistry);
+    public Clock clock() {
+        return Clock.systemDefaultZone();
     }
 
     @Bean
