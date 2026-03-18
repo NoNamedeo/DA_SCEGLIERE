@@ -33,7 +33,11 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.h
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.WinnerAssignmentNotAllowedException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.states.hackathon.HackathonState;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
+import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
+import org.da_scegliere.progetto_ids_hackathon.core.policies.hackathon.winner.WinnerAssignmentContext;
+import org.da_scegliere.progetto_ids_hackathon.core.state.hackathon.HackathonLifecycleStateMachine;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,15 +58,32 @@ import java.util.UUID;
 public class HackathonLifecycleService {
 
     private final HackathonCrudService hackathonCrudService;
+    private final HackathonLifecycleStateMachine lifecycleStateMachine;
+    private final BusinessPolicy<WinnerAssignmentContext> winnerAssignmentPolicy;
 
     /**
      * Creates a new service instance.
      *
      * @param hackathonCrudService dependency used to resolve hackathon aggregates.
-     * @throws NullPointerException when {@code hackathonCrudService} is {@code null}.
+     * @param lifecycleStateMachine domain state-machine dependency.
+     * @param winnerAssignmentPolicy domain winner-assignment policy.
+     * @throws NullPointerException when any dependency is {@code null}.
      */
-    public HackathonLifecycleService(HackathonCrudService hackathonCrudService) {
+    public HackathonLifecycleService(
+            HackathonCrudService hackathonCrudService,
+            HackathonLifecycleStateMachine lifecycleStateMachine,
+            @Qualifier("winnerAssignmentPolicy")
+            BusinessPolicy<WinnerAssignmentContext> winnerAssignmentPolicy
+    ) {
         this.hackathonCrudService = Objects.requireNonNull(hackathonCrudService, "hackathonCrudService must not be null.");
+        this.lifecycleStateMachine = Objects.requireNonNull(
+                lifecycleStateMachine,
+                "lifecycleStateMachine must not be null."
+        );
+        this.winnerAssignmentPolicy = Objects.requireNonNull(
+                winnerAssignmentPolicy,
+                "winnerAssignmentPolicy must not be null."
+        );
     }
 
     /**
@@ -84,7 +105,7 @@ public class HackathonLifecycleService {
 
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
         try {
-            hackathon.transitionTo(targetState);
+            hackathon.transitionTo(targetState, lifecycleStateMachine);
         } catch (IllegalStateException ex) {
             throw new InvalidHackathonStateTransitionException(hackathon.getHackathonState(), targetState, ex);
         }
@@ -104,7 +125,7 @@ public class HackathonLifecycleService {
     public Hackathon advanceHackathonState(UUID hackathonId) {
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
         try {
-            hackathon.advanceState();
+            hackathon.advanceState(lifecycleStateMachine);
         } catch (IllegalStateException ex) {
             throw new InvalidHackathonStateTransitionException(hackathon.getHackathonState(), null, ex);
         }
@@ -115,7 +136,7 @@ public class HackathonLifecycleService {
      * Assigns the winner team to the hackathon.
      * <p>
      * Business validation is delegated to the domain aggregate
-     * ({@link Hackathon#assignWinner(Team)}), while this method maps domain failures
+     * ({@link Hackathon#assignWinner(Team, BusinessPolicy)}), while this method maps domain failures
      * into application-level exceptions.
      *
      * @param hackathonId hackathon identifier.
@@ -138,7 +159,7 @@ public class HackathonLifecycleService {
 
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
         try {
-            hackathon.assignWinner(winnerTeam);
+            hackathon.assignWinner(winnerTeam, winnerAssignmentPolicy);
         } catch (IllegalStateException ex) {
             if (hackathon.getHackathonState() != HackathonState.EVALUATION) {
                 throw new InvalidHackathonStateOperationException(hackathon.getHackathonState(), "Assign winner");

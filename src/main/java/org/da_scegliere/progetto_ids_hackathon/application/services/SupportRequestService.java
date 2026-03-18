@@ -36,10 +36,14 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.s
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.supportRequest.InvalidSupportRequestStateTransitionException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.states.support.SupportRequestState;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.support.SupportRequestState;
+import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
+import org.da_scegliere.progetto_ids_hackathon.core.policies.support.SupportRequestMentorSelectionContext;
+import org.da_scegliere.progetto_ids_hackathon.core.state.support.SupportRequestLifecycleStateMachine;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,6 +72,8 @@ public class SupportRequestService {
     private final ISupportRequestRepository supportRequestRepository;
     private final ITeamRepository teamRepository;
     private final ITeamParticipationRepository teamParticipationRepository;
+    private final SupportRequestLifecycleStateMachine supportRequestStateMachine;
+    private final BusinessPolicy<SupportRequestMentorSelectionContext> mentorSelectionPolicy;
 
     /**
      * Creates a new service instance.
@@ -75,12 +81,17 @@ public class SupportRequestService {
      * @param supportRequestRepository repository for support-request persistence.
      * @param teamRepository repository used to validate and resolve teams.
      * @param teamParticipationRepository repository used to validate team enrolment in hackathons.
+     * @param supportRequestStateMachine support-request lifecycle state-machine dependency.
+     * @param mentorSelectionPolicy mentor-selection policy dependency.
      * @throws NullPointerException when any dependency is {@code null}.
      */
     public SupportRequestService(
             ISupportRequestRepository supportRequestRepository,
             ITeamRepository teamRepository,
-            ITeamParticipationRepository teamParticipationRepository
+            ITeamParticipationRepository teamParticipationRepository,
+            SupportRequestLifecycleStateMachine supportRequestStateMachine,
+            @Qualifier("supportRequestMentorSelectionPolicy")
+            BusinessPolicy<SupportRequestMentorSelectionContext> mentorSelectionPolicy
     ) {
         this.supportRequestRepository =
                 Objects.requireNonNull(supportRequestRepository, "supportRequestRepository must not be null.");
@@ -88,6 +99,14 @@ public class SupportRequestService {
                 Objects.requireNonNull(teamRepository, "teamRepository must not be null.");
         this.teamParticipationRepository =
                 Objects.requireNonNull(teamParticipationRepository, "teamParticipationRepository must not be null.");
+        this.supportRequestStateMachine = Objects.requireNonNull(
+                supportRequestStateMachine,
+                "supportRequestStateMachine must not be null."
+        );
+        this.mentorSelectionPolicy = Objects.requireNonNull(
+                mentorSelectionPolicy,
+                "mentorSelectionPolicy must not be null."
+        );
     }
 
     /**
@@ -253,41 +272,19 @@ public class SupportRequestService {
     }
 
     private void validateSelectedMentorsForTeamHackathon(Team team, List<StaffAssignment> selectedMentors) {
-        if (selectedMentors == null || selectedMentors.isEmpty()) {
-            throw new InvalidSupportRequestMentorSelectionException("selectedMentors must not be empty.");
-        }
-
         List<TeamParticipation> teamParticipations = teamParticipationRepository.findByTeam_id(team.getId());
-        if (teamParticipations.isEmpty()) {
-            throw new InvalidSupportRequestMentorSelectionException(
-                    "Team must be enrolled in at least one hackathon to request mentor support."
-            );
-        }
-
         Set<UUID> teamHackathonIds = teamParticipations.stream()
                 .map(TeamParticipation::getHackathon)
                 .filter(Objects::nonNull)
                 .map(h -> h.getId())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
-
-        boolean invalidMentorFound = selectedMentors.stream().anyMatch(mentorAssignment ->
-                mentorAssignment == null
-                        || mentorAssignment.getHackathon() == null
-                        || mentorAssignment.getHackathon().getId() == null
-                        || !teamHackathonIds.contains(mentorAssignment.getHackathon().getId())
-        );
-
-        if (invalidMentorFound) {
-            throw new InvalidSupportRequestMentorSelectionException(
-                    "All selected mentors must be assigned to a hackathon where the team participates."
-            );
-        }
+        SupportRequest.validateMentorSelection(selectedMentors, teamHackathonIds, mentorSelectionPolicy);
     }
 
-    private static void transitionRequest(SupportRequest request, SupportRequestState targetState) {
+    private void transitionRequest(SupportRequest request, SupportRequestState targetState) {
         try {
-            request.transitionTo(targetState);
+            request.transitionTo(targetState, supportRequestStateMachine);
         } catch (IllegalStateException ex) {
             throw new InvalidSupportRequestStateTransitionException(request.getState(), targetState);
         }

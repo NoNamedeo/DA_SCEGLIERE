@@ -35,11 +35,14 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.Participation;
+import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
+import org.da_scegliere.progetto_ids_hackathon.core.policies.hackathon.winner.WinnerAssignmentContext;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Submission;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.states.hackathon.HackathonState;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
+import org.da_scegliere.progetto_ids_hackathon.core.state.hackathon.HackathonLifecycleStateMachine;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -89,7 +92,7 @@ public class Hackathon {
     private List<StaffAssignment> staff;
 
     /**
-     * Submission deadline (deadlineSottomissione).
+     * Submission deadline.
      * If null, the temporal constraint is considered not configured.
      */
     @Setter
@@ -108,21 +111,19 @@ public class Hackathon {
 
     public Hackathon() {}
 
-    public void transitionTo(HackathonState targetState) {
+    public void transitionTo(HackathonState targetState, HackathonLifecycleStateMachine stateMachine) {
         Objects.requireNonNull(targetState, "targetState must not be null");
+        Objects.requireNonNull(stateMachine, "stateMachine must not be null.");
 
         if (this.hackathonState == targetState) {
             return;
         }
-        if (!isValidTransition(this.hackathonState, targetState)) {
-            throw new IllegalStateException("Invalid state transition from " + this.hackathonState + " to " + targetState + ".");
-        }
-
-        this.hackathonState = targetState;
+        this.hackathonState = stateMachine.transition(this.hackathonState, targetState);
     }
 
-    public void advanceState() {
-        transitionTo(nextState(this.hackathonState));
+    public void advanceState(HackathonLifecycleStateMachine stateMachine) {
+        Objects.requireNonNull(stateMachine, "stateMachine must not be null.");
+        this.hackathonState = stateMachine.next(this.hackathonState);
     }
 
     /**
@@ -131,39 +132,23 @@ public class Hackathon {
      * - winner team must participate in the hackathon
      * - all submissions must be evaluated
      */
-    public void assignWinner(Team winnerTeam) {
+    public void assignWinner(Team winnerTeam, BusinessPolicy<WinnerAssignmentContext> winnerAssignmentPolicy) {
         Objects.requireNonNull(winnerTeam, "winnerTeam must not be null.");
+        Objects.requireNonNull(winnerAssignmentPolicy, "winnerAssignmentPolicy must not be null.");
         if (winnerTeam.getId() == null) {
             throw new IllegalArgumentException("winnerTeam.id must not be null.");
         }
-        if (this.hackathonState != HackathonState.EVALUATION) {
-            throw new IllegalStateException("Cannot assign winner outside EVALUATION state.");
-        }
 
         List<TeamParticipation> teamParticipations = getTeamParticipations();
-        boolean winnerParticipates = teamParticipations.stream()
-                .map(TeamParticipation::getTeam)
-                .anyMatch(team -> isSameTeam(team, winnerTeam));
-        if (!winnerParticipates) {
-            throw new IllegalArgumentException("Winner team must participate in the hackathon.");
-        }
+        List<Submission> submissions = collectSubmissions(teamParticipations);
 
-        List<Submission> submissions = teamParticipations.stream()
-                .flatMap(participation -> {
-                    List<Submission> participationSubmissions = participation.getSubmissions();
-                    if (participationSubmissions == null) {
-                        return Collections.<Submission>emptyList().stream();
-                    }
-                    return participationSubmissions.stream();
-                })
-                .toList();
-        if (submissions.isEmpty()) {
-            throw new IllegalStateException("Cannot assign winner: no submissions found for this hackathon.");
-        }
-        boolean allEvaluated = submissions.stream().allMatch(Submission::hasEvaluation);
-        if (!allEvaluated) {
-            throw new IllegalStateException("Cannot assign winner: not all submissions are evaluated.");
-        }
+        WinnerAssignmentContext context = new WinnerAssignmentContext(
+                this.hackathonState,
+                winnerTeam,
+                teamParticipations,
+                submissions
+        );
+        winnerAssignmentPolicy.validate(context);
 
         this.winner = winnerTeam;
     }
@@ -171,8 +156,8 @@ public class Hackathon {
     /**
      * Kept for backward compatibility.
      */
-    public void proclaimWinner(Team winnerTeam) {
-        assignWinner(winnerTeam);
+    public void proclaimWinner(Team winnerTeam, BusinessPolicy<WinnerAssignmentContext> winnerAssignmentPolicy) {
+        assignWinner(winnerTeam, winnerAssignmentPolicy);
     }
 
     public boolean isPrizeAlreadyPaid() {
@@ -246,17 +231,22 @@ public class Hackathon {
                 .toList();
     }
 
+    private static List<Submission> collectSubmissions(List<TeamParticipation> teamParticipations) {
+        return teamParticipations.stream()
+                .flatMap(participation -> {
+                    List<Submission> participationSubmissions = participation.getSubmissions();
+                    if (participationSubmissions == null) {
+                        return Collections.<Submission>emptyList().stream();
+                    }
+                    return participationSubmissions.stream();
+                })
+                .toList();
+    }
+
     private void ensureStaffCollectionInitialized() {
         if (staff == null) {
             staff = new ArrayList<>();
         }
-    }
-
-    private static boolean isSameTeam(Team teamA, Team teamB) {
-        return teamA != null
-                && teamB != null
-                && teamA.getId() != null
-                && Objects.equals(teamA.getId(), teamB.getId());
     }
 
     private static boolean sameStaffMember(StaffAssignment first, StaffAssignment second) {
@@ -267,29 +257,5 @@ public class Hackathon {
         UUID firstId = first.getStaffMember().getId();
         UUID secondId = second.getStaffMember().getId();
         return firstId != null && Objects.equals(firstId, secondId);
-    }
-
-    private static boolean isValidTransition(HackathonState from, HackathonState to) {
-        if (from == null) {
-            return to == HackathonState.REGISTRATION;
-        }
-        return switch (from) {
-            case REGISTRATION -> to == HackathonState.ONGOING;
-            case ONGOING -> to == HackathonState.EVALUATION;
-            case EVALUATION -> to == HackathonState.ENDED;
-            case ENDED -> false;
-        };
-    }
-
-    private static HackathonState nextState(HackathonState currentState) {
-        if (currentState == null) {
-            throw new IllegalStateException("Hackathon state is not initialized.");
-        }
-        return switch (currentState) {
-            case REGISTRATION -> HackathonState.ONGOING;
-            case ONGOING -> HackathonState.EVALUATION;
-            case EVALUATION -> HackathonState.ENDED;
-            case ENDED -> throw new IllegalStateException("Hackathon already ended.");
-        };
     }
 }

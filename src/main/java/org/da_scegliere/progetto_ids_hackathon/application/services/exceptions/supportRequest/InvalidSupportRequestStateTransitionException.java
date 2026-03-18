@@ -28,7 +28,7 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.supportRequest;
 
-import org.da_scegliere.progetto_ids_hackathon.core.enums.states.support.SupportRequestState;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.support.SupportRequestState;
 
 public class InvalidSupportRequestStateTransitionException extends RuntimeException {
 

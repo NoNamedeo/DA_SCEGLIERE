@@ -29,7 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
 
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.UserReport;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.states.report.UserReportState;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

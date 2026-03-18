@@ -47,13 +47,13 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.UserRepo
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.Manager;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.states.report.UserReportState;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
+import org.da_scegliere.progetto_ids_hackathon.core.state.user.AccountLifecycleStateMachine;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -70,14 +70,12 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class ManagerService {
 
-    private static final int MIN_ALLOWED_AGE = 18;
-    private static final int MAX_ALLOWED_AGE = 120;
-
     private final IManagerRepository managerRepository;
     private final IUserRepository userRepository;
     private final IModerationReportRepository moderationReportRepository;
     private final IUserReportRepository userReportRepository;
     private final IStaffMemberRepository staffMemberRepository;
+    private final AccountLifecycleStateMachine accountStateMachine;
 
     /**
      * Creates a new service instance.
@@ -87,13 +85,15 @@ public class ManagerService {
      * @param moderationReportRepository generic moderation report repository.
      * @param userReportRepository user-report repository.
      * @param staffMemberRepository staff repository.
+     * @param accountStateMachine account lifecycle state-machine dependency.
      */
     public ManagerService(
             IManagerRepository managerRepository,
             IUserRepository userRepository,
             IModerationReportRepository moderationReportRepository,
             IUserReportRepository userReportRepository,
-            IStaffMemberRepository staffMemberRepository
+            IStaffMemberRepository staffMemberRepository,
+            AccountLifecycleStateMachine accountStateMachine
     ) {
         this.managerRepository = Objects.requireNonNull(managerRepository, "managerRepository must not be null.");
         this.userRepository = Objects.requireNonNull(userRepository, "userRepository must not be null.");
@@ -103,6 +103,7 @@ public class ManagerService {
         );
         this.userReportRepository = Objects.requireNonNull(userReportRepository, "userReportRepository must not be null.");
         this.staffMemberRepository = Objects.requireNonNull(staffMemberRepository, "staffMemberRepository must not be null.");
+        this.accountStateMachine = Objects.requireNonNull(accountStateMachine, "accountStateMachine must not be null.");
     }
 
     /**
@@ -161,10 +162,9 @@ public class ManagerService {
     public User suspendUser(UUID managerId, UUID userId, String suspensionReason) {
         ensureManagerExists(managerId);
         User user = getUserOrThrow(userId);
-        String safeReason = requireNonBlank(suspensionReason, "suspensionReason");
 
         ensureSuspendable(user);
-        user.suspend(safeReason);
+        user.suspend(suspensionReason, accountStateMachine);
         return user;
     }
 
@@ -197,12 +197,10 @@ public class ManagerService {
             throw new UserNotFoundException(reportedUserId);
         }
 
-        String safeSuspensionReason = requireNonBlank(suspensionReason, "suspensionReason");
-        String safeResolutionNotes = requireNonBlank(reportResolutionNotes, "reportResolutionNotes");
         ensureSuspendable(user);
 
-        user.suspend(safeSuspensionReason);
-        report.accept(manager, safeResolutionNotes);
+        user.suspend(suspensionReason, accountStateMachine);
+        report.accept(manager, reportResolutionNotes);
         return user;
     }
 
@@ -218,7 +216,6 @@ public class ManagerService {
     public User reinstateUser(UUID managerId, UUID userId, String reinstatementReason) {
         ensureManagerExists(managerId);
         User user = getUserOrThrow(userId);
-        String safeReason = requireNonBlank(reinstatementReason, "reinstatementReason");
 
         if (user.isRevoked()) {
             throw new UserAccountRevokedException(userId);
@@ -227,7 +224,7 @@ public class ManagerService {
             throw new UserNotSuspendedException(userId);
         }
 
-        user.reinstate(safeReason);
+        user.reinstate(reinstatementReason, accountStateMachine);
         return user;
     }
 
@@ -243,13 +240,12 @@ public class ManagerService {
     public User revokeAccount(UUID managerId, UUID userId, String revocationReason) {
         ensureManagerExists(managerId);
         User user = getUserOrThrow(userId);
-        String safeReason = requireNonBlank(revocationReason, "revocationReason");
 
         if (user.isRevoked()) {
             throw new UserAlreadyRevokedException(userId);
         }
 
-        user.revoke(safeReason);
+        user.revoke(revocationReason, accountStateMachine);
         return user;
     }
 
@@ -266,12 +262,9 @@ public class ManagerService {
     public StaffMember createStaffAccount(UUID managerId, String name, int age, String email) {
         ensureManagerExists(managerId);
 
-        String safeName = requireNonBlank(name, "name");
-        String safeEmail = normalizeEmail(email);
-        validateAge(age);
-        ensureEmailIsAvailable(safeEmail);
+        ensureEmailIsAvailable(email);
 
-        StaffMember staffMember = new StaffMember(safeName, age, safeEmail, new ArrayList<>());
+        StaffMember staffMember = new StaffMember(name, age, email, new ArrayList<>());
         return staffMemberRepository.save(staffMember);
     }
 
@@ -299,11 +292,6 @@ public class ManagerService {
                 .orElseThrow(() -> new UserReportNotFoundException(reportId));
     }
 
-    private static String normalizeEmail(String email) {
-        String safeEmail = requireNonBlank(email, "email");
-        return safeEmail.toLowerCase(Locale.ROOT);
-    }
-
     private void ensureEmailIsAvailable(String email) {
         boolean alreadyUsed = staffMemberRepository.findByEmail(email).isPresent()
                 || userRepository.findByEmail(email).isPresent()
@@ -323,18 +311,4 @@ public class ManagerService {
         }
     }
 
-    private static String requireNonBlank(String value, String fieldName) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(fieldName + " must not be blank.");
-        }
-        return value.trim();
-    }
-
-    private static void validateAge(int age) {
-        if (age < MIN_ALLOWED_AGE || age > MAX_ALLOWED_AGE) {
-            throw new IllegalArgumentException(
-                    "age must be in range [" + MIN_ALLOWED_AGE + ", " + MAX_ALLOWED_AGE + "]."
-            );
-        }
-    }
 }

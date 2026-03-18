@@ -26,18 +26,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
+package org.da_scegliere.progetto_ids_hackathon.core.policies;
 
-import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.UUID;
-
-@Repository
-public interface IModerationReportRepository extends JpaRepository<ModerationReport, UUID> {
-
-    List<ModerationReport> findByState(UserReportState state);
+public interface BusinessPolicy<C>{
+    void validate(C context);
 }

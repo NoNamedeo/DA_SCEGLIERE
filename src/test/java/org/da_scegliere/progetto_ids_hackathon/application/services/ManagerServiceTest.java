@@ -15,7 +15,14 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.UserRepo
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.Manager;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.states.report.UserReportState;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
+import org.da_scegliere.progetto_ids_hackathon.core.state.common.StateRegistry;
+import org.da_scegliere.progetto_ids_hackathon.core.state.user.AccountLifecycleStateMachine;
+import org.da_scegliere.progetto_ids_hackathon.core.state.user.DefaultAccountLifecycleStateMachine;
+import org.da_scegliere.progetto_ids_hackathon.core.state.user.state.AccountLifecycleState;
+import org.da_scegliere.progetto_ids_hackathon.core.state.user.state.ActiveAccountState;
+import org.da_scegliere.progetto_ids_hackathon.core.state.user.state.RevokedAccountState;
+import org.da_scegliere.progetto_ids_hackathon.core.state.user.state.SuspendedAccountState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,17 +61,31 @@ class ManagerServiceTest {
     private IStaffMemberRepository staffMemberRepository;
 
     private ManagerService managerService;
+    private AccountLifecycleStateMachine accountStateMachine;
 
     private UUID managerId;
 
     @BeforeEach
     void setUp() {
+        accountStateMachine = new DefaultAccountLifecycleStateMachine(
+                new StateRegistry<>(
+                        java.util.List.of(
+                                new ActiveAccountState(),
+                                new SuspendedAccountState(),
+                                new RevokedAccountState()
+                        ),
+                        AccountLifecycleState::getState,
+                        state -> "Unsupported account status: " + state + "."
+                )
+        );
+
         managerService = new ManagerService(
                 managerRepository,
                 userRepository,
                 moderationReportRepository,
                 userReportRepository,
-                staffMemberRepository
+                staffMemberRepository,
+                accountStateMachine
         );
         managerId = UUID.randomUUID();
         when(managerRepository.findById(managerId)).thenReturn(Optional.of(new Manager()));
@@ -86,7 +107,7 @@ class ManagerServiceTest {
         User user = new User();
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        user.suspend("Already suspended.");
+        user.suspend("Already suspended.", accountStateMachine);
 
         assertThrows(
                 UserAlreadySuspendedException.class,
@@ -172,7 +193,7 @@ class ManagerServiceTest {
         UUID userId = UUID.randomUUID();
         User user = new User();
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        user.revoke("Initial revocation");
+        user.revoke("Initial revocation", accountStateMachine);
 
         assertThrows(
                 UserAlreadyRevokedException.class,

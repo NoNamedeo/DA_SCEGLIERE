@@ -26,13 +26,21 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.enums.states.user;
+package org.da_scegliere.progetto_ids_hackathon.core.state.support;
+
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.support.SupportRequestState;
 
 /**
- * Lifecycle states for user accounts managed by moderation use cases.
+ * Contract for support-request lifecycle transitions.
  */
-public enum AccountState{
-    ACTIVE,
-    SUSPENDED,
-    REVOKED
+public interface SupportRequestLifecycleStateMachine {
+
+    /**
+     * Transitions from current state to target state according to lifecycle rules.
+     *
+     * @param currentState current request state.
+     * @param targetState target request state.
+     * @return resulting request state.
+     */
+    SupportRequestState transition(SupportRequestState currentState, SupportRequestState targetState);
 }

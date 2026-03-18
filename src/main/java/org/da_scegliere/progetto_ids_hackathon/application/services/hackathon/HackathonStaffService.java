@@ -34,7 +34,7 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.states.hackathon.HackathonState;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

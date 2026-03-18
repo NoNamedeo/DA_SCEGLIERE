@@ -26,13 +26,29 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.enums.states.report;
+package org.da_scegliere.progetto_ids_hackathon.core.state.hackathon;
+
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
 
 /**
- * Lifecycle states for abuse reports.
+ * Contract for hackathon lifecycle transitions.
  */
-public enum UserReportState {
-    OPEN,
-    ACCEPTED,
-    REJECTED
+public interface HackathonLifecycleStateMachine {
+
+    /**
+     * Transitions from current state to target state according to lifecycle rules.
+     *
+     * @param currentState current lifecycle state.
+     * @param targetState target lifecycle state.
+     * @return resulting lifecycle state.
+     */
+    HackathonState transition(HackathonState currentState, HackathonState targetState);
+
+    /**
+     * Advances to the next lifecycle state.
+     *
+     * @param currentState current lifecycle state.
+     * @return next lifecycle state.
+     */
+    HackathonState next(HackathonState currentState);
 }

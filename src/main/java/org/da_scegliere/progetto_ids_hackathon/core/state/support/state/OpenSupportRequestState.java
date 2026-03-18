@@ -26,18 +26,28 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
+package org.da_scegliere.progetto_ids_hackathon.core.state.support.state;
 
-import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.support.SupportRequestState;
 
-import java.util.List;
-import java.util.UUID;
+public final class OpenSupportRequestState implements SupportRequestLifecycleState {
 
-@Repository
-public interface IModerationReportRepository extends JpaRepository<ModerationReport, UUID> {
+    @Override
+    public SupportRequestState getState() {
+        return SupportRequestState.OPEN;
+    }
 
-    List<ModerationReport> findByState(UserReportState state);
+    @Override
+    public SupportRequestState transitionTo(SupportRequestState targetState) {
+        if (targetState == SupportRequestState.IN_PROGRESS) {
+            return SupportRequestState.IN_PROGRESS;
+        }
+        throw invalidTransition(SupportRequestState.OPEN, targetState);
+    }
+
+    private static IllegalStateException invalidTransition(SupportRequestState from, SupportRequestState to) {
+        return new IllegalStateException(
+                "Invalid support request state transition from '" + from + "' to '" + to + "'."
+        );
+    }
 }

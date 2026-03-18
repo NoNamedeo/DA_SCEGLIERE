@@ -38,7 +38,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.t
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Submission;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.states.hackathon.HackathonState;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -58,8 +58,6 @@ import java.util.UUID;
  */
 @Transactional(readOnly = true)
 public class TeamParticipationService {
-    private static final int MIN_JUDGE_SCORE = 0;
-    private static final int MAX_JUDGE_SCORE = 10;
 
     private static final String OP_CREATE_SUBMISSION = "Create submission";
     private static final String OP_UPDATE_SUBMISSION = "Update submission";
@@ -182,7 +180,6 @@ public class TeamParticipationService {
     public Submission evaluateSubmission(UUID submissionId, int score, String judgement) {
         SubmissionContext context = resolveSubmissionContext(submissionId);
         validateEvaluationWindow(context.teamParticipation(), OP_EVALUATE_SUBMISSION);
-        validateJudgeEvaluationInput(score, judgement);
 
         context.submission().evaluate(score, judgement, LocalDate.now());
         return context.submission();
@@ -211,7 +208,6 @@ public class TeamParticipationService {
         if (!context.submission().hasEvaluation()) {
             throw new SubmissionEvaluationNotFoundException(submissionId);
         }
-        validateJudgeEvaluationInput(score, judgement);
 
         context.submission().evaluate(score, judgement, LocalDate.now());
         return context.submission();
@@ -270,13 +266,6 @@ public class TeamParticipationService {
     private static void validateSubmissionContent(String title, String description) {
         requireNonBlank(title, "title");
         requireNonBlank(description, "description");
-    }
-
-    private static void validateJudgeEvaluationInput(int score, String judgement) {
-        if (score < MIN_JUDGE_SCORE || score > MAX_JUDGE_SCORE) {
-            throw new InvalidSubmissionEvaluationException("score must be between 0 and 10.");
-        }
-        requireNonBlank(judgement, "judgement");
     }
 
     private static void requireNonBlank( String value, String fieldName) {

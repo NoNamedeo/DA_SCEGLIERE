@@ -26,13 +26,27 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.enums.states.support;
+package org.da_scegliere.progetto_ids_hackathon.core.state.hackathon.state;
 
-public enum SupportRequestState {
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
 
-    OPEN,
-    IN_PROGRESS,
-    RESOLVED,
-    REJECTED
+public final class RegistrationState implements HackathonLifecycleState{
 
+    @Override
+    public HackathonState getState() {
+        return HackathonState.REGISTRATION;
+    }
+
+    @Override
+    public HackathonState transitionTo( HackathonState targetState) {
+        if (targetState == HackathonState.ONGOING) {
+            return HackathonState.ONGOING;
+        }
+        throw new IllegalStateException("Invalid state transition from " + HackathonState.REGISTRATION + " to " + targetState + ".");
+    }
+
+    @Override
+    public HackathonState next() {
+        return HackathonState.ONGOING;
+    }
 }

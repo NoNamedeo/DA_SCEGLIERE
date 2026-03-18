@@ -26,18 +26,29 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
+package org.da_scegliere.progetto_ids_hackathon.core.state.user.state;
 
-import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.user.AccountState;
 
-import java.util.List;
-import java.util.UUID;
+public final class ActiveAccountState implements AccountLifecycleState {
 
-@Repository
-public interface IModerationReportRepository extends JpaRepository<ModerationReport, UUID> {
+    @Override
+    public AccountState getState() {
+        return AccountState.ACTIVE;
+    }
 
-    List<ModerationReport> findByState(UserReportState state);
+    @Override
+    public AccountState suspend() {
+        return AccountState.SUSPENDED;
+    }
+
+    @Override
+    public AccountState reinstate() {
+        throw new IllegalStateException("User is already active.");
+    }
+
+    @Override
+    public AccountState revoke() {
+        return AccountState.REVOKED;
+    }
 }

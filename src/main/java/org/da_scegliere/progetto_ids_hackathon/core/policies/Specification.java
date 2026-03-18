@@ -26,18 +26,54 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
+package org.da_scegliere.progetto_ids_hackathon.core.policies;
 
-import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import java.util.Objects;
 
-import java.util.List;
-import java.util.UUID;
+/**
+ * Generic reusable specification contract.
+ *
+ * @param <T> candidate type validated by the specification.
+ */
+@FunctionalInterface
+public interface Specification<T> {
 
-@Repository
-public interface IModerationReportRepository extends JpaRepository<ModerationReport, UUID> {
+    /**
+     * Evaluates the candidate against this specification.
+     *
+     * @param candidate object to validate.
+     * @return {@code true} when the candidate satisfies this specification.
+     */
+    boolean isSatisfiedBy(T candidate);
 
-    List<ModerationReport> findByState(UserReportState state);
+    /**
+     * Logical AND composition.
+     *
+     * @param other right-hand specification.
+     * @return composed specification.
+     */
+    default Specification<T> and(Specification<T> other) {
+        Objects.requireNonNull(other, "other specification must not be null.");
+        return candidate -> this.isSatisfiedBy(candidate) && other.isSatisfiedBy(candidate);
+    }
+
+    /**
+     * Logical OR composition.
+     *
+     * @param other right-hand specification.
+     * @return composed specification.
+     */
+    default Specification<T> or(Specification<T> other) {
+        Objects.requireNonNull(other, "other specification must not be null.");
+        return candidate -> this.isSatisfiedBy(candidate) || other.isSatisfiedBy(candidate);
+    }
+
+    /**
+     * Logical negation.
+     *
+     * @return negated specification.
+     */
+    default Specification<T> not() {
+        return candidate -> !this.isSatisfiedBy(candidate);
+    }
 }

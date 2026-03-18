@@ -35,11 +35,16 @@ import lombok.Getter;
 import lombok.Setter;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.states.support.SupportRequestState;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.support.SupportRequestState;
+import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
+import org.da_scegliere.progetto_ids_hackathon.core.policies.support.SupportRequestMentorSelectionContext;
+import org.da_scegliere.progetto_ids_hackathon.core.state.support.SupportRequestLifecycleStateMachine;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 @Getter
 @Entity
@@ -100,22 +105,33 @@ public class SupportRequest {
         this.acceptingMentor = Objects.requireNonNull(acceptingMentor, "acceptingMentor must not be null.");
     }
 
-    public void transitionTo(SupportRequestState targetState) {
+    public void transitionTo(SupportRequestState targetState, SupportRequestLifecycleStateMachine stateMachine) {
         Objects.requireNonNull(targetState, "targetState must not be null.");
+        Objects.requireNonNull(stateMachine, "stateMachine must not be null.");
 
         if (this.state == targetState) {
             return;
         }
-        boolean valid = switch (this.state) {
-            case OPEN -> targetState == SupportRequestState.IN_PROGRESS;
-            case IN_PROGRESS -> targetState == SupportRequestState.RESOLVED || targetState == SupportRequestState.REJECTED;
-            case RESOLVED, REJECTED -> false;
-        };
+        this.state = stateMachine.transition(this.state, targetState);
+    }
 
-        if (!valid) {
-            throw new IllegalStateException("Invalid support request state transition from '" + this.state + "' to '" + targetState + "'.");
-        }
-        this.state = targetState;
+    /**
+     * Validates mentor selection against team hackathon enrollment context.
+     *
+     * @param selectedMentors mentors selected in support request.
+     * @param teamHackathonIds hackathon ids where sending team participates.
+     */
+    public static void validateMentorSelection(
+            List<StaffAssignment> selectedMentors,
+            Set<UUID> teamHackathonIds,
+            BusinessPolicy<SupportRequestMentorSelectionContext> mentorSelectionPolicy
+    ) {
+        Objects.requireNonNull(mentorSelectionPolicy, "mentorSelectionPolicy must not be null.");
+        SupportRequestMentorSelectionContext context = new SupportRequestMentorSelectionContext(
+                selectedMentors,
+                teamHackathonIds
+        );
+        mentorSelectionPolicy.validate(context);
     }
 
 }

@@ -33,7 +33,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.Manager;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.states.report.UserReportState;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
 
 import java.time.LocalDateTime;
 import java.util.Objects;

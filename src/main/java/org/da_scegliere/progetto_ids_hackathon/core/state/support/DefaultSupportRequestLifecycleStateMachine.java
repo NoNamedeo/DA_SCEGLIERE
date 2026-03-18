@@ -26,18 +26,38 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
+package org.da_scegliere.progetto_ids_hackathon.core.state.support;
 
-import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.support.SupportRequestState;
+import org.da_scegliere.progetto_ids_hackathon.core.state.common.StateRegistry;
+import org.da_scegliere.progetto_ids_hackathon.core.state.support.state.SupportRequestLifecycleState;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.Objects;
 
-@Repository
-public interface IModerationReportRepository extends JpaRepository<ModerationReport, UUID> {
+/**
+ * Default state-pattern implementation for support-request transitions.
+ */
+public final class DefaultSupportRequestLifecycleStateMachine implements SupportRequestLifecycleStateMachine {
 
-    List<ModerationReport> findByState(UserReportState state);
+    private final StateRegistry<SupportRequestState, SupportRequestLifecycleState> stateRegistry;
+
+    public DefaultSupportRequestLifecycleStateMachine(
+            StateRegistry<SupportRequestState, SupportRequestLifecycleState> stateRegistry
+    ) {
+        this.stateRegistry = Objects.requireNonNull(stateRegistry, "stateRegistry must not be null.");
+    }
+
+    @Override
+    public SupportRequestState transition(SupportRequestState currentState, SupportRequestState targetState) {
+        Objects.requireNonNull(targetState, "targetState must not be null.");
+        if (currentState == null) {
+            throw new IllegalStateException("Support request state is not initialized.");
+        }
+        if (currentState == targetState) {
+            return currentState;
+        }
+
+        SupportRequestLifecycleState state = stateRegistry.get(currentState);
+        return state.transitionTo(targetState);
+    }
 }

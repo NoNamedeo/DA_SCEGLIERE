@@ -26,18 +26,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
+package org.da_scegliere.progetto_ids_hackathon.core.enums.state.user;
 
-import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.UUID;
-
-@Repository
-public interface IModerationReportRepository extends JpaRepository<ModerationReport, UUID> {
-
-    List<ModerationReport> findByState(UserReportState state);
+/**
+ * Lifecycle states for user accounts managed by moderation use cases.
+ */
+public enum AccountState{
+    ACTIVE,
+    SUSPENDED,
+    REVOKED
 }

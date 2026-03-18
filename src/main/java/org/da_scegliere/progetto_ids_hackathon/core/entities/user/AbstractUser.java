@@ -32,7 +32,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.states.user.AccountState;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.user.AccountState;
+import org.da_scegliere.progetto_ids_hackathon.core.state.user.AccountLifecycleStateMachine;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -99,38 +100,26 @@ public abstract class AbstractUser {
         return accountStatus == AccountState.REVOKED;
     }
 
-    public void suspend(String note) {
+    public void suspend(String note, AccountLifecycleStateMachine stateMachine) {
         validateModerationNote(note);
-        if (isRevoked()) {
-            throw new IllegalStateException("Cannot suspend a revoked user.");
-        }
-        if (isSuspended()) {
-            throw new IllegalStateException("User is already suspended.");
-        }
-        this.accountStatus = AccountState.SUSPENDED;
+        this.accountStatus = Objects.requireNonNull(stateMachine, "stateMachine must not be null.")
+                .suspend(this.accountStatus);
         this.moderationNote = note.trim();
         this.accountStatusUpdatedAt = LocalDateTime.now();
     }
 
-    public void reinstate(String note) {
+    public void reinstate(String note, AccountLifecycleStateMachine stateMachine) {
         validateModerationNote(note);
-        if (isRevoked()) {
-            throw new IllegalStateException("Cannot reinstate a revoked user.");
-        }
-        if (this.accountStatus == AccountState.ACTIVE) {
-            throw new IllegalStateException("User is already active.");
-        }
-        this.accountStatus = AccountState.ACTIVE;
+        this.accountStatus = Objects.requireNonNull(stateMachine, "stateMachine must not be null.")
+                .reinstate(this.accountStatus);
         this.moderationNote = note.trim();
         this.accountStatusUpdatedAt = LocalDateTime.now();
     }
 
-    public void revoke(String note) {
+    public void revoke(String note, AccountLifecycleStateMachine stateMachine) {
         validateModerationNote(note);
-        if (isRevoked()) {
-            throw new IllegalStateException("User account is already revoked.");
-        }
-        this.accountStatus = AccountState.REVOKED;
+        this.accountStatus = Objects.requireNonNull(stateMachine, "stateMachine must not be null.")
+                .revoke(this.accountStatus);
         this.moderationNote = note.trim();
         this.accountStatusUpdatedAt = LocalDateTime.now();
     }

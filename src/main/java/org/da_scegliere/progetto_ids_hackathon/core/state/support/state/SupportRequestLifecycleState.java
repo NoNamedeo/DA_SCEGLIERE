@@ -26,18 +26,22 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
+package org.da_scegliere.progetto_ids_hackathon.core.state.support.state;
 
-import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.support.SupportRequestState;
 
-import java.util.List;
-import java.util.UUID;
+public interface SupportRequestLifecycleState {
 
-@Repository
-public interface IModerationReportRepository extends JpaRepository<ModerationReport, UUID> {
+    /**
+     * @return state represented by this handler.
+     */
+    SupportRequestState getState();
 
-    List<ModerationReport> findByState(UserReportState state);
+    /**
+     * Transitions from this state to target state.
+     *
+     * @param targetState desired target.
+     * @return resulting state.
+     */
+    SupportRequestState transitionTo(SupportRequestState targetState);
 }

@@ -26,18 +26,34 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
+package org.da_scegliere.progetto_ids_hackathon.core.policies.support;
 
-import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
-@Repository
-public interface IModerationReportRepository extends JpaRepository<ModerationReport, UUID> {
+/**
+ * Immutable context used by mentor-selection policy.
+ *
+ * @param selectedMentors mentors selected in support request form.
+ * @param teamHackathonIds hackathon ids where sending team participates.
+ */
+public record SupportRequestMentorSelectionContext(
+        List<StaffAssignment> selectedMentors,
+        Set<UUID> teamHackathonIds
+) {
 
-    List<ModerationReport> findByState(UserReportState state);
+    public SupportRequestMentorSelectionContext {
+        if (selectedMentors != null) {
+            selectedMentors = Collections.unmodifiableList(new ArrayList<>(selectedMentors));
+        }
+        if (teamHackathonIds != null) {
+            teamHackathonIds = Collections.unmodifiableSet(new HashSet<>(teamHackathonIds));
+        }
+    }
 }

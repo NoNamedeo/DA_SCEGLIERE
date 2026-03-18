@@ -26,18 +26,24 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
+package org.da_scegliere.progetto_ids_hackathon.core.state.hackathon.state;
 
-import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
 
-import java.util.List;
-import java.util.UUID;
+public final class EndedState implements HackathonLifecycleState{
 
-@Repository
-public interface IModerationReportRepository extends JpaRepository<ModerationReport, UUID> {
+    @Override
+    public HackathonState getState() {
+        return HackathonState.ENDED;
+    }
 
-    List<ModerationReport> findByState(UserReportState state);
+    @Override
+    public HackathonState transitionTo( HackathonState targetState) {
+        throw new IllegalStateException("Invalid state transition from " + HackathonState.ENDED + " to " + targetState + ".");
+    }
+
+    @Override
+    public HackathonState next() {
+        throw new IllegalStateException("Hackathon already ended.");
+    }
 }

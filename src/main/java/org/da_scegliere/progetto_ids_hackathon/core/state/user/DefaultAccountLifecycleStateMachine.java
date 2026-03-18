@@ -26,18 +26,42 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
+package org.da_scegliere.progetto_ids_hackathon.core.state.user;
 
-import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.user.AccountState;
+import org.da_scegliere.progetto_ids_hackathon.core.state.common.StateRegistry;
+import org.da_scegliere.progetto_ids_hackathon.core.state.user.state.AccountLifecycleState;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.Objects;
 
-@Repository
-public interface IModerationReportRepository extends JpaRepository<ModerationReport, UUID> {
+/**
+ * Default state-pattern implementation for account lifecycle transitions.
+ */
+public final class DefaultAccountLifecycleStateMachine implements AccountLifecycleStateMachine {
 
-    List<ModerationReport> findByState(UserReportState state);
+    private final StateRegistry<AccountState, AccountLifecycleState> stateRegistry;
+
+    public DefaultAccountLifecycleStateMachine(StateRegistry<AccountState, AccountLifecycleState> stateRegistry) {
+        this.stateRegistry = Objects.requireNonNull(stateRegistry, "stateRegistry must not be null.");
+    }
+
+    @Override
+    public AccountState suspend(AccountState currentState) {
+        return resolveState(currentState).suspend();
+    }
+
+    @Override
+    public AccountState reinstate(AccountState currentState) {
+        return resolveState(currentState).reinstate();
+    }
+
+    @Override
+    public AccountState revoke(AccountState currentState) {
+        return resolveState(currentState).revoke();
+    }
+
+    private AccountLifecycleState resolveState(AccountState currentState) {
+        Objects.requireNonNull(currentState, "accountStatus must not be null.");
+        return stateRegistry.get(currentState);
+    }
 }

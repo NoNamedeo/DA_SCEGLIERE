@@ -26,18 +26,35 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
+package org.da_scegliere.progetto_ids_hackathon.core.state.user.state;
 
-import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.user.AccountState;
 
-import java.util.List;
-import java.util.UUID;
+public interface AccountLifecycleState {
 
-@Repository
-public interface IModerationReportRepository extends JpaRepository<ModerationReport, UUID> {
+    /**
+     * @return account state represented by handler.
+     */
+    AccountState getState();
 
-    List<ModerationReport> findByState(UserReportState state);
+    /**
+     * Applies suspend transition.
+     *
+     * @return resulting state.
+     */
+    AccountState suspend();
+
+    /**
+     * Applies reinstate transition.
+     *
+     * @return resulting state.
+     */
+    AccountState reinstate();
+
+    /**
+     * Applies revoke transition.
+     *
+     * @return resulting state.
+     */
+    AccountState revoke();
 }

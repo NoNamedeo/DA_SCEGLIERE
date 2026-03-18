@@ -55,8 +55,8 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class UserService{
 
-    private IUserRepository userRepository;
-    private ITeamRepository teamRepository;
+    private final IUserRepository userRepository;
+    private final ITeamRepository teamRepository;
 
     /**
      * Creates a new service instance.

@@ -68,6 +68,7 @@ public class Submission {
     @ManyToOne
     @JoinColumn(name = "team_participation_id")
     @Setter
+    @NotNull
     private TeamParticipation teamParticipation;
 
     public Submission(LocalDate date, String description, String title, TeamParticipation teamParticipation) {

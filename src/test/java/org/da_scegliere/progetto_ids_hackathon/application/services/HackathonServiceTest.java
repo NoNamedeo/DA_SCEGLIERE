@@ -5,7 +5,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.Ha
 import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.HackathonStaffService;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.states.hackathon.HackathonState;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
