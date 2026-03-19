@@ -26,12 +26,59 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation;
+package org.da_scegliere.progetto_ids_hackathon.core.entities.notification;
 
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.user.AbstractUser;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.notification.NotificationStatus;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.user.AccountState;
+
+import java.time.LocalDate;
 import java.util.UUID;
 
-public class UserReportNotFoundException extends RuntimeException {
-    public UserReportNotFoundException(UUID reportId) {
-        super("User report: " + reportId + " not found.");
+@Getter
+@Entity
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+public abstract class AbstractNotification {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @NotBlank
+    @Size(min = 2, max = 50)
+    @Setter
+    private String title;
+
+    @NotBlank
+    @Setter
+    private String message;
+
+    @NotBlank
+    @Setter
+    @ManyToOne
+    @JoinColumn(name = "target_id")
+    private AbstractUser target;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Setter
+    private NotificationStatus notificationStatus;
+
+    private LocalDate date;
+
+    public AbstractNotification(String title, String message, AbstractUser target, NotificationStatus notificationStatus) {
+        this.title = title;
+        this.message = message;
+        this.target = target;
+        this.notificationStatus = notificationStatus;
+        this.date = LocalDate.now();
+    }
+
+    public AbstractNotification() {
+
     }
 }

@@ -26,52 +26,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.entities.team;
+package org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.user;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotEmpty;
-import lombok.Getter;
-import lombok.Setter;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
-import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
-import org.da_scegliere.progetto_ids_hackathon.core.policies.team.LeaveTeamContext;
+import jakarta.validation.constraints.NotNull;
 
-import java.util.List;
 import java.util.UUID;
 
-@Getter
-@Entity
-public class Team {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-
-    @NotEmpty
-    @Setter
-    private String name;
-
-    @NotEmpty
-    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL)
-    private List<User> members;
-
-    public Team(String name, List<User> members) {
-        this.name = name;
-        this.members = members;
-    }
-
-    public Team() {}
-
-    public void addMember(User user) {
-        members.add(user);
-        user.setTeam(this);
-    }
-
-    public void removeMember(User user, BusinessPolicy<LeaveTeamContext> leaveTeamPolicy) {
-        LeaveTeamContext context = new LeaveTeamContext(this);
-        leaveTeamPolicy.validate(context);
-        members.remove(user);
-        user.setTeam(null);
-    }
+public record UserInputRequest(
+        @NotNull UUID userId
+) {
 }

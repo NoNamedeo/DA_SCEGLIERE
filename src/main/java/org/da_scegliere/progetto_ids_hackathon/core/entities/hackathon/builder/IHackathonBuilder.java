@@ -26,52 +26,37 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.entities.team;
+package org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.builder;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotEmpty;
-import lombok.Getter;
-import lombok.Setter;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
-import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
-import org.da_scegliere.progetto_ids_hackathon.core.policies.team.LeaveTeamContext;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Participation;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
-@Getter
-@Entity
-public class Team {
+public interface IHackathonBuilder {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    IHackathonBuilder reset();
 
-    @NotEmpty
-    @Setter
-    private String name;
+    Hackathon build();
 
-    @NotEmpty
-    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL)
-    private List<User> members;
+    IHackathonBuilder setName(String name);
 
-    public Team(String name, List<User> members) {
-        this.name = name;
-        this.members = members;
-    }
+    IHackathonBuilder setDescription(String description);
 
-    public Team() {}
+    IHackathonBuilder setParticipations(List<Participation> participations);
 
-    public void addMember(User user) {
-        members.add(user);
-        user.setTeam(this);
-    }
+    IHackathonBuilder setAwardPrize(BigDecimal prize);
 
-    public void removeMember(User user, BusinessPolicy<LeaveTeamContext> leaveTeamPolicy) {
-        LeaveTeamContext context = new LeaveTeamContext(this);
-        leaveTeamPolicy.validate(context);
-        members.remove(user);
-        user.setTeam(null);
-    }
+    IHackathonBuilder setPrizePaidAt(LocalDate date);
+
+    IHackathonBuilder setStaff(List<StaffAssignment> staff);
+
+    IHackathonBuilder setRegistrationDeadline(LocalDate date);
+
+    IHackathonBuilder setEvaluationDeadline(LocalDate date);
+
+    IHackathonBuilder setSubmissionDeadline(LocalDate date);
 }

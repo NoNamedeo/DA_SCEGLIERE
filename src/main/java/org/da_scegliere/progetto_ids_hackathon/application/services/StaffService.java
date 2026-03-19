@@ -34,7 +34,6 @@ import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IM
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffMemberRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.StaffEmailAlreadyInUseException;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff.StaffMemberNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
@@ -43,7 +42,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -93,9 +91,8 @@ public class StaffService {
      * @return persisted staff member.
      */
     public StaffMember getStaffMemberByEmail(String email) {
-        String normalizedEmail = normalizeEmail(email);
-        return staffMemberRepository.findByEmail(normalizedEmail)
-                .orElseThrow(() -> new StaffMemberNotFoundException(normalizedEmail));
+        return staffMemberRepository.findByEmail(email)
+                .orElseThrow(() -> new StaffMemberNotFoundException(email));
     }
 
     /**
@@ -230,11 +227,9 @@ public class StaffService {
      */
     @Transactional
     public StaffMember createStaffMember(String name, int age, String email) {
-        String normalizedName = normalizeName(name);
-        String normalizedEmail = normalizeEmail(email);
-        ensureEmailIsAvailable(normalizedEmail);
+        ensureEmailIsAvailable(email);
 
-        StaffMember staffMember = new StaffMember(normalizedName, age, normalizedEmail, new ArrayList<>());
+        StaffMember staffMember = new StaffMember(name, age, email, new ArrayList<>());
         return staffMemberRepository.save(staffMember);
     }
 
@@ -248,7 +243,7 @@ public class StaffService {
     @Transactional
     public StaffMember changeStaffMemberName(UUID staffMemberId, String newName) {
         StaffMember staffMember = getStaffMemberById(staffMemberId);
-        staffMember.setName(normalizeName(newName));
+        staffMember.setName(newName);
         return staffMemberRepository.save(staffMember);
     }
 

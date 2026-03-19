@@ -29,12 +29,15 @@
 package org.da_scegliere.progetto_ids_hackathon.application.services.hackathon;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.InvalidHackathonStateOperationException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.WinnerAssignmentNotAllowedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Participation;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.hackathon.winner.WinnerAssignmentContext;
@@ -43,6 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -54,6 +58,7 @@ import java.util.UUID;
  *     <li>Delegate winner assignment to domain logic and map domain failures into application exceptions.</li>
  * </ul>
  */
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -71,6 +76,7 @@ public class HackathonLifecycleService {
      * @return lifecycle state at current clock date.
      */
     public HackathonState determineCurrentState(UUID hackathonId) {
+        log.info("Determine hackathon state hackathonId={}", hackathonId);
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
         return hackathon.getHackathonStateAt(LocalDate.now(clock));
     }
@@ -83,9 +89,25 @@ public class HackathonLifecycleService {
      */
     @Transactional
     public Hackathon concludeHackathon(UUID hackathonId) {
+        log.info("Conclude hackathon hackathonId={}", hackathonId);
+
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
         hackathon.concludeAt(LocalDate.now(clock));
+
+        log.info("Concluded hackathon hackathonId={}", hackathonId);
         return hackathon;
+    }
+
+    public Team determineWinnerTeam(UUID hackathonId) {
+        log.info("Determine hackathon winner hackathonId={}", hackathonId);
+
+        Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
+        List<Participation> participations = hackathon.getParticipations();
+
+        participations.stream().map(participation -> {
+            TeamParticipation teamParticipation = (TeamParticipation) participation;
+            return teamParticipation.getSubmissions();
+        }).forEach(submissions);
     }
 
     /**
@@ -106,6 +128,8 @@ public class HackathonLifecycleService {
      */
     @Transactional
     public Hackathon assignWinner(UUID hackathonId, Team winnerTeam) {
+        log.info("Assign hackathon winner hackathonId={}, winnerTeamId={}", hackathonId, winnerTeam.getId());
+
         if (winnerTeam == null) {
             throw new IllegalArgumentException("winnerTeam must not be null.");
         }
@@ -126,6 +150,8 @@ public class HackathonLifecycleService {
         } catch (IllegalArgumentException ex) {
             throw new WinnerAssignmentNotAllowedException(ex.getMessage());
         }
+
+        log.info("Assigned hackathon winner hackathonId={}, winnerTeamId={}", hackathonId, winnerTeam.getId());
         return hackathon;
     }
 

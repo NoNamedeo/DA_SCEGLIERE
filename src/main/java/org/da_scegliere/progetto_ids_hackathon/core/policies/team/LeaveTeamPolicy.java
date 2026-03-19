@@ -26,12 +26,36 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation.dto.request;
+package org.da_scegliere.progetto_ids_hackathon.core.policies.team;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
+import org.da_scegliere.progetto_ids_hackathon.core.policies.PolicyRule;
 
-public record SuspendUserRequest(
-        @NotBlank @Size(max = 500) String reason
-){
+import java.util.List;
+import java.util.Objects;
+
+public class LeaveTeamPolicy implements BusinessPolicy<LeaveTeamContext> {
+
+    private final List<PolicyRule<LeaveTeamContext>> rules = List.of(
+            new PolicyRule<>(
+                    context ->
+                            context.team().getMembers().size() > 2,
+                    context ->
+                            new IllegalStateException("Team should have at least two members.")
+            )
+    );
+
+    /**
+     * Validates the removal of a team member and throws on first violated rule.
+     *
+     * @param context team context to validate.
+     * @throws IllegalStateException when a rule is violated.
+     */
+    @Override
+    public void validate(LeaveTeamContext context) {
+        Objects.requireNonNull(context, "context must not be null.");
+        for (PolicyRule<LeaveTeamContext> rule : rules) {
+            rule.verify(context);
+        }
+    }
 }

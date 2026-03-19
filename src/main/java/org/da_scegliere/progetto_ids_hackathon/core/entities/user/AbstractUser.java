@@ -32,10 +32,12 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.AbstractNotification;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.user.AccountState;
 import org.da_scegliere.progetto_ids_hackathon.core.state.user.AccountLifecycleStateMachine;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -68,6 +70,10 @@ public abstract class AbstractUser {
     @Setter
     @Size(max = 500)
     private String moderationNote;
+
+    @Setter
+    @OneToMany(mappedBy = "target")
+    private List<AbstractNotification> notificationList;
 
     private LocalDateTime accountStatusUpdatedAt;
 

@@ -31,12 +31,17 @@ package org.da_scegliere.progetto_ids_hackathon.presentation.mapper;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.StaffAssignmentInputRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.FullHackathonResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.PublicHackathonResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.StaffAssignmentResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.TeamResponse;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class HackathonMapper{
 
@@ -58,6 +63,17 @@ public class HackathonMapper{
                 hackathon.getSubmissionDeadline(),
                 hackathon.getEvaluationDeadline()
         );
+    }
+
+    public static Map<UUID, StaffRole> toStaffMap(List<StaffAssignmentInputRequest> assignments) {
+        Map<UUID, StaffRole> staffMap = new LinkedHashMap<>();
+        for (StaffAssignmentInputRequest assignment : assignments) {
+            StaffRole existingRole = staffMap.putIfAbsent(assignment.staffMemberId(), assignment.role());
+            if (existingRole != null && existingRole != assignment.role()) {
+                throw new IllegalArgumentException("Duplicate staffMemberId with conflicting roles: " + assignment.staffMemberId());
+            }
+        }
+        return staffMap;
     }
 
     private static TeamResponse toTeam(Team team){
