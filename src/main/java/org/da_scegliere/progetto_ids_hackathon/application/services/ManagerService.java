@@ -35,18 +35,9 @@ import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IM
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffMemberRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserReportRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserRepository;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserNotFoundException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.ManagerNotFoundException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.StaffEmailAlreadyInUseException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserAccountRevokedException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserAlreadyRevokedException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserAlreadySuspendedException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserNotSuspendedException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserReportAlreadyProcessedException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserReportNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.*;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.UserReport;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.Manager;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
@@ -54,9 +45,7 @@ import org.da_scegliere.progetto_ids_hackathon.core.state.user.AccountLifecycleS
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -139,7 +128,8 @@ public class ManagerService {
      */
     @Transactional
     public User suspendUser(UUID managerId, UUID userId, String suspensionReason) {
-        log.info("Suspending userId={} by managerId={} reason={}", userId, managerId, suspensionReason);        ensureManagerExists(managerId);
+        log.info("Suspending userId={} by managerId={} reason={}", userId, managerId, suspensionReason);
+        ensureManagerExists(managerId);
         User user = getUserOrThrow(userId);
 
         ensureSuspendable(user);
@@ -164,7 +154,8 @@ public class ManagerService {
             String suspensionReason,
             String reportResolutionNotes
     ) {
-        log.info("Suspending user by reportId={} by managerId={} reason={}", reportId, managerId, suspensionReason);        Manager manager = ensureManagerExists(managerId);
+        log.info("Suspending user by reportId={} by managerId={} reason={}", reportId, managerId, suspensionReason);
+        Manager manager = ensureManagerExists(managerId);
         UserReport report = getUserReportOrThrow(reportId);
         if (!report.isOpen()) {
             throw new UserReportAlreadyProcessedException(reportId);
@@ -238,29 +229,6 @@ public class ManagerService {
         return user;
     }
 
-    /**
-     * Creates a new staff account.
-     *
-     * @param managerId manager identifier performing the operation.
-     * @param name staff name.
-     * @param age staff age.
-     * @param email staff email.
-     * @return persisted staff member.
-     */
-    @Transactional
-    public StaffMember createStaffAccount(UUID managerId, String name, int age, String email) {
-        log.info("Creating staff account email={} by managerId={}", email, managerId);
-
-        ensureManagerExists(managerId);
-        ensureEmailIsAvailable(email);
-
-        StaffMember staffMember = new StaffMember(name, age, email, new ArrayList<>());
-        StaffMember saved = staffMemberRepository.save(staffMember);
-
-        log.info("Staff account created staffId={} email={}", saved.getId(), email);
-        return saved;
-    }
-
     private Manager ensureManagerExists(UUID managerId) {
         if (managerId == null) {
             throw new IllegalArgumentException("managerId must not be null.");
@@ -282,7 +250,7 @@ public class ManagerService {
             throw new IllegalArgumentException("reportId must not be null.");
         }
         return userReportRepository.findById(reportId)
-                .orElseThrow(() -> new UserReportNotFoundException(reportId));
+                .orElseThrow(() -> new ReportNotFoundException(reportId));
     }
 
     private void ensureEmailIsAvailable(String email) {

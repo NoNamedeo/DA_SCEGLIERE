@@ -31,7 +31,7 @@ package org.da_scegliere.progetto_ids_hackathon.presentation.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.da_scegliere.progetto_ids_hackathon.application.services.ManagerService;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.SuspendUserRequest;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.user.SuspendUserRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;

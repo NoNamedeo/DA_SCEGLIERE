@@ -26,21 +26,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation.mapper;
+package org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.user;
 
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.user.UserInputRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import java.util.List;
 
-import java.util.*;
-
-public class UserMapper {
-
-    public static List<UUID> toUserList(List<UserInputRequest> users) {
-        List<UUID> userList = new ArrayList<>();
-        for (UserInputRequest user : users) {
-            UUID userId = user.userId();
-            userList.add(userId);
-        }
-        return userList;
-    }
-
+public record CreateTeamRequest(
+        @NotEmpty List<@Valid UserInputRequest> teamMembers,
+        @NotEmpty String teamName
+) {
 }

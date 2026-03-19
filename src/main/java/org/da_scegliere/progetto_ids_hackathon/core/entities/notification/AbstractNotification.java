@@ -26,12 +26,59 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation.dto.request;
+package org.da_scegliere.progetto_ids_hackathon.core.entities.notification;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.user.AbstractUser;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.notification.NotificationStatus;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.user.AccountState;
 
-public record SuspendUserRequest(
-        @NotBlank @Size(max = 500) String reason
-){
+import java.time.LocalDate;
+import java.util.UUID;
+
+@Getter
+@Entity
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+public abstract class AbstractNotification {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @NotBlank
+    @Size(min = 2, max = 50)
+    @Setter
+    private String title;
+
+    @NotBlank
+    @Setter
+    private String message;
+
+    @NotBlank
+    @Setter
+    @ManyToOne
+    @JoinColumn(name = "target_id")
+    private AbstractUser target;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Setter
+    private NotificationStatus notificationStatus;
+
+    private LocalDate date;
+
+    public AbstractNotification(String title, String message, AbstractUser target, NotificationStatus notificationStatus) {
+        this.title = title;
+        this.message = message;
+        this.target = target;
+        this.notificationStatus = notificationStatus;
+        this.date = LocalDate.now();
+    }
+
+    public AbstractNotification() {
+
+    }
 }

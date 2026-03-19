@@ -32,6 +32,7 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Participation;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -46,6 +47,8 @@ public interface IHackathonBuilder {
     IHackathonBuilder setDescription(String description);
 
     IHackathonBuilder setParticipations(List<Participation> participations);
+
+    IHackathonBuilder setAwardPrize(BigDecimal prize);
 
     IHackathonBuilder setPrizePaidAt(LocalDate date);
 

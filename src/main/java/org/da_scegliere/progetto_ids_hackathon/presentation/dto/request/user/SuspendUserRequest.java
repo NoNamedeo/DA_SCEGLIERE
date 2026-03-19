@@ -26,14 +26,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation.dto.request;
+package org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.user;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-import java.util.List;
-
-public record AddTeamMemberRequest(
-        @NotEmpty List<@Valid UserInputRequest> teamMembers
-) {
+public record SuspendUserRequest(
+        @NotBlank @Size(max = 500) String reason
+){
 }

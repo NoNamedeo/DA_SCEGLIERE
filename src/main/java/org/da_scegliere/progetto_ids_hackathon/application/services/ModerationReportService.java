@@ -36,8 +36,8 @@ import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IS
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserReportRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.ManagerNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.ReportNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserNotFoundException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserReportNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff.StaffMemberNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.StaffReport;
@@ -110,14 +110,14 @@ public class ModerationReportService {
     /**
      * Retrieves one user report by identifier.
      *
-     * @throws UserReportNotFoundException if no report is found.
+     * @throws ReportNotFoundException if no report is found.
      */
     public UserReport getUserReportById(UUID reportId) {
         if (reportId == null) {
             throw new IllegalArgumentException("reportId must not be null.");
         }
         return userReportRepository.findById(reportId)
-                .orElseThrow(() -> new UserReportNotFoundException(reportId));
+                .orElseThrow(() -> new ReportNotFoundException(reportId));
     }
 
     /**

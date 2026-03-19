@@ -26,13 +26,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation.dto.request;
+package org.da_scegliere.progetto_ids_hackathon.core.enums.state.notification;
 
-import jakarta.validation.constraints.NotNull;
-
-import java.util.UUID;
-
-public record UserInputRequest(
-        @NotNull UUID userId
-) {
+public enum NotificationStatus {
+    SENDED,
+    READ
 }

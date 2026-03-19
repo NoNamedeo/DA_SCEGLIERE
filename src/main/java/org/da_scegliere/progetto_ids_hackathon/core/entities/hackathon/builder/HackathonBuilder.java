@@ -34,6 +34,7 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Participa
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -69,6 +70,12 @@ public class HackathonBuilder implements IHackathonBuilder{
     @Override
     public IHackathonBuilder setParticipations(List<Participation> participations) {
         this.hackathon.setParticipations(participations);
+        return this;
+    }
+
+    @Override
+    public IHackathonBuilder setAwardPrize(BigDecimal prize) {
+        this.hackathon.setAwardPrize(prize);
         return this;
     }
 

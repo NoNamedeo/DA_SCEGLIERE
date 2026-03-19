@@ -38,8 +38,8 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignme
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -115,25 +115,13 @@ public class HackathonCrudService {
      * @throws IllegalArgumentException when mandatory input is invalid.
      */
     @Transactional
-    public Hackathon createHackathon(String name, String description, List<Participation> participations, List<StaffAssignment> staffAssignments) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("name must not be blank.");
-        }
-        if (description == null || description.isBlank()) {
-            throw new IllegalArgumentException("description must not be blank.");
-        }
-        if (participations == null) {
-            throw new IllegalArgumentException("participations must not be null.");
-        }
-        if (staffAssignments == null) {
-            throw new IllegalArgumentException("staffAssignments must not be null.");
-        }
-
+    public Hackathon createHackathon(String name, String description, List<Participation> participations, List<StaffAssignment> staffAssignments, BigDecimal awardPrize) {
         return hackathonRepository.save(hackathonBuilder.reset()
                 .setName(name)
                 .setDescription(description)
                 .setParticipations(participations)
                 .setStaff(staffAssignments)
+                .setAwardPrize(awardPrize)
                 .build());
     }
 

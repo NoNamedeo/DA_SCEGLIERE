@@ -26,21 +26,32 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation.mapper;
+package org.da_scegliere.progetto_ids_hackathon.core.entities.notification;
 
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.user.UserInputRequest;
+import jakarta.persistence.Entity;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.user.AbstractUser;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.notification.NotificationStatus;
 
-import java.util.*;
+import java.time.LocalDate;
 
-public class UserMapper {
+@Setter
+@Getter
+@Entity
+public class Notification extends AbstractNotification{
 
-    public static List<UUID> toUserList(List<UserInputRequest> users) {
-        List<UUID> userList = new ArrayList<>();
-        for (UserInputRequest user : users) {
-            UUID userId = user.userId();
-            userList.add(userId);
-        }
-        return userList;
+    @NotNull
+    private int priority;
+
+    public Notification(String title, String message, AbstractUser target, NotificationStatus notificationStatus, int priority) {
+        super(title, message, target, notificationStatus);
+        this.priority = priority;
+    }
+
+    public Notification() {
+        super();
     }
 
 }

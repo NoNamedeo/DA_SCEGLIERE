@@ -30,12 +30,16 @@ package org.da_scegliere.progetto_ids_hackathon.presentation.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.da_scegliere.progetto_ids_hackathon.application.services.TeamService;
 import org.da_scegliere.progetto_ids_hackathon.application.services.UserService;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.AddStaffAssignmentsRequest;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.AddTeamMemberRequest;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.user.CreateTeamRequest;
+import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.UserMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -44,12 +48,18 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final TeamService teamService;
 
     @PostMapping("/create-team")
     public ResponseEntity<Void> createTeam(
-            @Valid @RequestBody AddTeamMemberRequest request
+            @Valid @RequestBody CreateTeamRequest request
     ) {
-        userService.
+        List<UUID> usersId = UserMapper.toUserList(request.teamMembers());
+        List<User> users = new ArrayList<>();
+        for(UUID uuid : usersId){
+            users.add(userService.getUserById(uuid));
+        }
+        teamService.createTeam(request.teamName(), users);
         return ResponseEntity.noContent().build();
     }
 

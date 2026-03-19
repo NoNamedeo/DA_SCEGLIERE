@@ -29,6 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -42,6 +43,7 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,6 +77,10 @@ public class Hackathon {
     @JoinColumn( name = "winner_team_id")
     private Team winner;
 
+    @NotNull
+    @DecimalMin(value = "0.01")
+    @Setter
+    private BigDecimal awardPrize;
     /**
      * Non-null when the winner prize has already been paid.
      */
@@ -107,11 +113,12 @@ public class Hackathon {
     @Setter
     private LocalDate evaluationDeadline;
 
-    public Hackathon(String name, String description, List<Participation> participations, List<StaffAssignment> staff) {
+    public Hackathon(String name, String description, List<Participation> participations, List<StaffAssignment> staff, BigDecimal awardPrize) {
         this.name = name;
         this.description = description;
         this.participations = participations;
         this.staff = staff;
+        this.awardPrize = awardPrize;
         this.winner = null;
         this.prizePaidAt = null;
         this.registrationDeadline = null;

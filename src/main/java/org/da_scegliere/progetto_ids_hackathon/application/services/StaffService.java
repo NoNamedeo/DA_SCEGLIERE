@@ -91,9 +91,8 @@ public class StaffService {
      * @return persisted staff member.
      */
     public StaffMember getStaffMemberByEmail(String email) {
-        String normalizedEmail = normalizeEmail(email);
-        return staffMemberRepository.findByEmail(normalizedEmail)
-                .orElseThrow(() -> new StaffMemberNotFoundException(normalizedEmail));
+        return staffMemberRepository.findByEmail(email)
+                .orElseThrow(() -> new StaffMemberNotFoundException(email));
     }
 
     /**
@@ -180,11 +179,9 @@ public class StaffService {
      */
     @Transactional
     public StaffMember createStaffMember(String name, int age, String email) {
-        String normalizedName = normalizeName(name);
-        String normalizedEmail = normalizeEmail(email);
-        ensureEmailIsAvailable(normalizedEmail);
+        ensureEmailIsAvailable(email);
 
-        StaffMember staffMember = new StaffMember(normalizedName, age, normalizedEmail, new ArrayList<>());
+        StaffMember staffMember = new StaffMember(name, age, email, new ArrayList<>());
         return staffMemberRepository.save(staffMember);
     }
 
@@ -198,7 +195,7 @@ public class StaffService {
     @Transactional
     public StaffMember changeStaffMemberName(UUID staffMemberId, String newName) {
         StaffMember staffMember = getStaffMemberById(staffMemberId);
-        staffMember.setName(normalizeName(newName));
+        staffMember.setName(newName);
         return staffMemberRepository.save(staffMember);
     }
 
@@ -232,17 +229,4 @@ public class StaffService {
         return List.copyOf(uniqueMembers.values());
     }
 
-    private String normalizeEmail(String email) {
-        if (email == null || email.isBlank()) {
-            throw new IllegalArgumentException("email must not be blank.");
-        }
-        return email.trim().toLowerCase(Locale.ROOT);
-    }
-
-    private String normalizeName(String name) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("name must not be blank.");
-        }
-        return name.trim();
-    }
 }
