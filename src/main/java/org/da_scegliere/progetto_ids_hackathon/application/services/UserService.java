@@ -186,5 +186,7 @@ public class UserService{
         log.info("delete user userId={}", userId);
 
         userRepository.delete(getUserById(userId));
+
+        log.info("deleted user userId={}", userId);
     }
 }
