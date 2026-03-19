@@ -37,6 +37,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.s
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.supportRequest.InvalidSupportRequestMentorSelectionException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.supportRequest.InvalidSupportRequestStateTransitionException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
@@ -58,13 +59,6 @@ import java.util.stream.Collectors;
 /**
  * Application service for support-request lifecycle management.
  * <p>
- * Responsibilities:
- * <ul>
- *     <li>Expose CRUD-style retrieval operations for support requests.</li>
- *     <li>Create requests from teams and validate selected mentors against team hackathon enrolments.</li>
- *     <li>Handle support-request state transitions (OPEN, IN_PROGRESS, RESOLVED, REJECTED).</li>
- *     <li>Translate invalid transition/selection scenarios into explicit application exceptions.</li>
- * </ul>
  */
 @Service
 @Transactional(readOnly = true)
@@ -263,7 +257,7 @@ public class SupportRequestService {
         Set<UUID> teamHackathonIds = teamParticipations.stream()
                 .map(TeamParticipation::getHackathon)
                 .filter(Objects::nonNull)
-                .map(h -> h.getId())
+                .map(Hackathon::getId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         SupportRequest.validateMentorSelection(selectedMentors, teamHackathonIds, mentorSelectionPolicy);

@@ -44,12 +44,6 @@ import java.util.UUID;
 /**
  * Application service for team management use cases.
  * <p>
- * Responsibilities:
- * <ul>
- *     <li>Read teams by different lookup keys (id, name, member id).</li>
- *     <li>Create, update and delete team aggregates.</li>
- *     <li>Orchestrate team membership changes through domain methods.</li>
- * </ul>
  */
 @Service
 @Transactional(readOnly = true)

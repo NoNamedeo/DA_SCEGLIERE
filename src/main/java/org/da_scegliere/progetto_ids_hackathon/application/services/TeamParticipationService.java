@@ -51,13 +51,6 @@ import java.util.UUID;
 /**
  * Application service focused on submission lifecycle within a team participation.
  * <p>
- * Responsibilities:
- * <ul>
- *     <li>Handle submission CRUD-like operations for teams enrolled in hackathons.</li>
- *     <li>Apply temporal and state business constraints for submission/evaluation actions.</li>
- *     <li>Validate judge evaluations according to UC rules (score range and textual judgement).</li>
- *     <li>Raise explicit application exceptions for invalid operations and missing entities.</li>
- * </ul>
  */
 @Transactional(readOnly = true)
 @Service

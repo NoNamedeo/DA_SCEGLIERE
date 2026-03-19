@@ -44,12 +44,6 @@ import java.util.UUID;
 /**
  * Application service for user management and user-to-team lookup operations.
  * <p>
- * Responsibilities:
- * <ul>
- *     <li>Read users by id, name and team membership context.</li>
- *     <li>Create, update and delete user entities.</li>
- *     <li>Coordinate user-team relationship retrieval through repositories.</li>
- * </ul>
  */
 @Service
 @Transactional(readOnly = true)
