@@ -139,7 +139,8 @@ public class ManagerService {
      */
     @Transactional
     public User suspendUser(UUID managerId, UUID userId, String suspensionReason) {
-        log.info("Suspending userId={} by managerId={} reason={}", userId, managerId, suspensionReason);        ensureManagerExists(managerId);
+        log.info("Suspending userId={} by managerId={} reason={}", userId, managerId, suspensionReason);
+        ensureManagerExists(managerId);
         User user = getUserOrThrow(userId);
 
         ensureSuspendable(user);

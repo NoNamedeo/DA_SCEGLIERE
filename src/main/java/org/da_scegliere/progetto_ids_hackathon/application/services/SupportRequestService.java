@@ -29,6 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffAssignmentRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ISupportRequestRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamParticipationRepository;
@@ -60,6 +61,7 @@ import java.util.stream.Collectors;
  * Application service for support-request lifecycle management.
  * <p>
  */
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -78,6 +80,7 @@ public class SupportRequestService {
      * @return immutable snapshot of all support requests.
      */
     public List<SupportRequest> getAllSupportRequest() {
+        log.info("get all support requests");
         return List.copyOf(supportRequestRepository.findAll());
     }
 
@@ -90,6 +93,7 @@ public class SupportRequestService {
      * @throws SupportRequestNotFoundException when the request does not exist.
      */
     public SupportRequest getSupportRequestById(UUID requestId) {
+        log.info("get support request by requestId={}", requestId);
         if (requestId == null) {
             throw new IllegalArgumentException("requestId must not be null.");
         }
@@ -106,6 +110,8 @@ public class SupportRequestService {
      * @throws TeamNotFoundException when the team does not exist.
      */
     public List<SupportRequest> getSupportRequestByTeam(UUID teamId) {
+        log.info("get support request by teamId={}", teamId);
+
         if (teamId == null) {
             throw new IllegalArgumentException("teamId must not be null.");
         }
@@ -129,6 +135,7 @@ public class SupportRequestService {
      */
     @Transactional
     public SupportRequest createSupportRequest(LocalDate dateSlot, Team sendingTeam, List<StaffAssignment> staffAssignments) {
+        log.info("creating support request with dateSlot={}, sendingTeamId={}", dateSlot, sendingTeam.getId());
         if (dateSlot == null) {
             throw new IllegalArgumentException("dateSlot must not be null.");
         }
@@ -140,6 +147,7 @@ public class SupportRequestService {
         validateSelectedMentorsForTeamHackathon(persistedTeam, staffAssignments);
 
         SupportRequest request = new SupportRequest(dateSlot, persistedTeam, staffAssignments);
+        log.info("Support request created supportRequestId={}", request.getId());
         return supportRequestRepository.save(request);
     }
 
@@ -171,6 +179,7 @@ public class SupportRequestService {
      */
     @Transactional
     public SupportRequest markInProgress(UUID requestId, StaffAssignment acceptingMentor) {
+        log.info("Mark request requestId={} as in progress", requestId);
         if (acceptingMentor == null) {
             throw new IllegalArgumentException("acceptingMentor must not be null.");
         }
@@ -187,6 +196,7 @@ public class SupportRequestService {
 
         transitionRequest(request, SupportRequestState.IN_PROGRESS);
         request.acceptedBy(acceptingMentor);
+        log.info("Request requestId={} marked as in progress", requestId);
         return request;
     }
 
@@ -200,8 +210,10 @@ public class SupportRequestService {
      */
     @Transactional
     public SupportRequest resolveRequest(UUID requestId) {
+        log.info("Resolve support request requestId={}", requestId);
         SupportRequest request = getSupportRequestById(requestId);
         transitionRequest(request, SupportRequestState.RESOLVED);
+        log.info("Resolved support request requestId={}", requestId);
         return request;
     }
 
@@ -215,8 +227,10 @@ public class SupportRequestService {
      */
     @Transactional
     public SupportRequest rejectRequest(UUID requestId) {
+        log.info("Reject support request requestId={}", requestId);
         SupportRequest request = getSupportRequestById(requestId);
         transitionRequest(request, SupportRequestState.REJECTED);
+        log.info("Rejected support request requestId={}", requestId);
         return request;
     }
 
@@ -228,7 +242,9 @@ public class SupportRequestService {
      */
     @Transactional
     public void deleteSupportRequest(UUID requestId) {
+        log.info("Delete support request requestId={}", requestId);
         supportRequestRepository.delete(getSupportRequestById(requestId));
+        log.info("Deleted support request requestId={}", requestId);
     }
 
     private Team ensureTeamExists(UUID teamId) {

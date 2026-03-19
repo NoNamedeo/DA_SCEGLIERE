@@ -29,6 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamParticipationRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.InvalidHackathonStateOperationException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.InvalidSubmissionEvaluationException;
@@ -52,6 +53,7 @@ import java.util.UUID;
  * Application service focused on submission lifecycle within a team participation.
  * <p>
  */
+@Slf4j
 @Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
@@ -75,6 +77,8 @@ public class TeamParticipationService {
      * @throws TeamParticipationNotFoundException when participation does not exist.
      */
     public TeamParticipation getTeamParticipationById(UUID teamParticipationId) {
+        log.info("Get team participation teamParticipationId={}", teamParticipationId);
+
         if (teamParticipationId == null) {
             throw new IllegalArgumentException("teamParticipationId must not be null.");
         }
@@ -93,6 +97,8 @@ public class TeamParticipationService {
      * @throws SubmissionNotFoundException when submission cannot be resolved.
      */
     public Submission getSubmissionById(UUID submissionId) {
+        log.info("Get submission submissionId={}", submissionId);
+
         return resolveSubmissionContext(submissionId).submission();
     }
 
@@ -112,6 +118,8 @@ public class TeamParticipationService {
      */
     @Transactional
     public Submission createSubmission(UUID teamParticipationId, String title, String description) {
+        log.info("Create submission teamParticipationId={}, title={}", teamParticipationId, title);
+
         TeamParticipation participation = getTeamParticipationById(teamParticipationId);
         LocalDate today = LocalDate.now(clock);
         validateSubmissionWindow(participation, OP_CREATE_SUBMISSION, today);
@@ -124,6 +132,8 @@ public class TeamParticipationService {
                 null
         );
         participation.addSubmission(submission);
+
+        log.info("Created submission submissionId={}", submission.getId());
         return submission;
     }
 
@@ -143,12 +153,16 @@ public class TeamParticipationService {
      */
     @Transactional
     public Submission updateSubmission(UUID submissionId, String newTitle, String newDescription) {
+        log.info("Update submission submissionId={}", submissionId);
+
         SubmissionContext context = resolveSubmissionContext(submissionId);
         LocalDate today = LocalDate.now(clock);
         validateSubmissionWindow(context.teamParticipation(), OP_UPDATE_SUBMISSION, today);
         validateSubmissionContent(newTitle, newDescription);
 
         context.submission().updateContent(newTitle, newDescription);
+
+        log.info("Updated submission submissionId={}", submissionId);
         return context.submission();
     }
 
@@ -167,11 +181,15 @@ public class TeamParticipationService {
      */
     @Transactional
     public Submission evaluateSubmission(UUID submissionId, Integer score, String judgement) {
+        log.info("Evaluate submission submissionId={}", submissionId);
+
         SubmissionContext context = resolveSubmissionContext(submissionId);
         LocalDate today = LocalDate.now(clock);
         validateEvaluationWindow(context.teamParticipation(), OP_EVALUATE_SUBMISSION, today);
 
         context.submission().evaluate(score, judgement, today);
+
+        log.info("Evaluated submission submissionId={}", submissionId);
         return context.submission();
     }
 
@@ -192,6 +210,8 @@ public class TeamParticipationService {
      */
     @Transactional
     public Submission updateSubmissionEvaluation(UUID submissionId, int score, String judgement) {
+        log.info("Update submission evaluation submissionId={}", submissionId);
+
         SubmissionContext context = resolveSubmissionContext(submissionId);
         LocalDate today = LocalDate.now(clock);
         validateEvaluationWindow(context.teamParticipation(), OP_UPDATE_SUBMISSION_EVALUATION, today);
@@ -201,6 +221,8 @@ public class TeamParticipationService {
         }
 
         context.submission().evaluate(score, judgement, today);
+
+        log.info("Updated submission evaluation submissionId={}", submissionId);
         return context.submission();
     }
 
@@ -212,8 +234,12 @@ public class TeamParticipationService {
      */
     @Transactional
     public void deleteSubmission(UUID submissionId) {
+        log.info("Delete submission submissionId={}", submissionId);
+
         SubmissionContext context = resolveSubmissionContext(submissionId);
         context.teamParticipation().removeSubmission(context.submission());
+
+        log.info("Deleted submission submissionId={}", submissionId);
     }
 
     /**
@@ -230,6 +256,8 @@ public class TeamParticipationService {
      */
     @Transactional
     public void addSubmissionTo(UUID submissionId, UUID teamParticipationId) {
+        log.info("Add submission submissionId={} to team participation teamParticipationId={}", submissionId, teamParticipationId);
+
         Submission submission = getSubmissionById(submissionId);
 
         TeamParticipation participation = getTeamParticipationById(teamParticipationId);
@@ -237,6 +265,7 @@ public class TeamParticipationService {
         validateSubmissionContent(submission.getTitle(), submission.getDescription());
 
         participation.addSubmission(submission);
+        log.info("Added submission submissionId={} to team participation teamParticipationId={}", submissionId, teamParticipationId);
     }
 
     private SubmissionContext resolveSubmissionContext(UUID submissionId) {

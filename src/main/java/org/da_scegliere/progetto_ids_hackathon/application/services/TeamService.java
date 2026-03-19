@@ -29,6 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserNotFoundException;
@@ -45,6 +46,7 @@ import java.util.UUID;
  * Application service for team management use cases.
  * <p>
  */
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -71,6 +73,8 @@ public class TeamService{
      * @throws TeamNotFoundException if no team exists for the provided id.
      */
     public Team getTeamById(UUID teamId) {
+        log.info("Get team teamId={}", teamId);
+
         if(teamId == null) {
             throw new IllegalArgumentException("teamId must not be null");
         }
@@ -87,6 +91,8 @@ public class TeamService{
      * @throws TeamNotFoundException if no team exists for the provided name.
      */
     public Team getTeamByName(String name) {
+        log.info("Get team by name name={}", name);
+
         if(name.isBlank()) {
             throw new IllegalArgumentException("name must not be blank");
         }
@@ -103,6 +109,8 @@ public class TeamService{
      * @throws TeamNotFoundException if no team exists for the provided id.
      */
     public Team getTeamByTeamMemberId(UUID teamMemberId) {
+        log.info("Get team by teamMemberId={}", teamMemberId);
+
         if(teamMemberId == null) {
             throw new IllegalArgumentException("teamMemberId must not be null");
         }
@@ -119,6 +127,8 @@ public class TeamService{
      */
     @Transactional
     public Team createTeam(String name, List<User> members) {
+        log.info("Create team name={} members={}", name, members);
+
         return teamRepository.save(new Team(name, members));
     }
 
@@ -130,8 +140,12 @@ public class TeamService{
      */
     @Transactional
     public void deleteTeam(UUID teamId) {
+        log.info("Delete team teamId={}", teamId);
+
         Team team = getTeamById(teamId);
         teamRepository.delete(team);
+
+        log.info("Deleted team teamId={}", teamId);
     }
 
     /**
@@ -145,11 +159,15 @@ public class TeamService{
      */
     @Transactional
     public Team changeTeamName(UUID teamId, String newName) {
+        log.info("Change team name teamId={}, newName={}", teamId, newName);
+
         if(teamId == null) {
             throw new IllegalArgumentException("teamId must not be null");
         }
         Team team = getTeamById(teamId);
         team.setName(newName);
+
+        log.info("Changed team name teamId={}, newName={}", teamId, newName);
         return team;
     }
 
@@ -163,9 +181,13 @@ public class TeamService{
      */
     @Transactional
     public Team addMemberToTeam(UUID teamId, UUID userId) {
+        log.info("Add team member to team teamId={}, userId={}", teamId, userId);
+
         Team team = getTeamById(teamId);
         User user = getUserById(userId);
         team.addMember(user);
+
+        log.info("Added team member to team teamId={}, userId={}", teamId, userId);
         return team;
     }
 
@@ -178,10 +200,14 @@ public class TeamService{
      */
     @Transactional
     public Team removeMemberFromTeam(UUID teamId, UUID userId) {
+        log.info("Remove team member from team teamId={}, userId={}", teamId, userId);
+
         Team team = getTeamById(teamId);
         User user = getUserById(userId);
         validateMembership(team, userId);
         team.removeMember(user);
+
+        log.info("Removed team member from team teamId={}, userId={}", teamId, userId);
         return team;
     }
 

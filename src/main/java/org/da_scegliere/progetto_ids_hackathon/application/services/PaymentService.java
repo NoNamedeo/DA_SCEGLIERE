@@ -29,6 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.PaymentStrategy;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.PaymentProviderException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.payment.PaymentFailedException;
@@ -46,6 +47,7 @@ import java.util.UUID;
 /**
  * Application service responsible for winner prize disbursement orchestration.
  */
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -83,6 +85,7 @@ public class PaymentService {
      */
     @Transactional
     public boolean awardPrizeToWinner(BigDecimal prize, Hackathon hackathon) {
+        log.info("awarding prize to winner for hackathonId={}", hackathon.getId());
         validatePrize(prize);
         Hackathon safeHackathon = validateHackathon(hackathon);
 
@@ -96,6 +99,7 @@ public class PaymentService {
 
         executePayment(prize, winner);
         safeHackathon.markPrizeAsPaid(LocalDate.now());
+        log.info("winner prize {} has been paid for hackathonId={}.", prize, hackathon.getId());
         return true;
     }
 
