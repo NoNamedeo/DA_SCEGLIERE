@@ -29,18 +29,23 @@
 package org.da_scegliere.progetto_ids_hackathon.application.services.hackathon;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IHackathonRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Participation;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.builder.HackathonBuilder;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.builder.HackathonBuilderDirector;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.builder.IHackathonBuilder;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * Application service exposing CRUD-oriented operations for hackathon aggregates.
@@ -54,6 +59,7 @@ import java.util.UUID;
  * Domain invariants beyond plain CRUD are intentionally delegated to domain models
  * or dedicated use-case services.
  */
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -61,14 +67,13 @@ public class HackathonCrudService {
 
     private final IHackathonRepository hackathonRepository;
 
-    private final IHackathonBuilder hackathonBuilder;
-
     /**
      * Retrieves all hackathons.
      *
      * @return immutable snapshot of all hackathons.
      */
     public List<Hackathon> getAllHackathons() {
+        log.info("Getting all hackathons");
         return List.copyOf(hackathonRepository.findAll());
     }
 
@@ -81,6 +86,8 @@ public class HackathonCrudService {
      * @throws HackathonNotFoundException when hackathon does not exist.
      */
     public Hackathon getHackathonById(UUID hackathonId) {
+        log.info("Getting hackathon hackathonId={}", hackathonId);
+
         if (hackathonId == null) {
             throw new IllegalArgumentException("hackathonId must not be null.");
         }
@@ -97,6 +104,8 @@ public class HackathonCrudService {
      * @throws HackathonNotFoundException when no hackathon exists with the given name.
      */
     public Hackathon getHackathonByName(String name) {
+        log.info("Getting hackathon name={}", name);
+
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("name must not be blank.");
         }
@@ -111,18 +120,71 @@ public class HackathonCrudService {
      * @param description hackathon description/regulation summary.
      * @param participations initial participation's list.
      * @param staffAssignments initial staff assignments list.
+     * @param awardPrize award prize of the hackathon.
+     * @param builderConfigurer can be used to apply default build config
+     *                          (ex. HackathonBuilderDirector::makeShortHackathonDeadlines)
      * @return persisted hackathon.
      * @throws IllegalArgumentException when mandatory input is invalid.
      */
     @Transactional
-    public Hackathon createHackathon(String name, String description, List<Participation> participations, List<StaffAssignment> staffAssignments, BigDecimal awardPrize) {
-        return hackathonRepository.save(hackathonBuilder.reset()
+    public Hackathon createHackathon(
+            String name,
+            String description,
+            List<Participation> participations,
+            List<StaffAssignment> staffAssignments,
+            BigDecimal awardPrize,
+            Consumer<IHackathonBuilder> builderConfigurer
+    ) {
+        log.info("Creating hackathon {}", name);
+
+        IHackathonBuilder builder = new HackathonBuilder();
+
+        if (builderConfigurer != null) {
+            builderConfigurer.accept(builder);
+        }
+
+        Hackathon hackathon = builder
                 .setName(name)
                 .setDescription(description)
                 .setParticipations(participations)
                 .setStaff(staffAssignments)
                 .setAwardPrize(awardPrize)
-                .build());
+                .build();
+
+        log.info("Hackathon created hackathonId={}", hackathon.getId());
+        return hackathonRepository.save(hackathon);
+    }
+
+    /**
+     * Creates and persists a new long term hackathon aggregate.
+     *
+     * @param hackathonId hackathon id.
+     * @param registrationDeadline change hackathon registration deadLine if not null.
+     * @param evaluationDeadLine change hackathon evaluation deadLine if not null.
+     * @param submissionDeadLine change hackathon submission deadLine if not null.
+     * @return persisted hackathon.
+     * @throws IllegalArgumentException when hackathonId is null.
+     */
+    @Transactional
+    public Hackathon changeHackathonDeadlines(
+            UUID hackathonId,
+            LocalDate registrationDeadline,
+            LocalDate evaluationDeadLine,
+            LocalDate submissionDeadLine
+    ) {
+        if(hackathonId == null) {
+            throw new IllegalArgumentException("hackathonId must not be null.");
+        }
+
+        Hackathon hackathon = getHackathonById(hackathonId);
+        if(registrationDeadline != null)
+            hackathon.setRegistrationDeadline(registrationDeadline);
+        if(evaluationDeadLine != null)
+            hackathon.setEvaluationDeadline(evaluationDeadLine);
+        if(submissionDeadLine != null)
+            hackathon.setSubmissionDeadline(submissionDeadLine);
+
+        return hackathon;
     }
 
     /**
@@ -136,11 +198,15 @@ public class HackathonCrudService {
      */
     @Transactional
     public Hackathon changeDescription(UUID hackathonId, String description) {
+        log.info("Changing hackathon description={} hackathonId={}", description, hackathonId);
+
         if (description == null || description.isBlank()) {
             throw new IllegalArgumentException("description must not be blank.");
         }
         Hackathon hackathon = getHackathonById(hackathonId);
         hackathon.setDescription(description);
+
+        log.info("Changed hackathon description={} hackathonId={}", hackathon.getDescription(), hackathonId);
         return hackathon;
     }
 
@@ -155,11 +221,15 @@ public class HackathonCrudService {
      */
     @Transactional
     public Hackathon changeParticipations(UUID hackathonId, List<Participation> participations) {
+        log.info("Changing participations hackathonId={}", hackathonId);
+
         if (participations == null) {
             throw new IllegalArgumentException("participations must not be null.");
         }
         Hackathon hackathon = getHackathonById(hackathonId);
         hackathon.setParticipations(participations);
+
+        log.info("Changed participations hackathonId={}", hackathonId);
         return hackathon;
     }
 
@@ -174,11 +244,15 @@ public class HackathonCrudService {
      */
     @Transactional
     public Hackathon changeStaff(UUID hackathonId, List<StaffAssignment> staffAssignments) {
+        log.info("Changing hackathon hackathonId={} staff assignments", hackathonId);
+
         if (staffAssignments == null) {
             throw new IllegalArgumentException("staffAssignments must not be null.");
         }
         Hackathon hackathon = getHackathonById(hackathonId);
         hackathon.setStaff(staffAssignments);
+
+        log.info("Changed hackathon hackathonId={} staff assignments", hackathonId);
         return hackathon;
     }
 
@@ -190,7 +264,11 @@ public class HackathonCrudService {
      */
     @Transactional
     public void deleteHackathon(UUID hackathonId) {
+        log.info("Deleting hackathon {}", hackathonId);
+
         hackathonRepository.delete(getHackathonById(hackathonId));
+
+        log.info("Deleted hackathon {}", hackathonId);
     }
 
     /**

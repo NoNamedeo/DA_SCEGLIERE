@@ -40,10 +40,12 @@ public class HackathonBuilderDirector {
      * EvaluationDeadline: 85 days from now
      * PrizePaidAt: 90 days from now
      *
-     * @param hackathonBuilder
+     * @param builder
+     * @return IHackathonBuilder
      */
-    public void makeShortHackathonDeadlines(HackathonBuilder hackathonBuilder){
-        hackathonBuilder.setRegistrationDeadline(LocalDate.now().plusDays(20))
+    public static IHackathonBuilder makeShortHackathonDeadlines(HackathonBuilder builder){
+        return builder
+                .setRegistrationDeadline(LocalDate.now().plusDays(20))
                 .setSubmissionDeadline(LocalDate.now().plusDays(65))
                 .setEvaluationDeadline(LocalDate.now().plusDays(85))
                 .setPrizePaidAt(LocalDate.now().plusDays(90));
@@ -57,10 +59,12 @@ public class HackathonBuilderDirector {
      * EvaluationDeadline: 175 days from now
      * PrizePaidAt: 190 days from now
      *
-     * @param hackathonBuilder
+     * @param builder
+     * @return IHackathonBuilder
      */
-    public void makeLongHackathonDeadlines(HackathonBuilder hackathonBuilder){
-        hackathonBuilder.setRegistrationDeadline(LocalDate.now().plusDays(50))
+    public static IHackathonBuilder makeLongHackathonDeadlines(HackathonBuilder builder){
+        return builder
+                .setRegistrationDeadline(LocalDate.now().plusDays(50))
                 .setSubmissionDeadline(LocalDate.now().plusDays(150))
                 .setEvaluationDeadline(LocalDate.now().plusDays(175))
                 .setPrizePaidAt(LocalDate.now().plusDays(190));

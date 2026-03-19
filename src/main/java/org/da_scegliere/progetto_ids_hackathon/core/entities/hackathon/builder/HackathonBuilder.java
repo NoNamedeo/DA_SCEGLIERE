@@ -31,22 +31,20 @@ package org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.builder;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Participation;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-@Primary
-@Component
 public class HackathonBuilder implements IHackathonBuilder{
 
     private Hackathon hackathon = new Hackathon();
 
     @Override
     public Hackathon build() {
-        return this.hackathon;
+        Hackathon result = this.hackathon;
+        this.reset();
+        return result;
     }
 
     @Override

@@ -29,6 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.application.services.hackathon;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffMemberRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.InvalidHackathonStateOperationException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
@@ -58,6 +59,7 @@ import java.util.stream.Collectors;
  *     <li>Delegate duplicate and ownership checks to domain methods.</li>
  * </ul>
  */
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -81,6 +83,7 @@ public class HackathonStaffService {
      */
     @Transactional
     public Hackathon addStaffMembers(UUID hackathonId, Map<UUID, StaffRole> staffMembersIdMap) {
+        log.info("Adding staff members to hackathon {}", hackathonId);
         if (staffMembersIdMap == null) {
             throw new IllegalArgumentException("staffMembersIdMap must not be null.");
         }
@@ -104,6 +107,7 @@ public class HackathonStaffService {
             hackathon.addStaffAssignment(assignment);
         }
 
+        log.info("Added staff members to hackathon {}", hackathonId);
         return hackathon;
     }
 
@@ -121,6 +125,8 @@ public class HackathonStaffService {
      */
     @Transactional
     public Hackathon deleteStaffMembers(UUID hackathonId, List<UUID> staffMembersId) {
+        log.info("Deleting staff members from hackathon {}", hackathonId);
+
         if (staffMembersId == null) {
             throw new IllegalArgumentException("staffMembersId must not be null.");
         }
@@ -139,6 +145,8 @@ public class HackathonStaffService {
         if (removedCount != idsToDelete.size()) {
             throw new IllegalArgumentException("One or more staff members are not assigned to this hackathon.");
         }
+
+        log.info("Deleted staff members from hackathon {}", hackathonId);
         return hackathon;
     }
 
