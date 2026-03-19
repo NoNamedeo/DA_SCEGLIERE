@@ -81,13 +81,14 @@ public class GlobalExceptionHandler {
             SubmissionEvaluationNotFoundException.class
     })
     public ResponseEntity<ApiErrorResponse> handleNotFound(RuntimeException ex, HttpServletRequest request) {
-        return buildClientErrorResponse(
+        return buildErrorResponse(
                 HttpStatus.NOT_FOUND,
                 ApiErrorCode.RESOURCE_NOT_FOUND,
                 ex.getMessage(),
                 request,
                 List.of(),
-                ex
+                ex,
+                ErrorType.CLIENT
         );
     }
 
@@ -106,13 +107,14 @@ public class GlobalExceptionHandler {
             WinnerNotProclaimedException.class
     })
     public ResponseEntity<ApiErrorResponse> handleConflict(RuntimeException ex, HttpServletRequest request) {
-        return buildClientErrorResponse(
+        return buildErrorResponse(
                 HttpStatus.CONFLICT,
                 ApiErrorCode.CONFLICT,
                 ex.getMessage(),
                 request,
                 List.of(),
-                ex
+                ex,
+                ErrorType.CLIENT
         );
     }
 
@@ -122,25 +124,27 @@ public class GlobalExceptionHandler {
             InvalidSubmissionEvaluationException.class
     })
     public ResponseEntity<ApiErrorResponse> handleBadRequest(RuntimeException ex, HttpServletRequest request) {
-        return buildClientErrorResponse(
+        return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 ApiErrorCode.BAD_REQUEST,
                 ex.getMessage(),
                 request,
                 List.of(),
-                ex
+                ex,
+                ErrorType.CLIENT
         );
     }
 
     @ExceptionHandler(UserAccountRevokedException.class)
     public ResponseEntity<ApiErrorResponse> handleForbidden(UserAccountRevokedException ex, HttpServletRequest request) {
-        return buildClientErrorResponse(
+        return buildErrorResponse(
                 HttpStatus.FORBIDDEN,
                 ApiErrorCode.FORBIDDEN,
                 ex.getMessage(),
                 request,
                 List.of(),
-                ex
+                ex,
+                ErrorType.CLIENT
         );
     }
 
@@ -149,13 +153,14 @@ public class GlobalExceptionHandler {
             CalendarProviderUnavailableException.class
     })
     public ResponseEntity<ApiErrorResponse> handleUpstreamServiceUnavailable(RuntimeException ex, HttpServletRequest request) {
-        return buildServerErrorResponse(
+        return buildErrorResponse(
                 HttpStatus.SERVICE_UNAVAILABLE,
                 ApiErrorCode.UPSTREAM_SERVICE_UNAVAILABLE,
                 ex.getMessage(),
                 request,
                 List.of(),
-                ex
+                ex,
+                ErrorType.SERVER
         );
     }
 
@@ -164,13 +169,14 @@ public class GlobalExceptionHandler {
             PaymentProviderException.class
     })
     public ResponseEntity<ApiErrorResponse> handleUpstreamServiceError(RuntimeException ex, HttpServletRequest request) {
-        return buildServerErrorResponse(
+        return buildErrorResponse(
                 HttpStatus.BAD_GATEWAY,
                 ApiErrorCode.UPSTREAM_SERVICE_ERROR,
                 ex.getMessage(),
                 request,
                 List.of(),
-                ex
+                ex,
+                ErrorType.SERVER
         );
     }
 
@@ -180,26 +186,28 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         List<ApiFieldViolation> violations = extractViolations(ex);
-        return buildClientErrorResponse(
+        return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 ApiErrorCode.VALIDATION_ERROR,
                 VALIDATION_FAILED_MESSAGE,
                 request,
                 violations,
-                ex
+                ex,
+                ErrorType.CLIENT
         );
     }
 
     @ExceptionHandler(BindException.class)
     public ResponseEntity<ApiErrorResponse> handleBindException(BindException ex, HttpServletRequest request) {
         List<ApiFieldViolation> violations = extractViolations(ex);
-        return buildClientErrorResponse(
+        return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 ApiErrorCode.VALIDATION_ERROR,
                 VALIDATION_FAILED_MESSAGE,
                 request,
                 violations,
-                ex
+                ex,
+                ErrorType.CLIENT
         );
     }
 
@@ -212,13 +220,14 @@ public class GlobalExceptionHandler {
                 .stream()
                 .map(this::toFieldViolation)
                 .toList();
-        return buildClientErrorResponse(
+        return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 ApiErrorCode.VALIDATION_ERROR,
                 VALIDATION_FAILED_MESSAGE,
                 request,
                 violations,
-                ex
+                ex,
+                ErrorType.CLIENT
         );
     }
 
@@ -227,13 +236,14 @@ public class GlobalExceptionHandler {
             HttpMessageNotReadableException ex,
             HttpServletRequest request
     ) {
-        return buildClientErrorResponse(
+        return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 ApiErrorCode.MALFORMED_REQUEST,
                 MALFORMED_REQUEST_MESSAGE,
                 request,
                 List.of(),
-                ex
+                ex,
+                ErrorType.CLIENT
         );
     }
 
@@ -252,13 +262,14 @@ public class GlobalExceptionHandler {
                 requiredType
         );
 
-        return buildClientErrorResponse(
+        return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 ApiErrorCode.BAD_REQUEST,
                 message,
                 request,
                 List.of(),
-                ex
+                ex,
+                ErrorType.CLIENT
         );
     }
 
@@ -268,13 +279,14 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         String message = "Missing required request parameter '" + ex.getParameterName() + "'.";
-        return buildClientErrorResponse(
+        return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 ApiErrorCode.BAD_REQUEST,
                 message,
                 request,
                 List.of(),
-                ex
+                ex,
+                ErrorType.CLIENT
         );
     }
 
@@ -283,48 +295,64 @@ public class GlobalExceptionHandler {
             HttpRequestMethodNotSupportedException ex,
             HttpServletRequest request
     ) {
-        return buildClientErrorResponse(
+        return buildErrorResponse(
                 HttpStatus.METHOD_NOT_ALLOWED,
                 ApiErrorCode.METHOD_NOT_ALLOWED,
                 ex.getMessage(),
                 request,
                 List.of(),
-                ex
+                ex,
+                ErrorType.CLIENT
         );
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleUnexpected(Exception ex, HttpServletRequest request) {
-        return buildServerErrorResponse(
+        return buildErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 ApiErrorCode.INTERNAL_SERVER_ERROR,
                 INTERNAL_ERROR_MESSAGE,
                 request,
                 List.of(),
-                ex
+                ex,
+                ErrorType.SERVER
         );
     }
 
-    private ResponseEntity<ApiErrorResponse> buildClientErrorResponse(
+    private ResponseEntity<ApiErrorResponse> buildErrorResponse(
             HttpStatus status,
             ApiErrorCode code,
             String message,
             HttpServletRequest request,
             List<ApiFieldViolation> violations,
-            Exception ex
+            Exception ex,
+            ErrorType errorType
     ) {
         String errorId = UUID.randomUUID().toString();
         String path = safePath(request);
 
-        log.warn(
-                "[{}] {} {} -> {} {}. {}",
-                errorId,
-                request.getMethod(),
-                path,
-                status.value(),
-                code.name(),
-                ex.getMessage()
-        );
+        if (errorType == ErrorType.SERVER) {
+            log.error(
+                    "[{}] {} {} -> {} {}. {}",
+                    errorId,
+                    request.getMethod(),
+                    path,
+                    status.value(),
+                    code.name(),
+                    ex.getMessage(),
+                    ex
+            );
+        } else {
+            log.warn(
+                    "[{}] {} {} -> {} {}. {}",
+                    errorId,
+                    request.getMethod(),
+                    path,
+                    status.value(),
+                    code.name(),
+                    ex.getMessage()
+            );
+        }
 
         ApiErrorResponse body = new ApiErrorResponse(
                 Instant.now(),
@@ -336,41 +364,7 @@ public class GlobalExceptionHandler {
                 errorId,
                 violations
         );
-        return ResponseEntity.status(status).body(body);
-    }
 
-    private ResponseEntity<ApiErrorResponse> buildServerErrorResponse(
-            HttpStatus status,
-            ApiErrorCode code,
-            String message,
-            HttpServletRequest request,
-            List<ApiFieldViolation> violations,
-            Exception ex
-    ) {
-        String errorId = UUID.randomUUID().toString();
-        String path = safePath(request);
-
-        log.error(
-                "[{}] {} {} -> {} {}. {}",
-                errorId,
-                request.getMethod(),
-                path,
-                status.value(),
-                code.name(),
-                ex.getMessage(),
-                ex
-        );
-
-        ApiErrorResponse body = new ApiErrorResponse(
-                Instant.now(),
-                status.value(),
-                status.getReasonPhrase(),
-                code.name(),
-                message,
-                path,
-                errorId,
-                violations
-        );
         return ResponseEntity.status(status).body(body);
     }
 
