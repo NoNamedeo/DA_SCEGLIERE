@@ -27,6 +27,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.p
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.supportRequest.InvalidSupportRequestMentorSelectionException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.supportRequest.InvalidSupportRequestStateTransitionException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.supportRequest.SupportRequestNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff.StaffMemberNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.InvalidSubmissionEvaluationException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.SubmissionDeadlineExceededException;
@@ -75,6 +76,7 @@ public class GlobalExceptionHandler {
             UserNotFoundException.class,
             UserReportNotFoundException.class,
             SupportRequestNotFoundException.class,
+            StaffMemberNotFoundException.class,
             TeamNotFoundException.class,
             SubmissionNotFoundException.class,
             TeamParticipationNotFoundException.class,

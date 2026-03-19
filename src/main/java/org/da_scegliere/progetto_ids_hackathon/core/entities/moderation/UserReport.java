@@ -29,13 +29,10 @@
 package org.da_scegliere.progetto_ids_hackathon.core.entities.moderation;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.report.ReporterType;
 
-import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -48,18 +45,12 @@ public class UserReport extends ModerationReport {
     @NotNull
     private UUID reportedUserId;
 
-    @ManyToOne
-    @JoinColumn(name = "reported_user_fk", nullable = true)
-    private User reportedUser;
-
-    public UserReport(User reportedUser, String title, String description) {
-        super(title, description);
-        Objects.requireNonNull(reportedUser, "reportedUser must not be null.");
-        if (reportedUser.getId() == null) {
-            throw new IllegalArgumentException("reportedUser.id must not be null.");
+    public UserReport(UUID reporterId, ReporterType reporterType, UUID reportedUserId, String title, String description) {
+        super(reporterId, reporterType, title, description);
+        if (reportedUserId == null) {
+            throw new IllegalArgumentException("reportedUserId must not be null.");
         }
-        this.reportedUser = reportedUser;
-        this.reportedUserId = reportedUser.getId();
+        this.reportedUserId = reportedUserId;
     }
 
     protected UserReport() {

@@ -40,4 +40,6 @@ import java.util.UUID;
 @Repository
 public interface IManagerRepository extends JpaRepository<Manager, UUID>{
     Optional<Manager> findByEmail(@NotBlank @Email String email);
+
+    boolean existsByEmailIgnoreCase(@NotBlank @Email String email);
 }

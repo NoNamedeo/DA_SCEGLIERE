@@ -29,11 +29,19 @@
 package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
 
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
 public interface IStaffAssignmentRepository extends JpaRepository<StaffAssignment, UUID> {
+
+    List<StaffAssignment> findByHackathon_Id(UUID hackathonId);
+
+    List<StaffAssignment> findByStaffRole(StaffRole staffRole);
+
+    List<StaffAssignment> findByHackathon_IdAndStaffRole(UUID hackathonId, StaffRole staffRole);
 }
