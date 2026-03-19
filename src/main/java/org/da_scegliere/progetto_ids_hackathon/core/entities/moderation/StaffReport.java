@@ -26,20 +26,39 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
+package org.da_scegliere.progetto_ids_hackathon.core.entities.moderation;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.user.Manager;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import jakarta.persistence.Entity;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.report.ReporterType;
 
-import java.util.Optional;
 import java.util.UUID;
 
-@Repository
-public interface IManagerRepository extends JpaRepository<Manager, UUID>{
-    Optional<Manager> findByEmail(@NotBlank @Email String email);
+/**
+ * Staff-focused moderation report.
+ */
+@Getter
+@Entity
+public class StaffReport extends ModerationReport {
 
-    boolean existsByEmailIgnoreCase(@NotBlank @Email String email);
+    @NotNull
+    private UUID reportedStaffMemberId;
+
+    public StaffReport(
+            UUID reporterId,
+            ReporterType reporterType,
+            UUID reportedStaffMemberId,
+            String title,
+            String description
+    ) {
+        super(reporterId, reporterType, title, description);
+        if (reportedStaffMemberId == null) {
+            throw new IllegalArgumentException("reportedStaffMemberId must not be null.");
+        }
+        this.reportedStaffMemberId = reportedStaffMemberId;
+    }
+
+    protected StaffReport() {
+    }
 }

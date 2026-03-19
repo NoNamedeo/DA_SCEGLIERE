@@ -43,7 +43,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.m
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserAlreadySuspendedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserNotSuspendedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserReportAlreadyProcessedException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.ReportNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserReportNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.UserReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
@@ -56,6 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -105,21 +106,6 @@ public class ManagerService {
     }
 
     /**
-     * Retrieves a moderation reports.
-     *
-     * @param reportId report identifier.
-     * @return immutable snapshot of open moderation reports.
-     */
-    public ModerationReport getReport(UUID reportId) {
-        log.info("Get moderation report reportId={}", reportId);
-        if(reportId == null){
-            throw new IllegalArgumentException("ReportId must be not null");
-        }
-        return moderationReportRepository.findById(reportId)
-                .orElseThrow(() -> new ReportNotFoundException(reportId));
-    }
-
-    /**
      * Backward-compatible method: retrieves all user reports only.
      *
      * @param managerId manager identifier performing the operation.
@@ -153,8 +139,7 @@ public class ManagerService {
      */
     @Transactional
     public User suspendUser(UUID managerId, UUID userId, String suspensionReason) {
-        log.info("Suspending userId={} by managerId={} reason={}", userId, managerId, suspensionReason);
-        ensureManagerExists(managerId);
+        log.info("Suspending userId={} by managerId={} reason={}", userId, managerId, suspensionReason);        ensureManagerExists(managerId);
         User user = getUserOrThrow(userId);
 
         ensureSuspendable(user);
@@ -297,7 +282,7 @@ public class ManagerService {
             throw new IllegalArgumentException("reportId must not be null.");
         }
         return userReportRepository.findById(reportId)
-                .orElseThrow(() -> new ReportNotFoundException(reportId));
+                .orElseThrow(() -> new UserReportNotFoundException(reportId));
     }
 
     private void ensureEmailIsAvailable(String email) {

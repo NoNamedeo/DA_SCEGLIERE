@@ -32,6 +32,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.report.ReporterType;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.Manager;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
 
@@ -61,6 +62,13 @@ public abstract class ModerationReport {
     private String description;
 
     @NotNull
+    private UUID reporterId;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private ReporterType reporterType;
+
+    @NotNull
     @Enumerated(EnumType.STRING)
     private UserReportState state;
 
@@ -75,7 +83,9 @@ public abstract class ModerationReport {
 
     private String processingNotes;
 
-    protected ModerationReport(String title, String description) {
+    protected ModerationReport(UUID reporterId, ReporterType reporterType, String title, String description) {
+        this.reporterId = Objects.requireNonNull(reporterId, "reporterId must not be null.");
+        this.reporterType = Objects.requireNonNull(reporterType, "reporterType must not be null.");
         this.title = requireNonBlank(title, "title");
         this.description = requireNonBlank(description, "description");
         this.state = UserReportState.OPEN;

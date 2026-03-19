@@ -1,9 +1,6 @@
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IManagerRepository;
-import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IModerationReportRepository;
-import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffMemberRepository;
-import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserReportRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.StaffEmailAlreadyInUseException;
@@ -15,6 +12,7 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.UserRepo
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.Manager;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.report.ReporterType;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
 import org.da_scegliere.progetto_ids_hackathon.core.state.common.StateRegistry;
 import org.da_scegliere.progetto_ids_hackathon.core.state.user.AccountLifecycleStateMachine;
@@ -36,9 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -52,13 +47,10 @@ class ManagerServiceTest {
     private IUserRepository userRepository;
 
     @Mock
-    private IModerationReportRepository moderationReportRepository;
+    private ModerationReportService moderationReportService;
 
     @Mock
-    private IUserReportRepository userReportRepository;
-
-    @Mock
-    private IStaffMemberRepository staffMemberRepository;
+    private StaffService staffService;
 
     private ManagerService managerService;
     private AccountLifecycleStateMachine accountStateMachine;
@@ -82,9 +74,8 @@ class ManagerServiceTest {
         managerService = new ManagerService(
                 managerRepository,
                 userRepository,
-                moderationReportRepository,
-                userReportRepository,
-                staffMemberRepository,
+                moderationReportService,
+                staffService,
                 accountStateMachine
         );
         managerId = UUID.randomUUID();
@@ -94,7 +85,7 @@ class ManagerServiceTest {
     @Test
     void getAllReportsReturnsGenericModerationReports() {
         ModerationReport report = org.mockito.Mockito.mock(ModerationReport.class);
-        when(moderationReportRepository.findAll()).thenReturn(java.util.List.of(report));
+        when(moderationReportService.getAllReports()).thenReturn(java.util.List.of(report));
 
         java.util.List<ModerationReport> reports = managerService.getAllReports(managerId);
 
@@ -132,11 +123,14 @@ class ManagerServiceTest {
     void suspendUserFromReportWhenReportedUserDoesNotExistRejectsReportAndThrowsException() {
         UUID reportId = UUID.randomUUID();
         UUID reportedUserId = UUID.randomUUID();
-        User reportedUser = org.mockito.Mockito.mock(User.class);
-        when(reportedUser.getId()).thenReturn(reportedUserId);
-
-        UserReport report = new UserReport(reportedUser, "Abuse report", "Offensive behaviour");
-        when(userReportRepository.findById(reportId)).thenReturn(Optional.of(report));
+        UserReport report = new UserReport(
+                UUID.randomUUID(),
+                ReporterType.USER,
+                reportedUserId,
+                "Abuse report",
+                "Offensive behaviour"
+        );
+        when(moderationReportService.getUserReportById(reportId)).thenReturn(report);
         when(userRepository.findById(reportedUserId)).thenReturn(Optional.empty());
 
         assertThrows(
@@ -155,13 +149,16 @@ class ManagerServiceTest {
     void suspendUserFromReportWhenValidSuspendsUserAndAcceptsReport() {
         UUID reportId = UUID.randomUUID();
         UUID reportedUserId = UUID.randomUUID();
-        User reportedUserSnapshot = org.mockito.Mockito.mock(User.class);
-        when(reportedUserSnapshot.getId()).thenReturn(reportedUserId);
-
-        UserReport report = new UserReport(reportedUserSnapshot, "Abuse report", "Hate speech");
+        UserReport report = new UserReport(
+                UUID.randomUUID(),
+                ReporterType.USER,
+                reportedUserId,
+                "Abuse report",
+                "Hate speech"
+        );
         User persistedReportedUser = new User();
 
-        when(userReportRepository.findById(reportId)).thenReturn(Optional.of(report));
+        when(moderationReportService.getUserReportById(reportId)).thenReturn(report);
         when(userRepository.findById(reportedUserId)).thenReturn(Optional.of(persistedReportedUser));
 
         User updated = managerService.suspendUserFromReport(
@@ -204,27 +201,26 @@ class ManagerServiceTest {
     @Test
     void createStaffAccountWhenEmailAlreadyExistsThrowsException() {
         String duplicatedEmail = "staff@example.com";
-        when(staffMemberRepository.findByEmail(duplicatedEmail)).thenReturn(Optional.of(new StaffMember()));
+        when(staffService.createStaffMember("Alice", 30, duplicatedEmail))
+                .thenThrow(new StaffEmailAlreadyInUseException(duplicatedEmail));
 
         assertThrows(
                 StaffEmailAlreadyInUseException.class,
                 () -> managerService.createStaffAccount(managerId, "Alice", 30, duplicatedEmail)
         );
-        verify(staffMemberRepository, never()).save(any(StaffMember.class));
+        verify(staffService).createStaffMember("Alice", 30, duplicatedEmail);
     }
 
     @Test
     void createStaffAccountWhenValidPersistsStaffMember() {
         String email = "NewStaff@Example.com";
-        when(staffMemberRepository.findByEmail(anyString())).thenReturn(Optional.empty());
-        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
-        when(managerRepository.findByEmail(anyString())).thenReturn(Optional.empty());
-        when(staffMemberRepository.save(any(StaffMember.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        StaffMember persisted = new StaffMember("Alice", 28, "newstaff@example.com", new java.util.ArrayList<>());
+        when(staffService.createStaffMember("Alice", 28, email)).thenReturn(persisted);
 
         StaffMember created = managerService.createStaffAccount(managerId, "Alice", 28, email);
 
         assertNotNull(created);
         assertEquals("newstaff@example.com", created.getEmail());
-        verify(staffMemberRepository).save(any(StaffMember.class));
+        verify(staffService).createStaffMember("Alice", 28, email);
     }
 }

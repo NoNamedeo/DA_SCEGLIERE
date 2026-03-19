@@ -40,4 +40,6 @@ import java.util.UUID;
 @Repository
 public interface IStaffMemberRepository extends JpaRepository<StaffMember, UUID> {
     Optional<StaffMember> findByEmail(@NotBlank @Email String email);
+
+    boolean existsByEmailIgnoreCase(@NotBlank @Email String email);
 }

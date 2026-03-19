@@ -43,4 +43,6 @@ public interface IUserRepository extends JpaRepository<User, UUID>{
     Optional<User> findUserByName( @NotBlank @Size(min = 2, max = 50) String name );
 
     Optional<User> findByEmail(@NotBlank @Email String email);
+
+    boolean existsByEmailIgnoreCase(@NotBlank @Email String email);
 }

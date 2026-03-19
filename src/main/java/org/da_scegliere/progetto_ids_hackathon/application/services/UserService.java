@@ -29,16 +29,11 @@
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffMemberRepository;
-import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,7 +44,6 @@ import java.util.UUID;
  * Application service for user management and user-to-team lookup operations.
  * <p>
  */
-@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -64,8 +58,6 @@ public class UserService{
      * @return immutable snapshot of all users.
      */
     public List<User> getAllUsers() {
-        log.info("Get users");
-
         return List.copyOf(userRepository.findAll());
     }
 
@@ -78,7 +70,6 @@ public class UserService{
      * @throws UserNotFoundException when no user exists for the provided id.
      */
     public User getUserById(UUID userId) {
-        log.info("Get user userId={}", userId);
         if(userId == null){
             throw new IllegalArgumentException("UserId cannot be null.");
         }
@@ -95,8 +86,6 @@ public class UserService{
      * @throws UserNotFoundException when no user exists for the provided email.
      */
     public User getUserByEmail(String email) {
-        log.info("Get user by email={}", email);
-
         if(email == null || email.isBlank()){
             throw new IllegalArgumentException("Email must not be blank or null.");
         }
@@ -112,8 +101,6 @@ public class UserService{
      * @throws IllegalArgumentException when {@code name} is blank.
      */
     public User getUserByName(String name) {
-        log.info("Get user by name={}", name);
-
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("name must not be blank or null.");
         }
@@ -129,9 +116,7 @@ public class UserService{
      * @throws IllegalArgumentException when {@code teamId} is {@code null}.
      * @throws TeamNotFoundException when the team does not exist.
      */
-    public List<User> getUsersByTeam(UUID teamId) {
-        log.info("Get users by teamId={}", teamId);
-
+    public List<User> getUserByTeam(UUID teamId) {
         Team team = teamService.getTeamById(teamId);
         if(team == null){
             throw new TeamNotFoundException(teamId);
@@ -150,12 +135,8 @@ public class UserService{
      */
     @Transactional
     public User createUser(String name, int age, String email, UUID teamId){
-        log.info("Create user name={}, age={}, email={}, teamId={}", name, age, email, teamId);
-
         Team team = teamService.getTeamById(teamId);
         User user = new User(name, age, email, team);
-
-        log.info("Created user userId={}", user.getId());
         return userRepository.save(user);
     }
 
@@ -169,12 +150,8 @@ public class UserService{
      */
     @Transactional
     public User changeUserName(UUID userId, String name){
-        log.info("Change user name userId={}, newName={}", userId, name);
-
         User user = getUserById(userId);
         user.setName(name);
-
-        log.info("Changed user name userId={}, newName={}", userId, name);
         return userRepository.save(user);
     }
 
@@ -186,10 +163,6 @@ public class UserService{
      */
     @Transactional
     public void deleteUser(UUID userId) {
-        log.info("delete user userId={}", userId);
-
         userRepository.delete(getUserById(userId));
-
-        log.info("deleted user userId={}", userId);
     }
 }

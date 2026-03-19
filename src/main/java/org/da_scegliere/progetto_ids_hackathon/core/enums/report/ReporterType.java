@@ -26,20 +26,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
+package org.da_scegliere.progetto_ids_hackathon.core.enums.report;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.user.Manager;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
-import java.util.UUID;
-
-@Repository
-public interface IManagerRepository extends JpaRepository<Manager, UUID>{
-    Optional<Manager> findByEmail(@NotBlank @Email String email);
-
-    boolean existsByEmailIgnoreCase(@NotBlank @Email String email);
+public enum ReporterType {
+    USER,
+    STAFF,
+    MANAGER
 }
