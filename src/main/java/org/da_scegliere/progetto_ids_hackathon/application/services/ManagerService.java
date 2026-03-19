@@ -29,6 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IManagerRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IModerationReportRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffMemberRepository;
@@ -67,6 +68,7 @@ import java.util.UUID;
  *     <li>User suspension-from-report remains on concrete {@link UserReport} because it targets users.</li>
  * </ul>
  */
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -86,6 +88,7 @@ public class ManagerService {
      * @return immutable snapshot of all moderation reports.
      */
     public List<ModerationReport> getAllReports(UUID managerId) {
+        log.info("Get all moderation reports for managerId={}", managerId);
         ensureManagerExists(managerId);
         return List.copyOf(moderationReportRepository.findAll());
     }
@@ -97,6 +100,7 @@ public class ManagerService {
      * @return immutable snapshot of open moderation reports.
      */
     public List<ModerationReport> getOpenReports(UUID managerId) {
+        log.info("Get all open moderation reports for managerId={}", managerId);
         ensureManagerExists(managerId);
         return List.copyOf(moderationReportRepository.findByState(UserReportState.OPEN));
     }
@@ -108,6 +112,7 @@ public class ManagerService {
      * @return immutable snapshot of all user reports.
      */
     public List<UserReport> getAllUserReports(UUID managerId) {
+        log.info("Get all user moderation reports for managerId={}", managerId);
         ensureManagerExists(managerId);
         return List.copyOf(userReportRepository.findAll());
     }
@@ -119,6 +124,7 @@ public class ManagerService {
      * @return immutable snapshot of open user reports.
      */
     public List<UserReport> getOpenUserReports(UUID managerId) {
+        log.info("Get all open user moderation reports for managerId={}", managerId);
         ensureManagerExists(managerId);
         return List.copyOf(userReportRepository.findByState(UserReportState.OPEN));
     }
@@ -133,11 +139,12 @@ public class ManagerService {
      */
     @Transactional
     public User suspendUser(UUID managerId, UUID userId, String suspensionReason) {
-        ensureManagerExists(managerId);
+        log.info("Suspending userId={} by managerId={} reason={}", userId, managerId, suspensionReason);        ensureManagerExists(managerId);
         User user = getUserOrThrow(userId);
 
         ensureSuspendable(user);
         user.suspend(suspensionReason, accountStateMachine);
+        log.info("Suspended userId={} for managerId={}.", userId, managerId);
         return user;
     }
 
@@ -157,7 +164,7 @@ public class ManagerService {
             String suspensionReason,
             String reportResolutionNotes
     ) {
-        Manager manager = ensureManagerExists(managerId);
+        log.info("Suspending user by reportId={} by managerId={} reason={}", reportId, managerId, suspensionReason);        Manager manager = ensureManagerExists(managerId);
         UserReport report = getUserReportOrThrow(reportId);
         if (!report.isOpen()) {
             throw new UserReportAlreadyProcessedException(reportId);
@@ -174,6 +181,7 @@ public class ManagerService {
 
         user.suspend(suspensionReason, accountStateMachine);
         report.accept(manager, reportResolutionNotes);
+        log.info("Suspended userId={} for managerId={} by the following reportId={}.", user.getId(), managerId, reportId);
         return user;
     }
 
@@ -187,6 +195,8 @@ public class ManagerService {
      */
     @Transactional
     public User reinstateUser(UUID managerId, UUID userId, String reinstatementReason) {
+        log.info("Reinstating userId={} by managerId={} reason={}", userId, managerId, reinstatementReason);
+
         ensureManagerExists(managerId);
         User user = getUserOrThrow(userId);
 
@@ -198,6 +208,8 @@ public class ManagerService {
         }
 
         user.reinstate(reinstatementReason, accountStateMachine);
+
+        log.info("User reinstated userId={} by managerId={}", userId, managerId);
         return user;
     }
 
@@ -211,6 +223,8 @@ public class ManagerService {
      */
     @Transactional
     public User revokeAccount(UUID managerId, UUID userId, String revocationReason) {
+        log.info("Revoking userId={} by managerId={} reason={}", userId, managerId, revocationReason);
+
         ensureManagerExists(managerId);
         User user = getUserOrThrow(userId);
 
@@ -219,6 +233,8 @@ public class ManagerService {
         }
 
         user.revoke(revocationReason, accountStateMachine);
+
+        log.info("User revoked userId={} by managerId={}", userId, managerId);
         return user;
     }
 
@@ -233,12 +249,16 @@ public class ManagerService {
      */
     @Transactional
     public StaffMember createStaffAccount(UUID managerId, String name, int age, String email) {
-        ensureManagerExists(managerId);
+        log.info("Creating staff account email={} by managerId={}", email, managerId);
 
+        ensureManagerExists(managerId);
         ensureEmailIsAvailable(email);
 
         StaffMember staffMember = new StaffMember(name, age, email, new ArrayList<>());
-        return staffMemberRepository.save(staffMember);
+        StaffMember saved = staffMemberRepository.save(staffMember);
+
+        log.info("Staff account created staffId={} email={}", saved.getId(), email);
+        return saved;
     }
 
     private Manager ensureManagerExists(UUID managerId) {

@@ -29,6 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.CalendarStrategy;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.CalendarProviderConflictException;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.CalendarProviderUnavailableException;
@@ -44,18 +45,16 @@ import java.util.UUID;
 /**
  * Application service that orchestrates interactions with the external calendar provider.
  * <p>
- * Responsibilities:
- * <ul>
- *     <li>Validate support-call requests before invoking external integrations.</li>
- *     <li>Expose UC-oriented operations for slot availability checks and call proposal.</li>
- *     <li>Translate provider-specific failures into application-level exceptions.</li>
- * </ul>
  * This service does not implement calendar conflict rules directly: conflict detection and
  * reservation semantics are delegated to the configured {@link CalendarStrategy}.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CalendarService {
+
+    private static final String SLOT_OCCUPIED = "Requested call slot is already occupied.";
+    private static final String CALENDAR_UNAVAILABLE = "Calendar provider is unavailable.";
 
     private final CalendarStrategy calendarStrategy;
     private final SupportRequestService supportRequestService;
@@ -86,17 +85,15 @@ public class CalendarService {
      */
     public void proposeCall(SupportRequest request) {
         SupportRequest safeRequest = requireValidRequest(request);
+        log.info("Proposing call for supportRequestId={}" , safeRequest.getId());
 
         try {
-            boolean slotAvailable = calendarStrategy.isSlotAvailable(safeRequest);
-            if (!slotAvailable) {
-                throw new CalendarConflictException("Requested call slot is already occupied.");
-            }
             calendarStrategy.reserveCallSlot(safeRequest);
-        } catch (CalendarProviderConflictException ex) {
-            throw new CalendarConflictException("Requested call slot is already occupied.", ex);
-        } catch (CalendarProviderUnavailableException ex) {
-            throw new CalendarUnavailableException("Calendar provider is unavailable.", ex);
+            log.info("Call slot reserved for supportRequestId={}" , safeRequest.getId());
+        } catch ( CalendarProviderConflictException ex ) {
+            throw new CalendarConflictException(SLOT_OCCUPIED , ex);
+        } catch ( CalendarProviderUnavailableException ex ) {
+            throw new CalendarUnavailableException(CALENDAR_UNAVAILABLE , ex);
         }
     }
 
@@ -111,13 +108,14 @@ public class CalendarService {
      */
     public boolean isSlotAvailable(SupportRequest request) {
         SupportRequest safeRequest = requireValidRequest(request);
+        log.debug("Checking slot availability for supportRequestId={}", safeRequest.getId());
 
         try {
             return calendarStrategy.isSlotAvailable(safeRequest);
         } catch (CalendarProviderConflictException ex) {
-            throw new CalendarConflictException("Requested call slot is already occupied.", ex);
+            throw new CalendarConflictException(SLOT_OCCUPIED, ex);
         } catch (CalendarProviderUnavailableException ex) {
-            throw new CalendarUnavailableException("Calendar provider is unavailable.", ex);
+            throw new CalendarUnavailableException(CALENDAR_UNAVAILABLE, ex);
         }
     }
 
