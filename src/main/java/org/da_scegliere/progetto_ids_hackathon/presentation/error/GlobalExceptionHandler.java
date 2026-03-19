@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.CalendarProviderConflictException;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.CalendarProviderUnavailableException;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.PaymentProviderException;
@@ -58,9 +59,8 @@ import java.util.UUID;
  * with stable error codes and machine-readable payloads.</p>
  */
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
-
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     private static final String VALIDATION_FAILED_MESSAGE = "Request validation failed.";
     private static final String MALFORMED_REQUEST_MESSAGE =
@@ -333,7 +333,7 @@ public class GlobalExceptionHandler {
 
         if (errorType == ErrorType.SERVER) {
             log.error(
-                    "[{}] {} {} -> {} {}. {}",
+                    "[{}] {} {} -> {} {} | {}",
                     errorId,
                     request.getMethod(),
                     path,
@@ -344,7 +344,7 @@ public class GlobalExceptionHandler {
             );
         } else {
             log.warn(
-                    "[{}] {} {} -> {} {}. {}",
+                    "[{}] {} {} -> {} {} | {}",
                     errorId,
                     request.getMethod(),
                     path,
@@ -413,5 +413,10 @@ public class GlobalExceptionHandler {
             return serialized;
         }
         return serialized.substring(0, MAX_REJECTED_VALUE_LENGTH - 3) + "...";
+    }
+
+    private enum ErrorType {
+        CLIENT,
+        SERVER
     }
 }
