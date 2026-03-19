@@ -64,8 +64,6 @@ public class HackathonScheduler {
             if (state == HackathonState.ENDED && hackathon.getWinner() == null) {
 
                 try {
-                    lifecycleService.concludeHackathon(hackathon.getId());
-
                     Team winner = hackathonLifecycleService.determineWinnerTeam(hackathon.getId());
                     lifecycleService.assignWinner(hackathon.getId(), winner.getId());
 
@@ -73,6 +71,9 @@ public class HackathonScheduler {
                             hackathon.getAwardPrize(),
                             hackathon.getId()
                     );
+
+                    lifecycleService.concludeHackathon(hackathon.getId());
+
                     log.info("HackathonId={} won by teamId={}", hackathon.getId(), winner.getId());
 
                 } catch (Exception ex) {
