@@ -44,4 +44,8 @@ public interface IStaffAssignmentRepository extends JpaRepository<StaffAssignmen
     List<StaffAssignment> findByStaffRole(StaffRole staffRole);
 
     List<StaffAssignment> findByHackathon_IdAndStaffRole(UUID hackathonId, StaffRole staffRole);
+
+    List<StaffAssignment> findByStaffMember_Id(UUID staffMemberId);
+
+    List<StaffAssignment> findByStaffMember_IdAndStaffRole(UUID staffMemberId, StaffRole staffRole);
 }

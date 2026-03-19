@@ -34,6 +34,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IM
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffMemberRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.StaffEmailAlreadyInUseException;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff.StaffMemberNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
@@ -42,6 +43,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -171,6 +173,54 @@ public class StaffService {
     }
 
     /**
+     * Retrieves unique hackathons managed by one staff member.
+     *
+     * @param staffMemberId staff identifier.
+     * @return immutable list of managed hackathons.
+     */
+    public List<Hackathon> getHackathonsManagedByStaffMember(UUID staffMemberId) {
+        getStaffMemberById(staffMemberId);
+        return mapDistinctHackathons(staffAssignmentRepository.findByStaffMember_Id(staffMemberId));
+    }
+
+    /**
+     * Retrieves unique hackathons managed by one staff member with a specific role.
+     *
+     * @param staffMemberId staff identifier.
+     * @param staffRole     role used in assignments.
+     * @return immutable list of managed hackathons.
+     */
+    public List<Hackathon> getHackathonsManagedByStaffMemberAndRole(UUID staffMemberId, StaffRole staffRole) {
+        if (staffRole == null) {
+            throw new IllegalArgumentException("staffRole must not be null.");
+        }
+        getStaffMemberById(staffMemberId);
+        return mapDistinctHackathons(
+                staffAssignmentRepository.findByStaffMember_IdAndStaffRole(staffMemberId, staffRole)
+        );
+    }
+
+    /**
+     * Retrieves managed hackathons for one staff member grouped by assignment role.
+     *
+     * @param staffMemberId staff identifier.
+     * @return immutable map role -> immutable list of hackathons.
+     */
+    public Map<StaffRole, List<Hackathon>> getHackathonsManagedByStaffMemberPerRole(UUID staffMemberId) {
+        getStaffMemberById(staffMemberId);
+        return groupHackathonsPerRole(staffAssignmentRepository.findByStaffMember_Id(staffMemberId));
+    }
+
+    /**
+     * Retrieves managed hackathons grouped by assignment role across all staff members.
+     *
+     * @return immutable map role -> immutable list of hackathons.
+     */
+    public Map<StaffRole, List<Hackathon>> getHackathonsManagedPerRole() {
+        return groupHackathonsPerRole(staffAssignmentRepository.findAll());
+    }
+
+    /**
      * Creates and persists a new staff member.
      *
      * @param name  staff display name.
@@ -230,6 +280,42 @@ public class StaffService {
             uniqueMembers.putIfAbsent(assignment.getStaffMember().getId(), assignment.getStaffMember());
         }
         return List.copyOf(uniqueMembers.values());
+    }
+
+    private List<Hackathon> mapDistinctHackathons(List<StaffAssignment> assignments) {
+        Map<UUID, Hackathon> uniqueHackathons = new LinkedHashMap<>();
+        for (StaffAssignment assignment : assignments) {
+            if (assignment == null || assignment.getHackathon() == null || assignment.getHackathon().getId() == null) {
+                continue;
+            }
+            Hackathon hackathon = assignment.getHackathon();
+            uniqueHackathons.putIfAbsent(hackathon.getId(), hackathon);
+        }
+        return List.copyOf(uniqueHackathons.values());
+    }
+
+    private Map<StaffRole, List<Hackathon>> groupHackathonsPerRole(List<StaffAssignment> assignments) {
+        Map<StaffRole, Map<UUID, Hackathon>> groupedHackathons = new EnumMap<>(StaffRole.class);
+        for (StaffRole role : StaffRole.values()) {
+            groupedHackathons.put(role, new LinkedHashMap<>());
+        }
+
+        for (StaffAssignment assignment : assignments) {
+            if (assignment == null || assignment.getStaffRole() == null) {
+                continue;
+            }
+            Hackathon hackathon = assignment.getHackathon();
+            if (hackathon == null || hackathon.getId() == null) {
+                continue;
+            }
+            groupedHackathons.get(assignment.getStaffRole()).putIfAbsent(hackathon.getId(), hackathon);
+        }
+
+        Map<StaffRole, List<Hackathon>> result = new EnumMap<>(StaffRole.class);
+        for (StaffRole role : StaffRole.values()) {
+            result.put(role, List.copyOf(groupedHackathons.get(role).values()));
+        }
+        return Map.copyOf(result);
     }
 
     private String normalizeEmail(String email) {
