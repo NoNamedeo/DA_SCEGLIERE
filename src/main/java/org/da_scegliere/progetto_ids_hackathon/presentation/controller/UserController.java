@@ -26,7 +26,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation;
+package org.da_scegliere.progetto_ids_hackathon.presentation.controller;
 
 public class UserController {
 }

@@ -26,12 +26,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation;
+package org.da_scegliere.progetto_ids_hackathon.presentation.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.da_scegliere.progetto_ids_hackathon.application.services.PaymentService;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.PrizeAwardRequest;
+import org.da_scegliere.progetto_ids_hackathon.application.services.TeamParticipationService;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.EvaluateSubmissionRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,17 +43,17 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/hackathons")
-public class PaymentController {
+@RequestMapping("/submissions")
+public class SubmissionController {
 
-    private final PaymentService paymentService;
+    private final TeamParticipationService teamParticipationService;
 
-    @PostMapping("/{hackathonId}/prize-awards")
-    public ResponseEntity<Void> awardPrize(
-            @PathVariable UUID hackathonId,
-            @Valid @RequestBody PrizeAwardRequest request
+    @PostMapping("/{submissionId}/evaluations")
+    public ResponseEntity<Void> evaluateSubmission(
+            @PathVariable UUID submissionId,
+            @Valid @RequestBody EvaluateSubmissionRequest request
     ) {
-        paymentService.awardPrizeToWinner(request.prize(), hackathonId);
+        teamParticipationService.evaluateSubmission(submissionId, request.score(), request.judgement());
         return ResponseEntity.ok().build();
     }
 }

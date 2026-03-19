@@ -26,13 +26,31 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation.dto.request;
+package org.da_scegliere.progetto_ids_hackathon.presentation.controller;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
+import lombok.RequiredArgsConstructor;
+import org.da_scegliere.progetto_ids_hackathon.application.services.TeamService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import java.util.UUID;
 
-public record AddStaffAssignmentsRequest(
-        @NotEmpty List<@Valid StaffAssignmentInputRequest> staffAssignments
-) { }
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/teams")
+public class TeamController {
+
+    private final TeamService teamService;
+
+    @DeleteMapping("/{teamId}/members/{userId}")
+    public ResponseEntity<Void> removeMemberFromTeam(
+            @PathVariable UUID teamId,
+            @PathVariable UUID userId
+    ) {
+        teamService.removeMemberFromTeam(teamId, userId);
+        return ResponseEntity.noContent().build();
+    }
+}

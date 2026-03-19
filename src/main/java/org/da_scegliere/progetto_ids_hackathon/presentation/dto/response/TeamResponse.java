@@ -26,34 +26,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation;
-
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.da_scegliere.progetto_ids_hackathon.application.services.TeamParticipationService;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.EvaluateSubmissionRequest;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+package org.da_scegliere.progetto_ids_hackathon.presentation.dto.response;
 
 import java.util.UUID;
 
-@RestController
-@RequiredArgsConstructor
-@RequestMapping("/submissions")
-public class SubmissionController {
-
-    private final TeamParticipationService teamParticipationService;
-
-    @PostMapping("/{submissionId}/evaluations")
-    public ResponseEntity<Void> evaluateSubmission(
-            @PathVariable UUID submissionId,
-            @Valid @RequestBody EvaluateSubmissionRequest request
-    ) {
-        teamParticipationService.evaluateSubmission(submissionId, request.score(), request.judgement());
-        return ResponseEntity.ok().build();
-    }
+public record TeamResponse(
+        UUID id,
+        String name
+){
 }

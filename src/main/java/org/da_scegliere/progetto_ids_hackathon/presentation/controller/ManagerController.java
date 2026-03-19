@@ -26,13 +26,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation;
+package org.da_scegliere.progetto_ids_hackathon.presentation.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.da_scegliere.progetto_ids_hackathon.application.services.TeamService;
+import org.da_scegliere.progetto_ids_hackathon.application.services.ManagerService;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.SuspendUserRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,17 +43,18 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/teams")
-public class TeamController {
+@RequestMapping("/managers")
+public class ManagerController {
 
-    private final TeamService teamService;
+    private final ManagerService managerService;
 
-    @DeleteMapping("/{teamId}/members/{userId}")
-    public ResponseEntity<Void> removeMemberFromTeam(
-            @PathVariable UUID teamId,
-            @PathVariable UUID userId
+    @PostMapping("/{managerId}/users/{userId}/suspensions")
+    public ResponseEntity<Void> suspendUser(
+            @PathVariable UUID managerId,
+            @PathVariable UUID userId,
+            @Valid @RequestBody SuspendUserRequest request
     ) {
-        teamService.removeMemberFromTeam(teamId, userId);
-        return ResponseEntity.noContent().build();
+        managerService.suspendUser(managerId, userId, request.reason());
+        return ResponseEntity.ok().build();
     }
 }

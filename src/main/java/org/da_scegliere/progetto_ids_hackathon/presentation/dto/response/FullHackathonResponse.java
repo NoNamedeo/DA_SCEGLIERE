@@ -26,9 +26,18 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation.error;
+package org.da_scegliere.progetto_ids_hackathon.presentation.dto.response;
 
-public enum ErrorType{
-    CLIENT,
-    SERVER
+import java.time.LocalDate;
+import java.util.List;
+
+public record FullHackathonResponse(
+        String name,
+        String description ,
+        TeamResponse winner,
+        List<StaffAssignmentResponse> staff,
+        LocalDate registrationDeadLine,
+        LocalDate submissionDeadline,
+        LocalDate evaluationDeadline
+){
 }

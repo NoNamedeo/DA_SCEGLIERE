@@ -26,16 +26,21 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation;
+package org.da_scegliere.progetto_ids_hackathon.presentation.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.HackathonCrudService;
 import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.HackathonLifecycleService;
 import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.HackathonStaffService;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.AddStaffAssignmentsRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.AssignWinnerRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.StaffAssignmentInputRequest;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.FullHackathonResponse;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.PublicHackathonResponse;
+import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.HackathonMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,8 +54,21 @@ import java.util.UUID;
 @RequestMapping("/hackathons")
 public class HackathonController {
 
+    private final HackathonCrudService hackathonCrudService;
     private final HackathonStaffService hackathonStaffService;
     private final HackathonLifecycleService hackathonLifecycleService;
+
+    @GetMapping("/{hackathonId}/public")
+    public ResponseEntity<PublicHackathonResponse> getPublicHackathon(@PathVariable UUID hackathonId) {
+        Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
+        return ResponseEntity.ok(HackathonMapper.toPublic(hackathon));
+    }
+
+    @GetMapping("/{hackathonId}/full")
+    public ResponseEntity<FullHackathonResponse> getHackathon( @PathVariable UUID hackathonId) {
+        Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
+        return ResponseEntity.ok(HackathonMapper.toFull(hackathon));
+    }
 
     @PostMapping("/{hackathonId}/staff-assignments")
     public ResponseEntity<Void> addStaffAssignments(

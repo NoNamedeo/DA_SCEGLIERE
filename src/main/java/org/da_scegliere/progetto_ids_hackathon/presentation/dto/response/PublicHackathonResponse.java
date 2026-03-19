@@ -26,13 +26,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation.dto.request;
+package org.da_scegliere.progetto_ids_hackathon.presentation.dto.response;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
+import java.time.LocalDate;
 
-import java.util.List;
-
-public record AddStaffAssignmentsRequest(
-        @NotEmpty List<@Valid StaffAssignmentInputRequest> staffAssignments
-) { }
+public record PublicHackathonResponse(
+        String name,
+        String description ,
+        LocalDate registrationDeadLine
+){
+}

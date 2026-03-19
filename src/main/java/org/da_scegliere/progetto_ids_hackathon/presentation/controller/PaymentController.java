@@ -26,50 +26,34 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation;
+package org.da_scegliere.progetto_ids_hackathon.presentation.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.da_scegliere.progetto_ids_hackathon.application.services.CalendarService;
-import org.da_scegliere.progetto_ids_hackathon.application.services.SupportRequestService;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.CreateSupportRequestRequest;
+import org.da_scegliere.progetto_ids_hackathon.application.services.PaymentService;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.PrizeAwardRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.URI;
 import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/support-requests")
-public class SupportRequestController{
+@RequestMapping("/hackathons")
+public class PaymentController {
 
-    private final CalendarService calendarService;
-    private final SupportRequestService supportRequestService;
+    private final PaymentService paymentService;
 
-    @PostMapping("/{requestId}/call-proposal")
-    public ResponseEntity<Void> proposeCall( @PathVariable UUID requestId ) {
-        calendarService.proposeCall(requestId);
+    @PostMapping("/{hackathonId}/prize-awards")
+    public ResponseEntity<Void> awardPrize(
+            @PathVariable UUID hackathonId,
+            @Valid @RequestBody PrizeAwardRequest request
+    ) {
+        paymentService.awardPrizeToWinner(request.prize(), hackathonId);
         return ResponseEntity.ok().build();
-    }
-
-    @PostMapping
-    public ResponseEntity<Void> createSupportRequest( @Valid @RequestBody CreateSupportRequestRequest request ) {
-        SupportRequest created = supportRequestService.createSupportRequest(
-                request.dateSlot() ,
-                request.teamId() ,
-                request.staffAssignmentIds()
-        );
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{requestId}")
-                .buildAndExpand(created.getId())
-                .toUri();
-        return ResponseEntity.created(location).build();
     }
 }

@@ -26,35 +26,50 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation;
+package org.da_scegliere.progetto_ids_hackathon.presentation.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.da_scegliere.progetto_ids_hackathon.application.services.ManagerService;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.SuspendUserRequest;
+import org.da_scegliere.progetto_ids_hackathon.application.services.CalendarService;
+import org.da_scegliere.progetto_ids_hackathon.application.services.SupportRequestService;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.CreateSupportRequestRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/managers")
-public class ManagerController {
+@RequestMapping("/support-requests")
+public class SupportRequestController{
 
-    private final ManagerService managerService;
+    private final CalendarService calendarService;
+    private final SupportRequestService supportRequestService;
 
-    @PostMapping("/{managerId}/users/{userId}/suspensions")
-    public ResponseEntity<Void> suspendUser(
-            @PathVariable UUID managerId,
-            @PathVariable UUID userId,
-            @Valid @RequestBody SuspendUserRequest request
-    ) {
-        managerService.suspendUser(managerId, userId, request.reason());
+    @PostMapping("/{requestId}/call-proposal")
+    public ResponseEntity<Void> proposeCall( @PathVariable UUID requestId ) {
+        calendarService.proposeCall(requestId);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping
+    public ResponseEntity<Void> createSupportRequest( @Valid @RequestBody CreateSupportRequestRequest request ) {
+        SupportRequest created = supportRequestService.createSupportRequest(
+                request.dateSlot() ,
+                request.teamId() ,
+                request.staffAssignmentIds()
+        );
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{requestId}")
+                .buildAndExpand(created.getId())
+                .toUri();
+        return ResponseEntity.created(location).build();
     }
 }
