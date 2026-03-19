@@ -33,6 +33,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IH
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Participation;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.builder.IHackathonBuilder;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,6 +60,8 @@ import java.util.UUID;
 public class HackathonCrudService {
 
     private final IHackathonRepository hackathonRepository;
+
+    private final IHackathonBuilder hackathonBuilder;
 
     /**
      * Retrieves all hackathons.
@@ -106,7 +109,7 @@ public class HackathonCrudService {
      *
      * @param name hackathon name.
      * @param description hackathon description/regulation summary.
-     * @param participations initial participations list.
+     * @param participations initial participation's list.
      * @param staffAssignments initial staff assignments list.
      * @return persisted hackathon.
      * @throws IllegalArgumentException when mandatory input is invalid.
@@ -125,7 +128,13 @@ public class HackathonCrudService {
         if (staffAssignments == null) {
             throw new IllegalArgumentException("staffAssignments must not be null.");
         }
-        return hackathonRepository.save(new Hackathon(name, description, participations, staffAssignments));
+
+        return hackathonRepository.save(hackathonBuilder.reset()
+                .setName(name)
+                .setDescription(description)
+                .setParticipations(participations)
+                .setStaff(staffAssignments)
+                .build());
     }
 
     /**

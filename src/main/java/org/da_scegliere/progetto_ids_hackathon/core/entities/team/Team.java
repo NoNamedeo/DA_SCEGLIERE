@@ -34,6 +34,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
+import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
+import org.da_scegliere.progetto_ids_hackathon.core.policies.team.LeaveTeamContext;
 
 import java.util.List;
 import java.util.UUID;
@@ -66,7 +68,9 @@ public class Team {
         user.setTeam(this);
     }
 
-    public void removeMember(User user) {
+    public void removeMember(User user, BusinessPolicy<LeaveTeamContext> leaveTeamPolicy) {
+        LeaveTeamContext context = new LeaveTeamContext(this);
+        leaveTeamPolicy.validate(context);
         members.remove(user);
         user.setTeam(null);
     }

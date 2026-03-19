@@ -26,34 +26,34 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation.controller;
+package org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.builder;
 
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.da_scegliere.progetto_ids_hackathon.application.services.UserService;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.AddStaffAssignmentsRequest;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.AddTeamMemberRequest;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Participation;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 
-import java.util.UUID;
+import java.time.LocalDate;
+import java.util.List;
 
-@RestController
-@RequiredArgsConstructor
-@RequestMapping("/users")
-public class UserController {
+public interface IHackathonBuilder {
 
-    private final UserService userService;
+    IHackathonBuilder reset();
 
-    @PostMapping("/create-team")
-    public ResponseEntity<Void> createTeam(
-            @Valid @RequestBody AddTeamMemberRequest request
-    ) {
-        userService.
-        return ResponseEntity.noContent().build();
-    }
+    Hackathon build();
 
-    //TODO invitaUtenteATeam(User utenteInvitato)
-    //TODO inserisciMembro(Team)
+    IHackathonBuilder setName(String name);
 
+    IHackathonBuilder setDescription(String description);
+
+    IHackathonBuilder setParticipations(List<Participation> participations);
+
+    IHackathonBuilder setPrizePaidAt(LocalDate date);
+
+    IHackathonBuilder setStaff(List<StaffAssignment> staff);
+
+    IHackathonBuilder setRegistrationDeadline(LocalDate date);
+
+    IHackathonBuilder setEvaluationDeadline(LocalDate date);
+
+    IHackathonBuilder setSubmissionDeadline(LocalDate date);
 }

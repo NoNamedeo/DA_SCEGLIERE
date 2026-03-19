@@ -36,10 +36,13 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.m
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
+import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
+import org.da_scegliere.progetto_ids_hackathon.core.policies.team.LeaveTeamContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -54,6 +57,7 @@ public class TeamService{
 
     private final ITeamRepository teamRepository;
     private final IUserRepository userRepository;
+    private final BusinessPolicy<LeaveTeamContext> leaveTeamPolicy;
 
     /**
      * Returns all teams currently stored.
@@ -199,16 +203,26 @@ public class TeamService{
      * @return updated team aggregate.
      */
     @Transactional
-    public Team removeMemberFromTeam(UUID teamId, UUID userId) {
+    public Optional<Team> removeMemberFromTeam(UUID teamId, UUID userId) {
         log.info("Remove team member from team teamId={}, userId={}", teamId, userId);
 
         Team team = getTeamById(teamId);
         User user = getUserById(userId);
         validateMembership(team, userId);
-        team.removeMember(user);
 
-        log.info("Removed team member from team teamId={}, userId={}", teamId, userId);
-        return team;
+        try{
+            team.removeMember(user, leaveTeamPolicy);
+            log.info("Removed team member from team teamId={}, userId={}", teamId, userId);
+            return Optional.of(team);
+        }
+        catch(IllegalStateException ex){
+            for(User lastUser : team.getMembers()) {
+                lastUser.setTeam(null);
+            }
+            deleteTeam(teamId);
+            log.info("Removed team member and team (there was only a member left); team teamId={}, removedUserId={}", teamId, userId);
+            return Optional.empty();
+        }
     }
 
     private static void validateMembership(Team team, UUID userId) {

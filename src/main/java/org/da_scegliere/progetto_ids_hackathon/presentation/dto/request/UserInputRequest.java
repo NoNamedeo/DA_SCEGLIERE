@@ -26,34 +26,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation.controller;
+package org.da_scegliere.progetto_ids_hackathon.presentation.dto.request;
 
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.da_scegliere.progetto_ids_hackathon.application.services.UserService;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.AddStaffAssignmentsRequest;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.AddTeamMemberRequest;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
-@RestController
-@RequiredArgsConstructor
-@RequestMapping("/users")
-public class UserController {
-
-    private final UserService userService;
-
-    @PostMapping("/create-team")
-    public ResponseEntity<Void> createTeam(
-            @Valid @RequestBody AddTeamMemberRequest request
-    ) {
-        userService.
-        return ResponseEntity.noContent().build();
-    }
-
-    //TODO invitaUtenteATeam(User utenteInvitato)
-    //TODO inserisciMembro(Team)
-
+public record UserInputRequest(
+        @NotNull UUID userId
+) {
 }

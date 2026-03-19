@@ -78,6 +78,7 @@ public class Hackathon {
     /**
      * Non-null when the winner prize has already been paid.
      */
+    @Setter
     private LocalDate prizePaidAt;
 
     @NotEmpty
@@ -89,18 +90,21 @@ public class Hackathon {
      * End of registration phase (inclusive).
      * If null, registration is considered open until submission timeline starts.
      */
+    @Setter
     private LocalDate registrationDeadline;
 
     /**
      * End of ongoing/submission phase (inclusive).
      * If null, ongoing phase has no temporal end configured.
      */
+    @Setter
     private LocalDate submissionDeadline;
 
     /**
      * End of evaluation phase (inclusive).
      * If null, evaluation phase has no temporal end configured.
      */
+    @Setter
     private LocalDate evaluationDeadline;
 
     public Hackathon(String name, String description, List<Participation> participations, List<StaffAssignment> staff) {

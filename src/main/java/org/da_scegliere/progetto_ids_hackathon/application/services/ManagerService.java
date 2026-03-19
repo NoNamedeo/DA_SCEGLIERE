@@ -43,7 +43,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.m
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserAlreadySuspendedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserNotSuspendedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserReportAlreadyProcessedException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserReportNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.ReportNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.UserReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
@@ -56,7 +56,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -103,6 +102,21 @@ public class ManagerService {
         log.info("Get all open moderation reports for managerId={}", managerId);
         ensureManagerExists(managerId);
         return List.copyOf(moderationReportRepository.findByState(UserReportState.OPEN));
+    }
+
+    /**
+     * Retrieves a moderation reports.
+     *
+     * @param reportId report identifier.
+     * @return immutable snapshot of open moderation reports.
+     */
+    public ModerationReport getReport(UUID reportId) {
+        log.info("Get moderation report reportId={}", reportId);
+        if(reportId == null){
+            throw new IllegalArgumentException("ReportId must be not null");
+        }
+        return moderationReportRepository.findById(reportId)
+                .orElseThrow(() -> new ReportNotFoundException(reportId));
     }
 
     /**
@@ -283,7 +297,7 @@ public class ManagerService {
             throw new IllegalArgumentException("reportId must not be null.");
         }
         return userReportRepository.findById(reportId)
-                .orElseThrow(() -> new UserReportNotFoundException(reportId));
+                .orElseThrow(() -> new ReportNotFoundException(reportId));
     }
 
     private void ensureEmailIsAvailable(String email) {

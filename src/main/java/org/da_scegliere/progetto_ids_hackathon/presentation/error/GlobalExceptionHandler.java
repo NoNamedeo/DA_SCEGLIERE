@@ -3,7 +3,6 @@ package org.da_scegliere.progetto_ids_hackathon.presentation.error;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.CalendarProviderConflictException;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.CalendarProviderUnavailableException;
@@ -21,7 +20,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.m
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserNotSuspendedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserReportAlreadyProcessedException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserReportNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.ReportNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.payment.PaymentFailedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.payment.WinnerNotProclaimedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.supportRequest.InvalidSupportRequestMentorSelectionException;
@@ -33,8 +32,6 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.t
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.SubmissionEvaluationNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.SubmissionNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamParticipationNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -73,7 +70,7 @@ public class GlobalExceptionHandler {
             HackathonNotFoundException.class,
             ManagerNotFoundException.class,
             UserNotFoundException.class,
-            UserReportNotFoundException.class,
+            ReportNotFoundException.class,
             SupportRequestNotFoundException.class,
             TeamNotFoundException.class,
             SubmissionNotFoundException.class,

@@ -35,6 +35,8 @@ import org.da_scegliere.progetto_ids_hackathon.core.policies.hackathon.winner.Wi
 import org.da_scegliere.progetto_ids_hackathon.core.policies.hackathon.winner.WinnerAssignmentPolicy;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.support.SupportRequestMentorSelectionContext;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.support.SupportRequestMentorSelectionPolicy;
+import org.da_scegliere.progetto_ids_hackathon.core.policies.team.LeaveTeamContext;
+import org.da_scegliere.progetto_ids_hackathon.core.policies.team.LeaveTeamPolicy;
 import org.da_scegliere.progetto_ids_hackathon.core.state.common.StateRegistry;
 import org.da_scegliere.progetto_ids_hackathon.core.state.support.DefaultSupportRequestLifecycleStateMachine;
 import org.da_scegliere.progetto_ids_hackathon.core.state.support.SupportRequestLifecycleStateMachine;
@@ -103,5 +105,10 @@ public class DomainCompositionConfiguration {
     @Bean
     public BusinessPolicy<SupportRequestMentorSelectionContext> supportRequestMentorSelectionPolicy() {
         return new SupportRequestMentorSelectionPolicy();
+    }
+
+    @Bean
+    public BusinessPolicy<LeaveTeamContext> leaveTeamPolicy() {
+        return new LeaveTeamPolicy();
     }
 }

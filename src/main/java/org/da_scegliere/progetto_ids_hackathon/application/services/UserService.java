@@ -30,12 +30,15 @@ package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffMemberRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

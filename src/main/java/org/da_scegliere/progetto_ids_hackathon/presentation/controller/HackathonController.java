@@ -65,7 +65,7 @@ public class HackathonController {
     }
 
     @GetMapping("/{hackathonId}/full")
-    public ResponseEntity<FullHackathonResponse> getHackathon( @PathVariable UUID hackathonId) {
+    public ResponseEntity<FullHackathonResponse> getHackathon(@PathVariable UUID hackathonId) {
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
         return ResponseEntity.ok(HackathonMapper.toFull(hackathon));
     }
@@ -75,7 +75,7 @@ public class HackathonController {
             @PathVariable UUID hackathonId,
             @Valid @RequestBody AddStaffAssignmentsRequest request
     ) {
-        hackathonStaffService.addStaffMembers(hackathonId, toStaffMap(request.staffAssignments()));
+        hackathonStaffService.addStaffMembers(hackathonId, HackathonMapper.toStaffMap(request.staffAssignments()));
         return ResponseEntity.noContent().build();
     }
 
@@ -92,16 +92,5 @@ public class HackathonController {
     ) {
         hackathonLifecycleService.assignWinner(hackathonId, request.winnerTeamId());
         return ResponseEntity.noContent().build();
-    }
-
-    private static Map<UUID, StaffRole> toStaffMap(List<StaffAssignmentInputRequest> assignments) {
-        Map<UUID, StaffRole> staffMap = new LinkedHashMap<>();
-        for (StaffAssignmentInputRequest assignment : assignments) {
-            StaffRole existingRole = staffMap.putIfAbsent(assignment.staffMemberId(), assignment.role());
-            if (existingRole != null && existingRole != assignment.role()) {
-                throw new IllegalArgumentException("Duplicate staffMemberId with conflicting roles: " + assignment.staffMemberId());
-            }
-        }
-        return staffMap;
     }
 }

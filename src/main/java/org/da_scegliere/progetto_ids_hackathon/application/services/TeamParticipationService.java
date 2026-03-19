@@ -46,6 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -100,6 +101,19 @@ public class TeamParticipationService {
         log.info("Get submission submissionId={}", submissionId);
 
         return resolveSubmissionContext(submissionId).submission();
+    }
+
+    /**
+     * Retrieves a list of submissions by a teamParticipation identifier.
+     *
+     * @param teamParticipationId teamParticipation identifier.
+     * @return resolved submission.
+     * @throws IllegalArgumentException when {@code teamParticipationId} is {@code null}.
+     */
+    public List<Submission> getSubmissionsByTeamParticipation(UUID teamParticipationId) {
+        log.info("Get submissions teamParticipationId={}", teamParticipationId);
+        TeamParticipation teamParticipation = getTeamParticipationById(teamParticipationId);
+        return teamParticipation.getSubmissions();
     }
 
     /**

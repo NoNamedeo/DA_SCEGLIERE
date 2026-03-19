@@ -26,34 +26,31 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation.controller;
+package org.da_scegliere.progetto_ids_hackathon.presentation.mapper;
 
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.da_scegliere.progetto_ids_hackathon.application.services.UserService;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.AddStaffAssignmentsRequest;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.AddTeamMemberRequest;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.StaffAssignmentInputRequest;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.UserInputRequest;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
-@RestController
-@RequiredArgsConstructor
-@RequestMapping("/users")
-public class UserController {
+public class UserMapper {
 
-    private final UserService userService;
-
-    @PostMapping("/create-team")
-    public ResponseEntity<Void> createTeam(
-            @Valid @RequestBody AddTeamMemberRequest request
-    ) {
-        userService.
-        return ResponseEntity.noContent().build();
+    public static List<UUID> toUserList(List<UserInputRequest> users) {
+        /*
+        Map<UUID, StaffRole> staffMap = new LinkedHashMap<>();
+        for (StaffAssignmentInputRequest assignment : assignments) {
+            StaffRole existingRole = staffMap.putIfAbsent(assignment.staffMemberId(), assignment.role());
+            if (existingRole != null && existingRole != assignment.role()) {
+                throw new IllegalArgumentException("Duplicate staffMemberId with conflicting roles: " + assignment.staffMemberId());
+            }
+        }
+        return staffMap;
+        */
+        return null;
     }
-
-    //TODO invitaUtenteATeam(User utenteInvitato)
-    //TODO inserisciMembro(Team)
 
 }

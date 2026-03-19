@@ -26,12 +26,36 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation;
+package org.da_scegliere.progetto_ids_hackathon.core.policies.team;
 
-import java.util.UUID;
+import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
+import org.da_scegliere.progetto_ids_hackathon.core.policies.PolicyRule;
 
-public class UserReportNotFoundException extends RuntimeException {
-    public UserReportNotFoundException(UUID reportId) {
-        super("User report: " + reportId + " not found.");
+import java.util.List;
+import java.util.Objects;
+
+public class LeaveTeamPolicy implements BusinessPolicy<LeaveTeamContext> {
+
+    private final List<PolicyRule<LeaveTeamContext>> rules = List.of(
+            new PolicyRule<>(
+                    context ->
+                            context.team().getMembers().size() > 2,
+                    context ->
+                            new IllegalStateException("Team should have at least two members.")
+            )
+    );
+
+    /**
+     * Validates the removal of a team member and throws on first violated rule.
+     *
+     * @param context team context to validate.
+     * @throws IllegalStateException when a rule is violated.
+     */
+    @Override
+    public void validate(LeaveTeamContext context) {
+        Objects.requireNonNull(context, "context must not be null.");
+        for (PolicyRule<LeaveTeamContext> rule : rules) {
+            rule.verify(context);
+        }
     }
 }

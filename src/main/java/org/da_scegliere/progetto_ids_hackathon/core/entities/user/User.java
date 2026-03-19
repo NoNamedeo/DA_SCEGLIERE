@@ -33,13 +33,13 @@ import lombok.Getter;
 import lombok.Setter;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 
+@Setter
 @Getter
 @Entity
 public class User extends AbstractUser{
 
     @ManyToOne
     @JoinColumn(name = "team_id")
-    @Setter
     private Team team = null;
 
     public User(String name, int age, String email, Team team) {
