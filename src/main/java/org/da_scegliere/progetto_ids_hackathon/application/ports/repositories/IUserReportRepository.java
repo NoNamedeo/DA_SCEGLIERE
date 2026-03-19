@@ -30,14 +30,17 @@ package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
 
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.UserReport;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-@Repository
-public interface IUserReportRepository extends JpaRepository<UserReport, UUID> {
+public interface IUserReportRepository {
+    List<UserReport> findAll();
 
     List<UserReport> findByState(UserReportState state);
+
+    Optional<UserReport> findById(UUID reportId);
+
+    UserReport save(UserReport report);
 }

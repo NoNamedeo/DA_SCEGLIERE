@@ -28,15 +28,22 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
 
-import jakarta.validation.constraints.NotBlank;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@Repository
-public interface IHackathonRepository extends JpaRepository<Hackathon, UUID>{
+public interface IHackathonRepository {
+    List<Hackathon> findAll();
+
+    Optional<Hackathon> findById(UUID hackathonId);
+
     Optional<Hackathon> findHackathonByName( String name );
+
+    Hackathon save(Hackathon hackathon);
+
+    void delete(Hackathon hackathon);
+
+    boolean existsById(UUID hackathonId);
 }

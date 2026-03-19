@@ -31,15 +31,16 @@ package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.Manager;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 import java.util.UUID;
 
-@Repository
-public interface IManagerRepository extends JpaRepository<Manager, UUID>{
+public interface IManagerRepository {
+    Optional<Manager> findById(UUID managerId);
+
     Optional<Manager> findByEmail(@NotBlank @Email String email);
+
+    boolean existsById(UUID managerId);
 
     boolean existsByEmailIgnoreCase(@NotBlank @Email String email);
 }

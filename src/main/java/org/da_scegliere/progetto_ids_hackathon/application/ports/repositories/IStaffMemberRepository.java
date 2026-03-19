@@ -31,15 +31,23 @@ package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@Repository
-public interface IStaffMemberRepository extends JpaRepository<StaffMember, UUID> {
+public interface IStaffMemberRepository {
+    List<StaffMember> findAll();
+
+    Optional<StaffMember> findById(UUID staffMemberId);
+
     Optional<StaffMember> findByEmail(@NotBlank @Email String email);
+
+    StaffMember save(StaffMember staffMember);
+
+    void delete(StaffMember staffMember);
+
+    boolean existsById(UUID staffMemberId);
 
     boolean existsByEmailIgnoreCase(@NotBlank @Email String email);
 }

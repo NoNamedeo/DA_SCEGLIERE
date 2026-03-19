@@ -50,6 +50,7 @@ import org.da_scegliere.progetto_ids_hackathon.core.state.support.SupportRequest
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
@@ -72,6 +73,7 @@ public class SupportRequestService {
     private final ITeamRepository teamRepository;
     private final ITeamParticipationRepository teamParticipationRepository;
     private final SupportRequestLifecycleStateMachine supportRequestStateMachine;
+    private final Clock clock;
     private final BusinessPolicy<SupportRequestMentorSelectionContext> mentorSelectionPolicy;
 
     /**
@@ -146,7 +148,7 @@ public class SupportRequestService {
         if (dateSlot == null) {
             throw new IllegalArgumentException("dateSlot must not be null.");
         }
-        if (dateSlot.isBefore(LocalDate.now())) {
+        if (dateSlot.isBefore(LocalDate.now(clock))) {
             throw new IllegalArgumentException("dateSlot must be today or in the future.");
         }
 

@@ -29,17 +29,23 @@
 package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
 
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@Repository
-public interface ITeamRepository extends JpaRepository<Team, UUID>{
+public interface ITeamRepository {
+    List<Team> findAll();
+
+    Optional<Team> findById(UUID teamId);
+
     Optional<Team> findByMembers_id(UUID memberId);
 
     Optional<Team> findTeamByName(String teamName);
 
     Team findTeamById( UUID id );
+
+    Team save(Team team);
+
+    void delete(Team team);
 }

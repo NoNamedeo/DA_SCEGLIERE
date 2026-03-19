@@ -29,14 +29,19 @@
 package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
 
 import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-@Repository
-public interface ISupportRequestRepository extends JpaRepository<SupportRequest, UUID> {
+public interface ISupportRequestRepository {
+    List<SupportRequest> findAll();
+
+    Optional<SupportRequest> findById(UUID requestId);
 
     List<SupportRequest> findBySendingTeam_id(UUID teamId);
+
+    SupportRequest save(SupportRequest supportRequest);
+
+    void delete(SupportRequest supportRequest);
 }

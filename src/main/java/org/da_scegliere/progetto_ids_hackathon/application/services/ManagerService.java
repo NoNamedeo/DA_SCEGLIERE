@@ -155,7 +155,7 @@ public class ManagerService {
      * @param reportResolutionNotes notes recorded on report resolution.
      * @return updated suspended user.
      */
-    @Transactional
+    @Transactional(noRollbackFor = UserNotFoundException.class)
     public User suspendUserFromReport(
             UUID managerId,
             UUID reportId,
@@ -176,7 +176,6 @@ public class ManagerService {
 
         if (user == null) {
             report.reject(manager, "Suspension cancelled: reported user does not exist anymore.");
-            userReportRepository.save(report);
             log.warn(
                     "Cannot suspend from report reportId={}: reported user userId={} not found.",
                     reportId,

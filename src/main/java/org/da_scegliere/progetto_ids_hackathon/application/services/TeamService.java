@@ -41,7 +41,9 @@ import org.da_scegliere.progetto_ids_hackathon.core.policies.team.LeaveTeamConte
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -131,9 +133,22 @@ public class TeamService{
      */
     @Transactional
     public Team createTeam(String name, List<User> members) {
-        int initialMembersCount = members == null ? 0 : members.size();
-        log.info("Creating team name={} initialMembersCount={}.", name, initialMembersCount);
-        Team savedTeam = teamRepository.save(new Team(name, members));
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("name must not be blank.");
+        }
+        if (members == null || members.isEmpty()) {
+            throw new IllegalArgumentException("members must not be null or empty.");
+        }
+        if (members.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("members must not contain null values.");
+        }
+
+        log.info("Creating team name={} initialMembersCount={}.", name, members.size());
+
+        Team team = new Team(name, new ArrayList<>(members));
+        team.getMembers().forEach(member -> member.setTeam(team));
+
+        Team savedTeam = teamRepository.save(team);
         log.info("Created team teamId={} name={}.", savedTeam.getId(), savedTeam.getName());
         return savedTeam;
     }
