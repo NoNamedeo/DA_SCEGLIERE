@@ -35,18 +35,14 @@ import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IS
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.StaffEmailAlreadyInUseException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff.StaffMemberNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Application service dedicated to staff member account management.
@@ -311,19 +307,5 @@ public class StaffService {
             result.put(role, List.copyOf(groupedHackathons.get(role).values()));
         }
         return Map.copyOf(result);
-    }
-
-    private String normalizeEmail(String email) {
-        if (email == null || email.isBlank()) {
-            throw new IllegalArgumentException("email must not be blank.");
-        }
-        return email.trim().toLowerCase(Locale.ROOT);
-    }
-
-    private String normalizeName(String name) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("name must not be blank.");
-        }
-        return name.trim();
     }
 }

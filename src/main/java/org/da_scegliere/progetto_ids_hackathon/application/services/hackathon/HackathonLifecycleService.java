@@ -36,6 +36,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.h
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Participation;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Submission;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
@@ -46,6 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -102,12 +104,17 @@ public class HackathonLifecycleService {
         log.info("Determine hackathon winner hackathonId={}", hackathonId);
 
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
-        List<Participation> participations = hackathon.getParticipations();
 
-        participations.stream().map(participation -> {
-            TeamParticipation teamParticipation = (TeamParticipation) participation;
-            return teamParticipation.getSubmissions();
-        }).forEach(submissions);
+        return hackathon.getParticipations().stream()
+                .filter(TeamParticipation.class::isInstance)
+                .map(p -> (TeamParticipation) p)
+                .flatMap(tp -> tp.getSubmissions().stream()
+                        .filter(s -> s.getJudgeScore() != null)
+                        .map(s -> new SubmissionWithTeam(s, tp.getTeam()))
+                )
+                .max(Comparator.comparingInt(sw -> sw.submission().getJudgeScore()))
+                .map(SubmissionWithTeam::team)
+                .orElseThrow(() -> new IllegalStateException("No valid submissions found"));
     }
 
     /**
@@ -129,13 +136,6 @@ public class HackathonLifecycleService {
     @Transactional
     public Hackathon assignWinner(UUID hackathonId, Team winnerTeam) {
         log.info("Assign hackathon winner hackathonId={}, winnerTeamId={}", hackathonId, winnerTeam.getId());
-
-        if (winnerTeam == null) {
-            throw new IllegalArgumentException("winnerTeam must not be null.");
-        }
-        if (winnerTeam.getId() == null) {
-            throw new IllegalArgumentException("winnerTeam.id must not be null.");
-        }
 
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
         LocalDate today = LocalDate.now(clock);
@@ -171,4 +171,6 @@ public class HackathonLifecycleService {
                 .orElseThrow(() -> new TeamNotFoundException(winnerTeamId));
         return assignWinner(hackathonId, winnerTeam);
     }
+
+    private record SubmissionWithTeam(Submission submission, Team team){}
 }

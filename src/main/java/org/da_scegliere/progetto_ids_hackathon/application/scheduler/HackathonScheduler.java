@@ -49,9 +49,11 @@ public class HackathonScheduler {
     private final HackathonLifecycleService lifecycleService;
     private final PaymentService paymentService;
     private final HackathonCrudService hackathonCrudService;
+    private final HackathonLifecycleService hackathonLifecycleService;
 
     @Scheduled(cron = "0 */5 * * * *")
     public void processHackathonsLifecycle() {
+        log.info("Processing hackathons lifecycle");
 
         List<Hackathon> hackathons = hackathonCrudService.getAllHackathons();
 
@@ -64,17 +66,17 @@ public class HackathonScheduler {
                 try {
                     lifecycleService.concludeHackathon(hackathon.getId());
 
-                    Team winner = resolveWinner(hackathon);
+                    Team winner = hackathonLifecycleService.determineWinnerTeam(hackathon.getId());
                     lifecycleService.assignWinner(hackathon.getId(), winner.getId());
 
-                    // paga premio
                     paymentService.awardPrizeToWinner(
                             hackathon.getAwardPrize(),
                             hackathon.getId()
                     );
+                    log.info("HackathonId={} won by teamId={}", hackathon.getId(), winner.getId());
 
                 } catch (Exception ex) {
-                    log.error(ex.getMessage(), ex);
+                    log.error("Scheduler error occurred in conclusionDeadLine of the hackathon {}:",hackathon.getId(), ex);
                 }
             }
         }
