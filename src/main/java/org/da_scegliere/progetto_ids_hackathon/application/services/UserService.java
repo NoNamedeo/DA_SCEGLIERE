@@ -29,6 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
@@ -44,6 +45,7 @@ import java.util.UUID;
  * Application service for user management and user-to-team lookup operations.
  * <p>
  */
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -58,7 +60,10 @@ public class UserService{
      * @return immutable snapshot of all users.
      */
     public List<User> getAllUsers() {
-        return List.copyOf(userRepository.findAll());
+        log.debug("Retrieving all users.");
+        List<User> users = List.copyOf(userRepository.findAll());
+        log.debug("Retrieved {} users.", users.size());
+        return users;
     }
 
     /**
@@ -73,8 +78,11 @@ public class UserService{
         if(userId == null){
             throw new IllegalArgumentException("UserId cannot be null.");
         }
-        return userRepository.findById(userId)
+        log.debug("Retrieving user by id={}.", userId);
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
+        log.debug("Retrieved user id={}.", userId);
+        return user;
     }
 
     /**
@@ -89,8 +97,11 @@ public class UserService{
         if(email == null || email.isBlank()){
             throw new IllegalArgumentException("Email must not be blank or null.");
         }
-        return userRepository.findByEmail(email)
+        log.debug("Retrieving user by email={}.", email);
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException(email));
+        log.debug("Retrieved user by email={}.", email);
+        return user;
     }
 
     /**
@@ -104,8 +115,11 @@ public class UserService{
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("name must not be blank or null.");
         }
-        return userRepository.findUserByName(name)
+        log.debug("Retrieving user by name={}.", name);
+        User user = userRepository.findUserByName(name)
                 .orElseThrow(() -> new UserNotFoundException(name));
+        log.debug("Retrieved user by name={}.", name);
+        return user;
     }
 
     /**
@@ -117,11 +131,14 @@ public class UserService{
      * @throws TeamNotFoundException when the team does not exist.
      */
     public List<User> getUserByTeam(UUID teamId) {
+        log.debug("Retrieving users for teamId={}.", teamId);
         Team team = teamService.getTeamById(teamId);
         if(team == null){
             throw new TeamNotFoundException(teamId);
         }
-        return List.copyOf(team.getMembers());
+        List<User> users = List.copyOf(team.getMembers());
+        log.debug("Retrieved {} users for teamId={}.", users.size(), teamId);
+        return users;
     }
 
     /**
@@ -135,9 +152,12 @@ public class UserService{
      */
     @Transactional
     public User createUser(String name, int age, String email, UUID teamId){
+        log.info("Creating user for teamId={} email={}.", teamId, email);
         Team team = teamService.getTeamById(teamId);
         User user = new User(name, age, email, team);
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        log.info("Created user id={} for teamId={}.", savedUser.getId(), teamId);
+        return savedUser;
     }
 
     /**
@@ -150,9 +170,12 @@ public class UserService{
      */
     @Transactional
     public User changeUserName(UUID userId, String name){
+        log.info("Changing user name userId={}.", userId);
         User user = getUserById(userId);
         user.setName(name);
-        return userRepository.save(user);
+        User updatedUser = userRepository.save(user);
+        log.info("Changed user name userId={}.", userId);
+        return updatedUser;
     }
 
     /**
@@ -163,6 +186,8 @@ public class UserService{
      */
     @Transactional
     public void deleteUser(UUID userId) {
+        log.info("Deleting user userId={}.", userId);
         userRepository.delete(getUserById(userId));
+        log.info("Deleted user userId={}.", userId);
     }
 }

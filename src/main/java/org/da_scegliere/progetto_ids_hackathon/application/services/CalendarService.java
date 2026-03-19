@@ -38,6 +38,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.c
 import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
@@ -58,6 +59,7 @@ public class CalendarService {
 
     private final CalendarStrategy calendarStrategy;
     private final SupportRequestService supportRequestService;
+    private final Clock clock;
 
     /**
      * Proposes a mentor call by support-request identifier.
@@ -128,7 +130,7 @@ public class CalendarService {
      */
     public void validateCallDate(LocalDate callDate) {
         Objects.requireNonNull(callDate, "callDate must not be null.");
-        if (callDate.isBefore(LocalDate.now())) {
+        if (callDate.isBefore(LocalDate.now(clock))) {
             throw new IllegalArgumentException("callDate must be today or in the future.");
         }
     }

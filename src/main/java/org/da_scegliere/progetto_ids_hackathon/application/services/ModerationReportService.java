@@ -29,6 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IManagerRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IModerationReportRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffMemberRepository;
@@ -53,6 +54,7 @@ import java.util.UUID;
 /**
  * Dedicated application service for moderation report lifecycle operations.
  */
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -69,42 +71,60 @@ public class ModerationReportService {
      * Retrieves all moderation reports, regardless of target type.
      */
     public List<ModerationReport> getAllReports() {
-        return List.copyOf(moderationReportRepository.findAll());
+        log.debug("Retrieving all moderation reports.");
+        List<ModerationReport> reports = List.copyOf(moderationReportRepository.findAll());
+        log.debug("Retrieved {} moderation reports.", reports.size());
+        return reports;
     }
 
     /**
      * Retrieves all open moderation reports, regardless of target type.
      */
     public List<ModerationReport> getOpenReports() {
-        return List.copyOf(moderationReportRepository.findByState(UserReportState.OPEN));
+        log.debug("Retrieving open moderation reports.");
+        List<ModerationReport> reports = List.copyOf(moderationReportRepository.findByState(UserReportState.OPEN));
+        log.debug("Retrieved {} open moderation reports.", reports.size());
+        return reports;
     }
 
     /**
      * Retrieves all user reports.
      */
     public List<UserReport> getAllUserReports() {
-        return List.copyOf(userReportRepository.findAll());
+        log.debug("Retrieving all user moderation reports.");
+        List<UserReport> reports = List.copyOf(userReportRepository.findAll());
+        log.debug("Retrieved {} user moderation reports.", reports.size());
+        return reports;
     }
 
     /**
      * Retrieves open user reports.
      */
     public List<UserReport> getOpenUserReports() {
-        return List.copyOf(userReportRepository.findByState(UserReportState.OPEN));
+        log.debug("Retrieving open user moderation reports.");
+        List<UserReport> reports = List.copyOf(userReportRepository.findByState(UserReportState.OPEN));
+        log.debug("Retrieved {} open user moderation reports.", reports.size());
+        return reports;
     }
 
     /**
      * Retrieves all staff reports.
      */
     public List<StaffReport> getAllStaffReports() {
-        return List.copyOf(staffReportRepository.findAll());
+        log.debug("Retrieving all staff moderation reports.");
+        List<StaffReport> reports = List.copyOf(staffReportRepository.findAll());
+        log.debug("Retrieved {} staff moderation reports.", reports.size());
+        return reports;
     }
 
     /**
      * Retrieves open staff reports.
      */
     public List<StaffReport> getOpenStaffReports() {
-        return List.copyOf(staffReportRepository.findByState(UserReportState.OPEN));
+        log.debug("Retrieving open staff moderation reports.");
+        List<StaffReport> reports = List.copyOf(staffReportRepository.findByState(UserReportState.OPEN));
+        log.debug("Retrieved {} open staff moderation reports.", reports.size());
+        return reports;
     }
 
     /**
@@ -116,8 +136,11 @@ public class ModerationReportService {
         if (reportId == null) {
             throw new IllegalArgumentException("reportId must not be null.");
         }
-        return userReportRepository.findById(reportId)
+        log.debug("Retrieving user moderation report reportId={}.", reportId);
+        UserReport report = userReportRepository.findById(reportId)
                 .orElseThrow(() -> new ReportNotFoundException(reportId));
+        log.debug("Retrieved user moderation report reportId={}.", reportId);
+        return report;
     }
 
     /**
@@ -136,6 +159,12 @@ public class ModerationReportService {
             String title,
             String description
     ) {
+        log.info(
+                "Creating user moderation report reporterId={} reporterType={} reportedUserId={}.",
+                reporterId,
+                reporterType,
+                reportedUserId
+        );
         ensureReporterExists(reporterId, reporterType);
         ensureUserExists(reportedUserId);
 
@@ -146,7 +175,9 @@ public class ModerationReportService {
                 title,
                 description
         );
-        return userReportRepository.save(report);
+        UserReport savedReport = userReportRepository.save(report);
+        log.info("Created user moderation report reportId={}.", savedReport.getId());
+        return savedReport;
     }
 
     /**
@@ -165,6 +196,12 @@ public class ModerationReportService {
             String title,
             String description
     ) {
+        log.info(
+                "Creating staff moderation report reporterId={} reporterType={} reportedStaffMemberId={}.",
+                reporterId,
+                reporterType,
+                reportedStaffMemberId
+        );
         ensureReporterExists(reporterId, reporterType);
         ensureStaffMemberExists(reportedStaffMemberId);
 
@@ -175,7 +212,9 @@ public class ModerationReportService {
                 title,
                 description
         );
-        return staffReportRepository.save(report);
+        StaffReport savedReport = staffReportRepository.save(report);
+        log.info("Created staff moderation report reportId={}.", savedReport.getId());
+        return savedReport;
     }
 
     private void ensureReporterExists(UUID reporterId, ReporterType reporterType) {

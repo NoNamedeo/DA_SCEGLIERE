@@ -41,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -55,6 +56,7 @@ public class PaymentService {
 
     private final PaymentStrategy paymentStrategy;
     private final HackathonCrudService hackathonCrudService;
+    private final Clock clock;
 
     /**
      * Awards the prize to a winner by resolving hackathon identifier.
@@ -85,9 +87,9 @@ public class PaymentService {
      */
     @Transactional
     public boolean awardPrizeToWinner(BigDecimal prize, Hackathon hackathon) {
-        log.info("awarding prize to winner for hackathonId={}", hackathon.getId());
         validatePrize(prize);
         Hackathon safeHackathon = validateHackathon(hackathon);
+        log.info("Awarding winner prize for hackathonId={}.", safeHackathon.getId());
 
         Team winner = safeHackathon.getWinner();
         if (winner == null) {
@@ -98,8 +100,8 @@ public class PaymentService {
         }
 
         executePayment(prize, winner);
-        safeHackathon.markPrizeAsPaid(LocalDate.now());
-        log.info("winner prize {} has been paid for hackathonId={}.", prize, hackathon.getId());
+        safeHackathon.markPrizeAsPaid(LocalDate.now(clock));
+        log.info("Awarded winner prize={} for hackathonId={}.", prize, safeHackathon.getId());
         return true;
     }
 

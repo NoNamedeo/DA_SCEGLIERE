@@ -29,6 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffAssignmentRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IManagerRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffMemberRepository;
@@ -47,6 +48,7 @@ import java.util.*;
 /**
  * Application service dedicated to staff member account management.
  */
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -63,7 +65,10 @@ public class StaffService {
      * @return immutable snapshot of all staff members.
      */
     public List<StaffMember> getAllStaffMembers() {
-        return List.copyOf(staffMemberRepository.findAll());
+        log.debug("Retrieving all staff members.");
+        List<StaffMember> staffMembers = List.copyOf(staffMemberRepository.findAll());
+        log.debug("Retrieved {} staff members.", staffMembers.size());
+        return staffMembers;
     }
 
     /**
@@ -76,8 +81,11 @@ public class StaffService {
         if (staffMemberId == null) {
             throw new IllegalArgumentException("staffMemberId must not be null.");
         }
-        return staffMemberRepository.findById(staffMemberId)
+        log.debug("Retrieving staff member by id={}.", staffMemberId);
+        StaffMember staffMember = staffMemberRepository.findById(staffMemberId)
                 .orElseThrow(() -> new StaffMemberNotFoundException(staffMemberId));
+        log.debug("Retrieved staff member id={}.", staffMemberId);
+        return staffMember;
     }
 
     /**
@@ -87,8 +95,14 @@ public class StaffService {
      * @return persisted staff member.
      */
     public StaffMember getStaffMemberByEmail(String email) {
-        return staffMemberRepository.findByEmail(email)
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("email must not be blank.");
+        }
+        log.debug("Retrieving staff member by email={}.", email);
+        StaffMember staffMember = staffMemberRepository.findByEmail(email)
                 .orElseThrow(() -> new StaffMemberNotFoundException(email));
+        log.debug("Retrieved staff member by email={}.", email);
+        return staffMember;
     }
 
     /**
@@ -101,7 +115,10 @@ public class StaffService {
         if (hackathonId == null) {
             throw new IllegalArgumentException("hackathonId must not be null.");
         }
-        return List.copyOf(staffAssignmentRepository.findByHackathon_Id(hackathonId));
+        log.debug("Retrieving staff assignments for hackathonId={}.", hackathonId);
+        List<StaffAssignment> assignments = List.copyOf(staffAssignmentRepository.findByHackathon_Id(hackathonId));
+        log.debug("Retrieved {} staff assignments for hackathonId={}.", assignments.size(), hackathonId);
+        return assignments;
     }
 
     /**
@@ -114,7 +131,10 @@ public class StaffService {
         if (staffRole == null) {
             throw new IllegalArgumentException("staffRole must not be null.");
         }
-        return List.copyOf(staffAssignmentRepository.findByStaffRole(staffRole));
+        log.debug("Retrieving staff assignments for role={}.", staffRole);
+        List<StaffAssignment> assignments = List.copyOf(staffAssignmentRepository.findByStaffRole(staffRole));
+        log.debug("Retrieved {} staff assignments for role={}.", assignments.size(), staffRole);
+        return assignments;
     }
 
     /**
@@ -131,7 +151,17 @@ public class StaffService {
         if (staffRole == null) {
             throw new IllegalArgumentException("staffRole must not be null.");
         }
-        return List.copyOf(staffAssignmentRepository.findByHackathon_IdAndStaffRole(hackathonId, staffRole));
+        log.debug("Retrieving staff assignments for hackathonId={} role={}.", hackathonId, staffRole);
+        List<StaffAssignment> assignments = List.copyOf(
+                staffAssignmentRepository.findByHackathon_IdAndStaffRole(hackathonId, staffRole)
+        );
+        log.debug(
+                "Retrieved {} staff assignments for hackathonId={} role={}.",
+                assignments.size(),
+                hackathonId,
+                staffRole
+        );
+        return assignments;
     }
 
     /**
@@ -141,7 +171,9 @@ public class StaffService {
      * @return immutable list of unique staff members.
      */
     public List<StaffMember> getStaffMembersByHackathon(UUID hackathonId) {
-        return mapDistinctMembers(getStaffAssignmentsByHackathon(hackathonId));
+        List<StaffMember> staffMembers = mapDistinctMembers(getStaffAssignmentsByHackathon(hackathonId));
+        log.debug("Retrieved {} distinct staff members for hackathonId={}.", staffMembers.size(), hackathonId);
+        return staffMembers;
     }
 
     /**
@@ -151,7 +183,9 @@ public class StaffService {
      * @return immutable list of unique staff members.
      */
     public List<StaffMember> getStaffMembersByRole(StaffRole staffRole) {
-        return mapDistinctMembers(getStaffAssignmentsByRole(staffRole));
+        List<StaffMember> staffMembers = mapDistinctMembers(getStaffAssignmentsByRole(staffRole));
+        log.debug("Retrieved {} distinct staff members for role={}.", staffMembers.size(), staffRole);
+        return staffMembers;
     }
 
     /**
@@ -162,7 +196,14 @@ public class StaffService {
      * @return immutable list of unique staff members.
      */
     public List<StaffMember> getStaffMembersByHackathonAndRole(UUID hackathonId, StaffRole staffRole) {
-        return mapDistinctMembers(getStaffAssignmentsByHackathonAndRole(hackathonId, staffRole));
+        List<StaffMember> staffMembers = mapDistinctMembers(getStaffAssignmentsByHackathonAndRole(hackathonId, staffRole));
+        log.debug(
+                "Retrieved {} distinct staff members for hackathonId={} role={}.",
+                staffMembers.size(),
+                hackathonId,
+                staffRole
+        );
+        return staffMembers;
     }
 
     /**
@@ -173,7 +214,9 @@ public class StaffService {
      */
     public List<Hackathon> getHackathonsManagedByStaffMember(UUID staffMemberId) {
         getStaffMemberById(staffMemberId);
-        return mapDistinctHackathons(staffAssignmentRepository.findByStaffMember_Id(staffMemberId));
+        List<Hackathon> hackathons = mapDistinctHackathons(staffAssignmentRepository.findByStaffMember_Id(staffMemberId));
+        log.debug("Retrieved {} managed hackathons for staffMemberId={}.", hackathons.size(), staffMemberId);
+        return hackathons;
     }
 
     /**
@@ -188,9 +231,16 @@ public class StaffService {
             throw new IllegalArgumentException("staffRole must not be null.");
         }
         getStaffMemberById(staffMemberId);
-        return mapDistinctHackathons(
+        List<Hackathon> hackathons = mapDistinctHackathons(
                 staffAssignmentRepository.findByStaffMember_IdAndStaffRole(staffMemberId, staffRole)
         );
+        log.debug(
+                "Retrieved {} managed hackathons for staffMemberId={} role={}.",
+                hackathons.size(),
+                staffMemberId,
+                staffRole
+        );
+        return hackathons;
     }
 
     /**
@@ -201,7 +251,10 @@ public class StaffService {
      */
     public Map<StaffRole, List<Hackathon>> getHackathonsManagedByStaffMemberPerRole(UUID staffMemberId) {
         getStaffMemberById(staffMemberId);
-        return groupHackathonsPerRole(staffAssignmentRepository.findByStaffMember_Id(staffMemberId));
+        Map<StaffRole, List<Hackathon>> result =
+                groupHackathonsPerRole(staffAssignmentRepository.findByStaffMember_Id(staffMemberId));
+        log.debug("Retrieved managed hackathons grouped by role for staffMemberId={}.", staffMemberId);
+        return result;
     }
 
     /**
@@ -210,7 +263,10 @@ public class StaffService {
      * @return immutable map role -> immutable list of hackathons.
      */
     public Map<StaffRole, List<Hackathon>> getHackathonsManagedPerRole() {
-        return groupHackathonsPerRole(staffAssignmentRepository.findAll());
+        log.debug("Retrieving managed hackathons grouped by role for all staff members.");
+        Map<StaffRole, List<Hackathon>> result = groupHackathonsPerRole(staffAssignmentRepository.findAll());
+        log.debug("Retrieved managed hackathons grouped by role for all staff members.");
+        return result;
     }
 
     /**
@@ -223,10 +279,13 @@ public class StaffService {
      */
     @Transactional
     public StaffMember createStaffMember(String name, int age, String email) {
+        log.info("Creating staff member with email={}.", email);
         ensureEmailIsAvailable(email);
 
         StaffMember staffMember = new StaffMember(name, age, email, new ArrayList<>());
-        return staffMemberRepository.save(staffMember);
+        StaffMember savedStaffMember = staffMemberRepository.save(staffMember);
+        log.info("Created staff member id={}.", savedStaffMember.getId());
+        return savedStaffMember;
     }
 
     /**
@@ -238,9 +297,12 @@ public class StaffService {
      */
     @Transactional
     public StaffMember changeStaffMemberName(UUID staffMemberId, String newName) {
+        log.info("Changing staff member name for staffMemberId={}.", staffMemberId);
         StaffMember staffMember = getStaffMemberById(staffMemberId);
         staffMember.setName(newName);
-        return staffMemberRepository.save(staffMember);
+        StaffMember updatedStaffMember = staffMemberRepository.save(staffMember);
+        log.info("Changed staff member name for staffMemberId={}.", staffMemberId);
+        return updatedStaffMember;
     }
 
     /**
@@ -250,7 +312,9 @@ public class StaffService {
      */
     @Transactional
     public void deleteStaffMember(UUID staffMemberId) {
+        log.info("Deleting staff member staffMemberId={}.", staffMemberId);
         staffMemberRepository.delete(getStaffMemberById(staffMemberId));
+        log.info("Deleted staff member staffMemberId={}.", staffMemberId);
     }
 
     private void ensureEmailIsAvailable(String normalizedEmail) {

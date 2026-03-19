@@ -50,12 +50,6 @@ import java.util.function.Consumer;
 /**
  * Application service exposing CRUD-oriented operations for hackathon aggregates.
  * <p>
- * Responsibilities:
- * <ul>
- *     <li>Lookup hackathons by id/name.</li>
- *     <li>Create and update core mutable hackathon data.</li>
- *     <li>Delete hackathon records.</li>
- * </ul>
  * Domain invariants beyond plain CRUD are intentionally delegated to domain models
  * or dedicated use-case services.
  */

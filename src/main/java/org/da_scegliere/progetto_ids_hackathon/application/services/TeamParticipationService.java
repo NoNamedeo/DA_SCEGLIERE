@@ -98,7 +98,7 @@ public class TeamParticipationService {
      * @throws SubmissionNotFoundException when submission cannot be resolved.
      */
     public Submission getSubmissionById(UUID submissionId) {
-        log.info("Get submission submissionId={}", submissionId);
+        log.debug("Retrieving submission submissionId={}", submissionId);
 
         return resolveSubmissionContext(submissionId).submission();
     }
@@ -111,7 +111,8 @@ public class TeamParticipationService {
      * @throws IllegalArgumentException when {@code teamParticipationId} is {@code null}.
      */
     public List<Submission> getSubmissionsByTeamParticipation(UUID teamParticipationId) {
-        log.info("Get submissions teamParticipationId={}", teamParticipationId);
+        log.debug("Retrieving submissions teamParticipationId={}", teamParticipationId);
+
         TeamParticipation teamParticipation = getTeamParticipationById(teamParticipationId);
         return teamParticipation.getSubmissions();
     }
@@ -132,7 +133,7 @@ public class TeamParticipationService {
      */
     @Transactional
     public Submission createSubmission(UUID teamParticipationId, String title, String description) {
-        log.info("Create submission teamParticipationId={}, title={}", teamParticipationId, title);
+        log.info("Creating submission teamParticipationId={}, title={}", teamParticipationId, title);
 
         TeamParticipation participation = getTeamParticipationById(teamParticipationId);
         LocalDate today = LocalDate.now(clock);
@@ -167,7 +168,7 @@ public class TeamParticipationService {
      */
     @Transactional
     public Submission updateSubmission(UUID submissionId, String newTitle, String newDescription) {
-        log.info("Update submission submissionId={}", submissionId);
+        log.info("Updating submission submissionId={}", submissionId);
 
         SubmissionContext context = resolveSubmissionContext(submissionId);
         LocalDate today = LocalDate.now(clock);
@@ -195,7 +196,7 @@ public class TeamParticipationService {
      */
     @Transactional
     public Submission evaluateSubmission(UUID submissionId, Integer score, String judgement) {
-        log.info("Evaluate submission submissionId={}", submissionId);
+        log.info("Evaluating submission submissionId={}, score={}", submissionId, score);
 
         SubmissionContext context = resolveSubmissionContext(submissionId);
         LocalDate today = LocalDate.now(clock);
@@ -203,7 +204,7 @@ public class TeamParticipationService {
 
         context.submission().evaluate(score, judgement, today);
 
-        log.info("Evaluated submission submissionId={}", submissionId);
+        log.info("Evaluated submission submissionId={}, score={}, judgement={}", submissionId, score, judgement);
         return context.submission();
     }
 
@@ -223,8 +224,8 @@ public class TeamParticipationService {
      * @throws InvalidHackathonStateOperationException when hackathon state does not allow the operation.
      */
     @Transactional
-    public Submission updateSubmissionEvaluation(UUID submissionId, int score, String judgement) {
-        log.info("Update submission evaluation submissionId={}", submissionId);
+    public Submission updateSubmissionEvaluation(UUID submissionId, Integer score, String judgement) {
+        log.info("Updating submission evaluation submissionId={}, score={}", submissionId, score);
 
         SubmissionContext context = resolveSubmissionContext(submissionId);
         LocalDate today = LocalDate.now(clock);
@@ -236,7 +237,7 @@ public class TeamParticipationService {
 
         context.submission().evaluate(score, judgement, today);
 
-        log.info("Updated submission evaluation submissionId={}", submissionId);
+        log.info("Updated submission evaluation submissionId={}, score={}", submissionId, score);
         return context.submission();
     }
 
@@ -248,7 +249,7 @@ public class TeamParticipationService {
      */
     @Transactional
     public void deleteSubmission(UUID submissionId) {
-        log.info("Delete submission submissionId={}", submissionId);
+        log.info("Deleting submission submissionId={}", submissionId);
 
         SubmissionContext context = resolveSubmissionContext(submissionId);
         context.teamParticipation().removeSubmission(context.submission());
@@ -270,7 +271,7 @@ public class TeamParticipationService {
      */
     @Transactional
     public void addSubmissionTo(UUID submissionId, UUID teamParticipationId) {
-        log.info("Add submission submissionId={} to team participation teamParticipationId={}", submissionId, teamParticipationId);
+        log.info("Adding submission submissionId={} to team participation teamParticipationId={}", submissionId, teamParticipationId);
 
         Submission submission = getSubmissionById(submissionId);
 

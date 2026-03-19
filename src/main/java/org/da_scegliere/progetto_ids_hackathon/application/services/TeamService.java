@@ -77,7 +77,7 @@ public class TeamService{
      * @throws TeamNotFoundException if no team exists for the provided id.
      */
     public Team getTeamById(UUID teamId) {
-        log.info("Get team teamId={}", teamId);
+        log.debug("Retrieving team by teamId={}.", teamId);
 
         if(teamId == null) {
             throw new IllegalArgumentException("teamId must not be null");
@@ -95,9 +95,9 @@ public class TeamService{
      * @throws TeamNotFoundException if no team exists for the provided name.
      */
     public Team getTeamByName(String name) {
-        log.info("Get team by name name={}", name);
+        log.debug("Retrieving team by name={}.", name);
 
-        if(name.isBlank()) {
+        if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("name must not be blank");
         }
         return teamRepository.findTeamByName(name)
@@ -113,7 +113,7 @@ public class TeamService{
      * @throws TeamNotFoundException if no team exists for the provided id.
      */
     public Team getTeamByTeamMemberId(UUID teamMemberId) {
-        log.info("Get team by teamMemberId={}", teamMemberId);
+        log.debug("Retrieving team by teamMemberId={}.", teamMemberId);
 
         if(teamMemberId == null) {
             throw new IllegalArgumentException("teamMemberId must not be null");
@@ -131,9 +131,11 @@ public class TeamService{
      */
     @Transactional
     public Team createTeam(String name, List<User> members) {
-        log.info("Create team name={} members={}", name, members);
-
-        return teamRepository.save(new Team(name, members));
+        int initialMembersCount = members == null ? 0 : members.size();
+        log.info("Creating team name={} initialMembersCount={}.", name, initialMembersCount);
+        Team savedTeam = teamRepository.save(new Team(name, members));
+        log.info("Created team teamId={} name={}.", savedTeam.getId(), savedTeam.getName());
+        return savedTeam;
     }
 
     /**
@@ -144,12 +146,12 @@ public class TeamService{
      */
     @Transactional
     public void deleteTeam(UUID teamId) {
-        log.info("Delete team teamId={}", teamId);
+        log.info("Deleting team teamId={}.", teamId);
 
         Team team = getTeamById(teamId);
         teamRepository.delete(team);
 
-        log.info("Deleted team teamId={}", teamId);
+        log.info("Deleted team teamId={}.", teamId);
     }
 
     /**
@@ -163,7 +165,7 @@ public class TeamService{
      */
     @Transactional
     public Team changeTeamName(UUID teamId, String newName) {
-        log.info("Change team name teamId={}, newName={}", teamId, newName);
+        log.info("Changing team name teamId={} newName={}.", teamId, newName);
 
         if(teamId == null) {
             throw new IllegalArgumentException("teamId must not be null");
@@ -171,7 +173,7 @@ public class TeamService{
         Team team = getTeamById(teamId);
         team.setName(newName);
 
-        log.info("Changed team name teamId={}, newName={}", teamId, newName);
+        log.info("Changed team name teamId={} newName={}.", teamId, newName);
         return team;
     }
 
@@ -185,13 +187,13 @@ public class TeamService{
      */
     @Transactional
     public Team addMemberToTeam(UUID teamId, UUID userId) {
-        log.info("Add team member to team teamId={}, userId={}", teamId, userId);
+        log.info("Adding team member userId={} to teamId={}.", userId, teamId);
 
         Team team = getTeamById(teamId);
         User user = getUserById(userId);
         team.addMember(user);
 
-        log.info("Added team member to team teamId={}, userId={}", teamId, userId);
+        log.info("Added team member userId={} to teamId={}.", userId, teamId);
         return team;
     }
 
@@ -204,7 +206,7 @@ public class TeamService{
      */
     @Transactional
     public Optional<Team> removeMemberFromTeam(UUID teamId, UUID userId) {
-        log.info("Remove team member from team teamId={}, userId={}", teamId, userId);
+        log.info("Removing team member userId={} from teamId={}.", userId, teamId);
 
         Team team = getTeamById(teamId);
         User user = getUserById(userId);
@@ -212,7 +214,7 @@ public class TeamService{
 
         try{
             team.removeMember(user, leaveTeamPolicy);
-            log.info("Removed team member from team teamId={}, userId={}", teamId, userId);
+            log.info("Removed team member userId={} from teamId={}.", userId, teamId);
             return Optional.of(team);
         }
         catch(IllegalStateException ex){
@@ -220,7 +222,7 @@ public class TeamService{
                 lastUser.setTeam(null);
             }
             deleteTeam(teamId);
-            log.info("Removed team member and team (there was only a member left); team teamId={}, removedUserId={}", teamId, userId);
+            log.info("Removed team member userId={} and deleted now-empty teamId={}.", userId, teamId);
             return Optional.empty();
         }
     }

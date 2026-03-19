@@ -135,13 +135,14 @@ public class HackathonLifecycleService {
      */
     @Transactional
     public Hackathon assignWinner(UUID hackathonId, Team winnerTeam) {
-        log.info("Assign hackathon winner hackathonId={}, winnerTeamId={}", hackathonId, winnerTeam.getId());
+        Team safeWinnerTeam = requireWinnerTeam(winnerTeam);
+        log.info("Assign hackathon winner hackathonId={}, winnerTeamId={}", hackathonId, safeWinnerTeam.getId());
 
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
         LocalDate today = LocalDate.now(clock);
         HackathonState currentState = hackathon.getHackathonStateAt(today);
         try {
-            hackathon.assignWinner(winnerTeam, today, winnerAssignmentPolicy);
+            hackathon.assignWinner(safeWinnerTeam, today, winnerAssignmentPolicy);
         } catch (IllegalStateException ex) {
             if (currentState != HackathonState.EVALUATION) {
                 throw new InvalidHackathonStateOperationException(currentState, "Assign winner");
@@ -151,7 +152,7 @@ public class HackathonLifecycleService {
             throw new WinnerAssignmentNotAllowedException(ex.getMessage());
         }
 
-        log.info("Assigned hackathon winner hackathonId={}, winnerTeamId={}", hackathonId, winnerTeam.getId());
+        log.info("Assigned hackathon winner hackathonId={}, winnerTeamId={}", hackathonId, safeWinnerTeam.getId());
         return hackathon;
     }
 
@@ -170,6 +171,13 @@ public class HackathonLifecycleService {
         Team winnerTeam = teamRepository.findById(winnerTeamId)
                 .orElseThrow(() -> new TeamNotFoundException(winnerTeamId));
         return assignWinner(hackathonId, winnerTeam);
+    }
+
+    private static Team requireWinnerTeam(Team winnerTeam) {
+        if (winnerTeam == null) {
+            throw new IllegalArgumentException("winnerTeam must not be null.");
+        }
+        return winnerTeam;
     }
 
     private record SubmissionWithTeam(Submission submission, Team team){}
