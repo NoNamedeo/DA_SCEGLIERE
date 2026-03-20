@@ -28,20 +28,19 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
 
-import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.AbstractNotification;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.Notification;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface INotificationRepository {
-    List<Notification> findAll();
+    List<BaseNotification> findAll();
 
-    Optional<Notification> findById(UUID notificationId);
+    Optional<BaseNotification> findById( UUID notificationId);
 
-    Notification save(AbstractNotification notification);
+    BaseNotification save( AbstractNotification notification);
 
-    void delete(Notification notification);
+    void delete( BaseNotification notification);
 }

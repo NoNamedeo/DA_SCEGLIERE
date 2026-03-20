@@ -31,8 +31,7 @@ package org.da_scegliere.progetto_ids_hackathon.application.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.INotificationRepository;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.AbstractNotification;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.Notification;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.AbstractUser;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.notification.NotificationStatus;
 import org.springframework.stereotype.Service;
@@ -49,12 +48,12 @@ public class NotificationService {
 
     private final INotificationRepository notificationRepository;
 
-    public List<Notification> getAllNotifications() {
+    public List<BaseNotification> getAllNotifications() {
         log.info("Getting all notifications");
         return List.copyOf(notificationRepository.findAll());
     }
 
-    public Notification getNotificationById(UUID notificationId) {
+    public BaseNotification getNotificationById( UUID notificationId) {
         if(notificationId == null) {
             return null;
         }
@@ -63,17 +62,17 @@ public class NotificationService {
     }
 
     @Transactional
-    public Notification createNotification(String title, String message, AbstractUser target, NotificationStatus notificationStatus, int priority) {
+    public BaseNotification createNotification( String title, String message, AbstractUser target, NotificationStatus notificationStatus, int priority) {
         log.info("Creating notification with title={}", title);
 
-        Notification notification = new Notification(title, message, target, priority);
+        BaseNotification notification = new BaseNotification(title, message, target, priority);
 
         log.info("Notification created with id: {}", notification.getId());
         return notificationRepository.save(notification);
     }
 
     @Transactional
-    public Notification changeNotificationTarget(AbstractUser target, UUID notificationId) {
+    public BaseNotification changeNotificationTarget( AbstractUser target, UUID notificationId) {
         if(notificationId == null) {
             throw new IllegalArgumentException("notificationId must not be null.");
         }
@@ -81,13 +80,13 @@ public class NotificationService {
             throw new IllegalArgumentException("target must not be null.");
         }
         log.info("Changing notification target with id: {}", notificationId);
-        Notification notification = getNotificationById(notificationId);
+        BaseNotification notification = getNotificationById(notificationId);
         notification.setTarget(target);
         return notificationRepository.save(notification);
     }
 
     @Transactional
-    public Notification changeNotificationStatus(UUID notificationId, NotificationStatus notificationStatus) {
+    public BaseNotification changeNotificationStatus( UUID notificationId, NotificationStatus notificationStatus) {
         if(notificationId == null) {
             throw new IllegalArgumentException("notificationId must not be null.");
         }
@@ -95,13 +94,13 @@ public class NotificationService {
             throw new IllegalArgumentException("notificationStatus must not be null.");
         }
         log.info("Changing notification status with id: {}", notificationId);
-        Notification notification = getNotificationById(notificationId);
+        BaseNotification notification = getNotificationById(notificationId);
         notification.setNotificationStatus(notificationStatus);
         return notificationRepository.save(notification);
     }
 
     @Transactional
-    public Notification changeNotificationPriority(UUID notificationId, int priority) {
+    public BaseNotification changeNotificationPriority( UUID notificationId, int priority) {
         if(notificationId == null) {
             throw new IllegalArgumentException("notificationId must not be null.");
         }
@@ -109,7 +108,7 @@ public class NotificationService {
             throw new IllegalArgumentException("priority must not be negative.");
         }
         log.info("Changing notification priority with id: {}", notificationId);
-        Notification notification = getNotificationById(notificationId);
+        BaseNotification notification = getNotificationById(notificationId);
         notification.setPriority(priority);
         return notificationRepository.save(notification);
     }
@@ -120,7 +119,7 @@ public class NotificationService {
             throw new IllegalArgumentException("notificationId must not be null.");
         }
         log.info("Deleting notification by id: {}", notificationId);
-        Notification notification = getNotificationById(notificationId);
+        BaseNotification notification = getNotificationById(notificationId);
         notificationRepository.delete(notification);
     }
 }

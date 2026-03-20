@@ -35,7 +35,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IT
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.Notification;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
@@ -152,7 +152,7 @@ public class TeamService{
         team.getMembers().forEach(member -> member.setTeam(team));
 
         for(User user : members) {
-            Notification notification = new Notification("Team creato", "il team è stato creato", user, 3);
+            BaseNotification notification = new BaseNotification("Team creato", "il team è stato creato", user, 3);
             notificationRepository.save(notification);
         }
 
@@ -174,7 +174,7 @@ public class TeamService{
         Team team = getTeamById(teamId);
 
         for(User user : team.getMembers()){
-            Notification notification = new Notification("Team cancellato", "il team è stato cancellato", user, 3);
+            BaseNotification notification = new BaseNotification("Team cancellato", "il team è stato cancellato", user, 3);
             notificationRepository.save(notification);
         }
 
@@ -223,7 +223,7 @@ public class TeamService{
         team.addMember(user);
 
         for(User userToNotify : team.getMembers()){
-            Notification notification = new Notification("Nuovo membro", "il team ha un nuovo membro: "+user.getName(), userToNotify, 3);
+            BaseNotification notification = new BaseNotification("Nuovo membro", "il team ha un nuovo membro: "+user.getName(), userToNotify, 3);
             notificationRepository.save(notification);
         }
 
@@ -247,7 +247,7 @@ public class TeamService{
         validateMembership(team, userId);
 
         for(User userToNotify : team.getMembers()){
-            Notification notification = new Notification("Membro rimosso", "il membro è stato rimosso", userToNotify, 3);
+            BaseNotification notification = new BaseNotification("Membro rimosso", "il membro è stato rimosso", userToNotify, 3);
             notificationRepository.save(notification);
         }
 

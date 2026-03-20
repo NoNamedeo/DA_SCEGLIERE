@@ -36,7 +36,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.s
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.supportRequest.InvalidSupportRequestStateTransitionException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.Notification;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
@@ -160,7 +160,7 @@ public class SupportRequestService {
         log.info("Created support request supportRequestId={} sendingTeamId={}.", savedRequest.getId(), sendingTeamId);
 
         for(User UserToNotify : sendingTeam.getMembers()){
-            Notification notification = new Notification("Richiesta di supporto inviata", "La richiesta di supporto é stata inviata", UserToNotify, 3);
+            BaseNotification notification = new BaseNotification("Richiesta di supporto inviata", "La richiesta di supporto é stata inviata", UserToNotify, 3);
             notificationRepository.save(notification);
         }
         return savedRequest;

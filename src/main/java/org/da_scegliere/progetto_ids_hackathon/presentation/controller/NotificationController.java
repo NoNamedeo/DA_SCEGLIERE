@@ -33,7 +33,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.ManagerServi
 import org.da_scegliere.progetto_ids_hackathon.application.services.NotificationService;
 import org.da_scegliere.progetto_ids_hackathon.application.services.StaffService;
 import org.da_scegliere.progetto_ids_hackathon.application.services.UserService;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.Notification;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.notifications.NotificationResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.NotificationMapper;
 import org.springframework.http.ResponseEntity;
@@ -54,7 +54,7 @@ public class NotificationController {
 
     @GetMapping
     public ResponseEntity<List<NotificationResponse>> getAllNotifications() {
-        List<Notification> notifications = notificationService.getAllNotifications();
+        List<BaseNotification> notifications = notificationService.getAllNotifications();
         return ResponseEntity.ok(NotificationMapper.toNotificationResponseList(notifications));
     }
 
@@ -62,7 +62,7 @@ public class NotificationController {
     public ResponseEntity<NotificationResponse> getNotificationById(
             @PathVariable UUID notificationId
     ){
-        Notification notification = notificationService.getNotificationById(notificationId);
+        BaseNotification notification = notificationService.getNotificationById(notificationId);
         return ResponseEntity.ok(NotificationMapper.toNotificationResponse(notification));
     }
 }

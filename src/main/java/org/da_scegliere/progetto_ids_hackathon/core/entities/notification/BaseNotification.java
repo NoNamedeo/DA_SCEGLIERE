@@ -26,35 +26,29 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.infrastructure;
+package org.da_scegliere.progetto_ids_hackathon.core.entities.notification;
 
-import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.PaymentStrategy;
-import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.PaymentProviderException;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
+import jakarta.persistence.Entity;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.user.AbstractUser;
 
-import java.math.BigDecimal;
+@Setter
+@Getter
+@Entity
+public class BaseNotification extends AbstractNotification{
 
-@Component
-@Primary
-public class PayPalPaymentStrategy implements PaymentStrategy {
+    @NotNull
+    private int priority;
 
-    /**
-     * TODO: integrate PayPal API.
-     */
-    @Override
-    public void awardPrize(BigDecimal prize, Team team) {
-        if (prize == null || prize.signum() <= 0) {
-            throw new IllegalArgumentException("prize must be a positive amount.");
-        }
-        if (team == null) {
-            throw new IllegalArgumentException("team must not be null.");
-        }
-        try {
-            // Integration point with external payment provider.
-        } catch (RuntimeException ex) {
-            throw new PaymentProviderException("Failed to process payment through PayPal.", ex);
-        }
+    public BaseNotification( String title, String message, AbstractUser target, int priority) {
+        super(title, message, target);
+        this.priority = priority;
     }
+
+    public BaseNotification() {
+        super();
+    }
+
 }

@@ -28,7 +28,7 @@
 
 package org.da_scegliere.progetto_ids_hackathon.presentation.mapper;
 
-import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.Notification;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.notifications.NotificationResponse;
 
 import java.util.ArrayList;
@@ -36,9 +36,9 @@ import java.util.List;
 
 public class NotificationMapper {
 
-    public static List<NotificationResponse> toNotificationResponseList( List<Notification> notifications ){
+    public static List<NotificationResponse> toNotificationResponseList( List<BaseNotification> notifications ){
         List<NotificationResponse> notificationResponses = new ArrayList<NotificationResponse>();
-        for(Notification notification : notifications){
+        for(BaseNotification notification : notifications){
             NotificationResponse notificationResponse = new NotificationResponse(
                     notification.getId(),
                     notification.getTitle(),
@@ -53,7 +53,7 @@ public class NotificationMapper {
         return notificationResponses;
     }
 
-    public static NotificationResponse toNotificationResponse( Notification notification ){
+    public static NotificationResponse toNotificationResponse( BaseNotification notification ){
         return new NotificationResponse(
                 notification.getId(),
                 notification.getTitle(),

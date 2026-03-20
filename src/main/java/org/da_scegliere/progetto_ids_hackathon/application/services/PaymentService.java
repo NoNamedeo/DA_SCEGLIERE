@@ -37,7 +37,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.p
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.payment.WinnerNotProclaimedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.HackathonCrudService;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.Notification;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.springframework.stereotype.Service;
@@ -103,7 +103,7 @@ public class PaymentService {
             return false;
         }
         for(User UserToNotify : winner.getMembers()){
-            Notification notification = new Notification("Pagamento effettuato", "il pagamento é stato effettuato", UserToNotify, 3);
+            BaseNotification notification = new BaseNotification("Pagamento effettuato", "il pagamento é stato effettuato", UserToNotify, 3);
             notificationRepository.save(notification);
         }
         executePayment(prize, winner);

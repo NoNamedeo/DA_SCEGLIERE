@@ -37,6 +37,7 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 @Setter
 @Getter
 @Entity
+@Table(name = "users")
 public class User extends AbstractUser{
 
     @ManyToOne

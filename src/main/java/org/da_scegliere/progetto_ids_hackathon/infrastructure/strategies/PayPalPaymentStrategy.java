@@ -26,31 +26,35 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.infrastructure;
+package org.da_scegliere.progetto_ids_hackathon.infrastructure.strategies;
 
-import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.CalendarStrategy;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.PaymentStrategy;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.PaymentProviderException;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
-@Primary
+import java.math.BigDecimal;
+
 @Component
-public class GoogleCalendarStrategy implements CalendarStrategy {
+@Primary
+public class PayPalPaymentStrategy implements PaymentStrategy {
 
     /**
-     * TODO: integrate Google Calendar API.
+     * TODO: integrate PayPal API.
      */
     @Override
-    public boolean isSlotAvailable(SupportRequest request) {
-        return true;
+    public void awardPrize(BigDecimal prize, Team team) {
+        if (prize == null || prize.signum() <= 0) {
+            throw new IllegalArgumentException("prize must be a positive amount.");
+        }
+        if (team == null) {
+            throw new IllegalArgumentException("team must not be null.");
+        }
+        try {
+            // Integration point with external payment provider.
+        } catch (RuntimeException ex) {
+            throw new PaymentProviderException("Failed to process payment through PayPal.", ex);
+        }
     }
-
-    /**
-     * TODO: integrate Google Calendar API.
-     */
-    @Override
-    public void reserveCallSlot(SupportRequest request) {
-        // Intentionally left blank until provider integration is implemented.
-    }
-
 }

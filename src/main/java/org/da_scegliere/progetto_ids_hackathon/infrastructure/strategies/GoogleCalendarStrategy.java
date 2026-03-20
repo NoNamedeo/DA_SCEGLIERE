@@ -26,27 +26,31 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.config;
+package org.da_scegliere.progetto_ids_hackathon.infrastructure.strategies;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.*;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.CalendarStrategy;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
 
-@Configuration
-public class CorsConfig {
+@Primary
+@Component
+public class GoogleCalendarStrategy implements CalendarStrategy {
 
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-
-                registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:5173")
-                        .allowedMethods("*")
-                        .allowedHeaders("*")
-                        .allowCredentials(true);
-            }
-        };
+    /**
+     * TODO: integrate Google Calendar API.
+     */
+    @Override
+    public boolean isSlotAvailable(SupportRequest request) {
+        return true;
     }
+
+    /**
+     * TODO: integrate Google Calendar API.
+     */
+    @Override
+    public void reserveCallSlot(SupportRequest request) {
+        // Intentionally left blank until provider integration is implemented.
+    }
+
 }
