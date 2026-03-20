@@ -34,6 +34,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.Ha
 import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.HackathonLifecycleService;
 import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.HackathonStaffService;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.staff.AddStaffAssignmentsRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.hackathon.AssignWinnerRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.hackathon.CreateHackathonRequest;
@@ -71,12 +72,29 @@ public class HackathonController {
 
     @GetMapping
     public ResponseEntity<List<PublicHackathonResponse>> getHackathons(
-            @RequestParam(required = false) String name
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) HackathonState state
     ) {
-        List<Hackathon> hackathons = name == null || name.isBlank()
-                ? hackathonCrudService.getAllHackathons()
-                : List.of(hackathonCrudService.getHackathonByName(name));
-        List<PublicHackathonResponse> response = hackathons.stream().map(HackathonMapper::toPublic).toList();
+
+        List<Hackathon> hackathons;
+
+        if (name != null && !name.isBlank()) {
+            if(state == null) {
+                hackathons = hackathonCrudService.getHackathonByName(name);
+            }else{
+                hackathons = hackathonCrudService.getAllHackathonsByNameAndState(name, state);
+            }
+        } else if (state != null) {
+            hackathons = hackathonCrudService.getAllHackathonsByState(state);
+
+        } else {
+            hackathons = hackathonCrudService.getAllHackathons();
+        }
+
+        List<PublicHackathonResponse> response = hackathons.stream()
+                .map(HackathonMapper::toPublic)
+                .toList();
+
         return ResponseEntity.ok(response);
     }
 

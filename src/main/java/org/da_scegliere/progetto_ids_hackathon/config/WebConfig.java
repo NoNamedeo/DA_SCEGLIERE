@@ -26,24 +26,28 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
+package org.da_scegliere.progetto_ids_hackathon.config;
 
-import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+@Configuration
+public class WebConfig {
 
-public interface IHackathonRepository {
-    List<Hackathon> findAll();
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
 
-    Optional<Hackathon> findById(UUID hackathonId);
-
-    List<Hackathon> findHackathonByName( String name );
-
-    Hackathon save(Hackathon hackathon);
-
-    void delete(Hackathon hackathon);
-
-    boolean existsById(UUID hackathonId);
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/api/**")
+                        .allowedOrigins("http://localhost:5173") // Vite
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                        .allowedHeaders("*")
+                        .allowCredentials(true);
+            }
+        };
+    }
 }

@@ -38,11 +38,13 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.builder.H
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.builder.HackathonBuilderDirector;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.builder.IHackathonBuilder;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -72,6 +74,20 @@ public class HackathonCrudService {
     }
 
     /**
+     * Retrieves all hackathons by the provided state.
+     *
+     * @return immutable snapshot of all hackathons.
+     */
+    public List<Hackathon> getAllHackathonsByState( HackathonState hackathonState ) {
+        log.info("Getting all hackathons by hackathonState: {}", hackathonState);
+        return List.copyOf(hackathonRepository.findAll()
+                .stream()
+                .filter(hackathon ->
+                        hackathon.getHackathonState().equals(hackathonState))
+                .toList());
+    }
+
+    /**
      * Retrieves a hackathon by identifier.
      *
      * @param hackathonId hackathon identifier.
@@ -97,14 +113,33 @@ public class HackathonCrudService {
      * @throws IllegalArgumentException when {@code name} is blank.
      * @throws HackathonNotFoundException when no hackathon exists with the given name.
      */
-    public Hackathon getHackathonByName(String name) {
+    public List<Hackathon> getHackathonByName(String name) {
         log.info("Getting hackathon name={}", name);
 
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("name must not be blank.");
         }
-        return hackathonRepository.findHackathonByName(name)
-                .orElseThrow(() -> new HackathonNotFoundException(name));
+
+        List<Hackathon> result = hackathonRepository.findHackathonByName(name);
+
+        if (result.isEmpty()) {
+            throw new HackathonNotFoundException(name);
+        }
+
+        return result;
+    }
+
+    /**
+     * Retrieves hackathons by the provided state and name.
+     *
+     * @return immutable snapshot of all hackathons.
+     */
+    public List<Hackathon> getAllHackathonsByNameAndState( String name,  HackathonState hackathonState ) {
+        log.info("Getting all hackathons by name {} and hackathonState: {}", name, hackathonState);
+        return List.copyOf(getHackathonByName(name)
+                .stream()
+                .filter(hackathon ->
+                        hackathon.getHackathonState().equals(hackathonState)).toList());
     }
 
     /**
