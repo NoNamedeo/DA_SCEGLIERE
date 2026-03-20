@@ -28,6 +28,7 @@
 
 package org.da_scegliere.progetto_ids_hackathon.core.entities.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Getter;

@@ -41,7 +41,6 @@ import java.util.List;
 @Entity
 public class StaffMember extends AbstractUser{
 
-    @NotNull
     @OneToMany(mappedBy = "staffMember", cascade = CascadeType.ALL)
     private List<StaffAssignment> staffAssignmentList;
 

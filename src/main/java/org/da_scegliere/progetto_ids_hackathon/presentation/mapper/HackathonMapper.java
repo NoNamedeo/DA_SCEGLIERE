@@ -47,6 +47,7 @@ public class HackathonMapper{
 
     public static PublicHackathonResponse toPublic( Hackathon hackathon ){
         return new PublicHackathonResponse(
+                hackathon.getId(),
                 hackathon.getName(),
                 hackathon.getDescription(),
                 hackathon.getRegistrationDeadline()
@@ -55,6 +56,7 @@ public class HackathonMapper{
 
     public static FullHackathonResponse toFull( Hackathon hackathon ){
         return new FullHackathonResponse(
+                hackathon.getId(),
                 hackathon.getName(),
                 hackathon.getDescription(),
                 toTeam(hackathon.getWinner()),

@@ -28,6 +28,7 @@
 
 package org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -68,7 +69,6 @@ public class Hackathon {
     @Setter
     private String description;
 
-    @NotNull
     @OneToMany(mappedBy = "hackathon")
     @Setter
     private List<Participation> participations;

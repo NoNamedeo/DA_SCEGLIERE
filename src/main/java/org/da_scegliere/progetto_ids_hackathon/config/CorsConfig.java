@@ -26,29 +26,27 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.core.entities.user;
+package org.da_scegliere.progetto_ids_hackathon.config;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.*;
 
-@Setter
-@Getter
-@Entity
-public class User extends AbstractUser{
+@Configuration
+public class CorsConfig {
 
-    @ManyToOne
-    @JoinColumn(name = "team_id")
-    private Team team = null;
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
 
-    public User(String name, int age, String email, Team team) {
-        super(name, age, email);
-        this.team = team;
-    }
-
-    public User() {
-        super();
+                registry.addMapping("/**")
+                        .allowedOrigins("http://localhost:5173")
+                        .allowedMethods("*")
+                        .allowedHeaders("*")
+                        .allowCredentials(true);
+            }
+        };
     }
 }

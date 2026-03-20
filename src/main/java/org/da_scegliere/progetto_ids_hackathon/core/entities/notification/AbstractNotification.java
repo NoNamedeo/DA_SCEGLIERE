@@ -28,6 +28,7 @@
 
 package org.da_scegliere.progetto_ids_hackathon.core.entities.notification;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
@@ -57,7 +58,6 @@ public abstract class AbstractNotification {
     @Setter
     private String message;
 
-    @NotBlank
     @Setter
     @ManyToOne
     @JoinColumn(name = "target_id")
