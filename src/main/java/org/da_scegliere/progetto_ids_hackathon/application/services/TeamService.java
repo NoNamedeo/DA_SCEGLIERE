@@ -30,10 +30,12 @@ package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.INotificationRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.Notification;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
@@ -60,6 +62,7 @@ public class TeamService{
     private final ITeamRepository teamRepository;
     private final IUserRepository userRepository;
     private final BusinessPolicy<LeaveTeamContext> leaveTeamPolicy;
+    private final INotificationRepository notificationRepository;
 
     /**
      * Returns all teams currently stored.
@@ -148,6 +151,11 @@ public class TeamService{
         Team team = new Team(name, new ArrayList<>(members));
         team.getMembers().forEach(member -> member.setTeam(team));
 
+        for(User user : members) {
+            Notification notification = new Notification("Team creato", "il team è stato creato", user, 3);
+            notificationRepository.save(notification);
+        }
+
         Team savedTeam = teamRepository.save(team);
         log.info("Created team teamId={} name={}.", savedTeam.getId(), savedTeam.getName());
         return savedTeam;
@@ -164,6 +172,12 @@ public class TeamService{
         log.info("Deleting team teamId={}.", teamId);
 
         Team team = getTeamById(teamId);
+
+        for(User user : team.getMembers()){
+            Notification notification = new Notification("Team cancellato", "il team è stato cancellato", user, 3);
+            notificationRepository.save(notification);
+        }
+
         teamRepository.delete(team);
 
         log.info("Deleted team teamId={}.", teamId);
@@ -208,6 +222,11 @@ public class TeamService{
         User user = getUserById(userId);
         team.addMember(user);
 
+        for(User userToNotify : team.getMembers()){
+            Notification notification = new Notification("Nuovo membro", "il team ha un nuovo membro: "+user.getName(), userToNotify, 3);
+            notificationRepository.save(notification);
+        }
+
         log.info("Added team member userId={} to teamId={}.", userId, teamId);
         return team;
     }
@@ -226,6 +245,11 @@ public class TeamService{
         Team team = getTeamById(teamId);
         User user = getUserById(userId);
         validateMembership(team, userId);
+
+        for(User userToNotify : team.getMembers()){
+            Notification notification = new Notification("Membro rimosso", "il membro è stato rimosso", userToNotify, 3);
+            notificationRepository.save(notification);
+        }
 
         try{
             team.removeMember(user, leaveTeamPolicy);

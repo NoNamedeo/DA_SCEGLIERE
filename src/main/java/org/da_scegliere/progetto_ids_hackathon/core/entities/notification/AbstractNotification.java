@@ -70,11 +70,11 @@ public abstract class AbstractNotification {
 
     private LocalDate date;
 
-    public AbstractNotification(String title, String message, AbstractUser target, NotificationStatus notificationStatus) {
+    public AbstractNotification(String title, String message, AbstractUser target) {
         this.title = title;
         this.message = message;
         this.target = target;
-        this.notificationStatus = notificationStatus;
+        this.notificationStatus = NotificationStatus.SENDED;
         this.date = LocalDate.now();
     }
 

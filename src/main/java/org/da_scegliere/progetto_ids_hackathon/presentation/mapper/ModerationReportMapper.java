@@ -3,7 +3,7 @@ package org.da_scegliere.progetto_ids_hackathon.presentation.mapper;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.StaffReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.UserReport;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.ModerationReportResponse;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.moderation.ModerationReportResponse;
 
 import java.util.UUID;
 

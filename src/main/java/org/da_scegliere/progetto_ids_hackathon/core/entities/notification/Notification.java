@@ -45,8 +45,8 @@ public class Notification extends AbstractNotification{
     @NotNull
     private int priority;
 
-    public Notification(String title, String message, AbstractUser target, NotificationStatus notificationStatus, int priority) {
-        super(title, message, target, notificationStatus);
+    public Notification(String title, String message, AbstractUser target, int priority) {
+        super(title, message, target);
         this.priority = priority;
     }
 

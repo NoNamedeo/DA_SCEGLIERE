@@ -30,13 +30,16 @@ package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.INotificationRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.PaymentStrategy;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.PaymentProviderException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.payment.PaymentFailedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.payment.WinnerNotProclaimedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.HackathonCrudService;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.Notification;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,6 +60,7 @@ public class PaymentService {
     private final PaymentStrategy paymentStrategy;
     private final HackathonCrudService hackathonCrudService;
     private final Clock clock;
+    private final INotificationRepository notificationRepository;
 
     /**
      * Awards the prize to a winner by resolving hackathon identifier.
@@ -98,7 +102,10 @@ public class PaymentService {
         if (safeHackathon.isPrizeAlreadyPaid()) {
             return false;
         }
-
+        for(User UserToNotify : winner.getMembers()){
+            Notification notification = new Notification("Pagamento effettuato", "il pagamento é stato effettuato", UserToNotify, 3);
+            notificationRepository.save(notification);
+        }
         executePayment(prize, winner);
         safeHackathon.markPrizeAsPaid(LocalDate.now(clock));
         log.info("Awarded winner prize={} for hackathonId={}.", prize, safeHackathon.getId());

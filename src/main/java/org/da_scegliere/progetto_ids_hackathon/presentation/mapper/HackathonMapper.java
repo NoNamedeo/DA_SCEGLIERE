@@ -32,11 +32,11 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.StaffAssignmentInputRequest;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.FullHackathonResponse;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.PublicHackathonResponse;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.StaffAssignmentResponse;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.TeamResponse;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.staff.StaffAssignmentInputRequest;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.hackathon.FullHackathonResponse;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.hackathon.PublicHackathonResponse;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.staff.StaffAssignmentResponse;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.team.TeamResponse;
 
 import java.util.LinkedHashMap;
 import java.util.List;

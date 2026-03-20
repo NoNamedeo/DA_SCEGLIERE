@@ -30,19 +30,18 @@ package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffAssignmentRepository;
-import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ISupportRequestRepository;
-import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamParticipationRepository;
-import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamRepository;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.*;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.supportRequest.SupportRequestNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.supportRequest.InvalidSupportRequestMentorSelectionException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.supportRequest.InvalidSupportRequestStateTransitionException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.Notification;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.support.SupportRequestState;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.support.SupportRequestMentorSelectionContext;
@@ -75,6 +74,7 @@ public class SupportRequestService {
     private final SupportRequestLifecycleStateMachine supportRequestStateMachine;
     private final Clock clock;
     private final BusinessPolicy<SupportRequestMentorSelectionContext> mentorSelectionPolicy;
+    private final INotificationRepository notificationRepository;
 
     /**
      * Retrieves all support requests currently stored.
@@ -158,6 +158,11 @@ public class SupportRequestService {
         SupportRequest request = new SupportRequest(dateSlot, persistedTeam, staffAssignments);
         SupportRequest savedRequest = supportRequestRepository.save(request);
         log.info("Created support request supportRequestId={} sendingTeamId={}.", savedRequest.getId(), sendingTeamId);
+
+        for(User UserToNotify : sendingTeam.getMembers()){
+            Notification notification = new Notification("Richiesta di supporto inviata", "La richiesta di supporto é stata inviata", UserToNotify, 3);
+            notificationRepository.save(notification);
+        }
         return savedRequest;
     }
 
