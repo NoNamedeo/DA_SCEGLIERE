@@ -40,6 +40,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -49,7 +50,6 @@ public class HackathonScheduler {
     private final HackathonLifecycleService lifecycleService;
     private final PaymentService paymentService;
     private final HackathonCrudService hackathonCrudService;
-    private final HackathonLifecycleService hackathonLifecycleService;
 
     @Scheduled(cron = "0 */5 * * * *")
     public void processHackathonsLifecycle() {
@@ -58,28 +58,42 @@ public class HackathonScheduler {
         List<Hackathon> hackathons = hackathonCrudService.getAllHackathons();
 
         for (Hackathon hackathon : hackathons) {
-
-            HackathonState state = lifecycleService.determineCurrentState(hackathon.getId());
-
-            if (state == HackathonState.ENDED && hackathon.getWinner() == null) {
-
-                try {
-                    Team winner = hackathonLifecycleService.determineWinnerTeam(hackathon.getId());
-                    lifecycleService.assignWinner(hackathon.getId(), winner.getId());
-
-                    paymentService.awardPrizeToWinner(
-                            hackathon.getAwardPrize(),
-                            hackathon.getId()
-                    );
-
-                    lifecycleService.concludeHackathon(hackathon.getId());
-
-                    log.info("HackathonId={} won by teamId={}", hackathon.getId(), winner.getId());
-
-                } catch (Exception ex) {
-                    log.error("Scheduler error occurred in conclusionDeadLine of the hackathon {}:",hackathon.getId(), ex);
-                }
+            try {
+                processSingleHackathon(hackathon.getId());
+            } catch (Exception ex) {
+                log.error("Scheduler error for hackathon {}:", hackathon.getId(), ex);
             }
         }
+    }
+
+    private void processSingleHackathon(UUID hackathonId) {
+        Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
+        HackathonState state = lifecycleService.determineCurrentState(hackathonId);
+
+        if (hackathon.getWinner() == null && canAssignWinner(state)) {
+            Team winner = lifecycleService.determineWinnerTeam(hackathonId);
+            lifecycleService.assignWinner(hackathonId, winner.getId());
+            log.info("Winner assigned hackathonId={} teamId={}", hackathonId, winner.getId());
+
+            hackathon = hackathonCrudService.getHackathonById(hackathonId);
+            state = lifecycleService.determineCurrentState(hackathonId);
+        }
+
+        if (hackathon.getWinner() != null && state != HackathonState.ENDED) {
+            lifecycleService.concludeHackathon(hackathonId);
+            state = lifecycleService.determineCurrentState(hackathonId);
+            log.info("Hackathon concluded hackathonId={}", hackathonId);
+        }
+
+        if (hackathon.getWinner() != null
+                && hackathon.getPrizePaidAt() == null
+                && state == HackathonState.ENDED) {
+            paymentService.awardPrizeToWinner(hackathon.getAwardPrize(), hackathonId);
+            log.info("Winner prize awarded hackathonId={}", hackathonId);
+        }
+    }
+
+    private static boolean canAssignWinner(HackathonState state) {
+        return state == HackathonState.EVALUATION || state == HackathonState.ENDED;
     }
 }

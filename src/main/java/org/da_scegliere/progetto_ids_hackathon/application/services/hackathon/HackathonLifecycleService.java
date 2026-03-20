@@ -141,10 +141,11 @@ public class HackathonLifecycleService {
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
         LocalDate today = LocalDate.now(clock);
         HackathonState currentState = hackathon.getHackathonStateAt(today);
+        LocalDate referenceDateForAssignment = resolveReferenceDateForWinnerAssignment(hackathon, currentState, today);
         try {
-            hackathon.assignWinner(safeWinnerTeam, today, winnerAssignmentPolicy);
+            hackathon.assignWinner(safeWinnerTeam, referenceDateForAssignment, winnerAssignmentPolicy);
         } catch (IllegalStateException ex) {
-            if (currentState != HackathonState.EVALUATION) {
+            if (currentState != HackathonState.EVALUATION && currentState != HackathonState.ENDED) {
                 throw new InvalidHackathonStateOperationException(currentState, "Assign winner");
             }
             throw new WinnerAssignmentNotAllowedException(ex.getMessage());
@@ -178,6 +179,28 @@ public class HackathonLifecycleService {
             throw new IllegalArgumentException("winnerTeam must not be null.");
         }
         return winnerTeam;
+    }
+
+    /**
+     * Resolves the reference date used for winner-assignment policy validation.
+     * <p>
+     * If the hackathon is already {@code ENDED}, we use the evaluation deadline to
+     * validate the assignment rules in a recovery-friendly way (e.g. scheduler delay).
+     */
+    private static LocalDate resolveReferenceDateForWinnerAssignment(
+            Hackathon hackathon,
+            HackathonState currentState,
+            LocalDate fallbackDate
+    ) {
+        if (currentState != HackathonState.ENDED) {
+            return fallbackDate;
+        }
+
+        LocalDate evaluationDeadline = hackathon.getEvaluationDeadline();
+        if (evaluationDeadline == null) {
+            throw new InvalidHackathonStateOperationException(currentState, "Assign winner");
+        }
+        return evaluationDeadline;
     }
 
     private record SubmissionWithTeam(Submission submission, Team team){}

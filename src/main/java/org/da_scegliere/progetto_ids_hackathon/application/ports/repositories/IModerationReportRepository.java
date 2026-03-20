@@ -32,9 +32,13 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.Moderati
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public interface IModerationReportRepository {
     List<ModerationReport> findAll();
 
     List<ModerationReport> findByState(UserReportState state);
+
+    Optional<ModerationReport> findById(UUID reportId);
 }

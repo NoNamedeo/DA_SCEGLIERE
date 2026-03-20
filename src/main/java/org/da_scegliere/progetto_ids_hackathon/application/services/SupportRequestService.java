@@ -211,6 +211,25 @@ public class SupportRequestService {
     }
 
     /**
+     * Marks a support request as in progress by resolving the accepting mentor assignment id.
+     *
+     * @param requestId support request identifier.
+     * @param acceptingMentorAssignmentId accepting mentor assignment identifier.
+     * @return updated support request in {@code IN_PROGRESS} state.
+     */
+    @Transactional
+    public SupportRequest markInProgress(UUID requestId, UUID acceptingMentorAssignmentId) {
+        if (acceptingMentorAssignmentId == null) {
+            throw new IllegalArgumentException("acceptingMentorAssignmentId must not be null.");
+        }
+        StaffAssignment acceptingMentor = staffAssignmentRepository.findById(acceptingMentorAssignmentId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Staff assignment not found: " + acceptingMentorAssignmentId + "."
+                ));
+        return markInProgress(requestId, acceptingMentor);
+    }
+
+    /**
      * Marks a support request as resolved.
      *
      * @param requestId support request identifier.

@@ -77,6 +77,9 @@ public class HackathonMapper{
     }
 
     private static TeamResponse toTeam(Team team){
+        if (team == null) {
+            return null;
+        }
         return new TeamResponse(
                 team.getId(),
                 team.getName()
@@ -88,7 +91,7 @@ public class HackathonMapper{
 
         return staffAssignments.stream()
                 .map(staffAssignment -> new StaffAssignmentResponse(
-                        staffAssignment.getId(),
+                        staffAssignment.getStaffMember() != null ? staffAssignment.getStaffMember().getId() : null,
                         staffAssignment.getStaffRole().name()
                 ))
                 .toList();

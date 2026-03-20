@@ -128,6 +128,22 @@ public class ModerationReportService {
     }
 
     /**
+     * Retrieves one moderation report by identifier, regardless of target type.
+     *
+     * @throws ReportNotFoundException if no report is found.
+     */
+    public ModerationReport getReportById(UUID reportId) {
+        if (reportId == null) {
+            throw new IllegalArgumentException("reportId must not be null.");
+        }
+        log.debug("Retrieving moderation report reportId={}.", reportId);
+        ModerationReport report = moderationReportRepository.findById(reportId)
+                .orElseThrow(() -> new ReportNotFoundException(reportId));
+        log.debug("Retrieved moderation report reportId={}.", reportId);
+        return report;
+    }
+
+    /**
      * Retrieves one user report by identifier.
      *
      * @throws ReportNotFoundException if no report is found.

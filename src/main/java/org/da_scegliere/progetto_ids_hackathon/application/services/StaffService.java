@@ -72,6 +72,18 @@ public class StaffService {
     }
 
     /**
+     * Retrieves all staff assignments.
+     *
+     * @return immutable snapshot of all assignments.
+     */
+    public List<StaffAssignment> getAllStaffAssignments() {
+        log.debug("Retrieving all staff assignments.");
+        List<StaffAssignment> assignments = List.copyOf(staffAssignmentRepository.findAll());
+        log.debug("Retrieved {} staff assignments.", assignments.size());
+        return assignments;
+    }
+
+    /**
      * Retrieves one staff member by identifier.
      *
      * @param staffMemberId staff identifier.
@@ -160,6 +172,78 @@ public class StaffService {
                 assignments.size(),
                 hackathonId,
                 staffRole
+        );
+        return assignments;
+    }
+
+    /**
+     * Retrieves staff assignments for one staff member.
+     *
+     * @param staffMemberId staff member identifier.
+     * @return immutable list of assignments.
+     */
+    public List<StaffAssignment> getStaffAssignmentsByStaffMember(UUID staffMemberId) {
+        if (staffMemberId == null) {
+            throw new IllegalArgumentException("staffMemberId must not be null.");
+        }
+        getStaffMemberById(staffMemberId);
+        log.debug("Retrieving staff assignments for staffMemberId={}.", staffMemberId);
+        List<StaffAssignment> assignments = List.copyOf(staffAssignmentRepository.findByStaffMember_Id(staffMemberId));
+        log.debug("Retrieved {} staff assignments for staffMemberId={}.", assignments.size(), staffMemberId);
+        return assignments;
+    }
+
+    /**
+     * Retrieves staff assignments for one staff member filtered by role.
+     *
+     * @param staffMemberId staff member identifier.
+     * @param staffRole target role.
+     * @return immutable list of assignments.
+     */
+    public List<StaffAssignment> getStaffAssignmentsByStaffMemberAndRole(UUID staffMemberId, StaffRole staffRole) {
+        if (staffRole == null) {
+            throw new IllegalArgumentException("staffRole must not be null.");
+        }
+        if (staffMemberId == null) {
+            throw new IllegalArgumentException("staffMemberId must not be null.");
+        }
+        getStaffMemberById(staffMemberId);
+        log.debug("Retrieving staff assignments for staffMemberId={} role={}.", staffMemberId, staffRole);
+        List<StaffAssignment> assignments = List.copyOf(
+                staffAssignmentRepository.findByStaffMember_IdAndStaffRole(staffMemberId, staffRole)
+        );
+        log.debug(
+                "Retrieved {} staff assignments for staffMemberId={} role={}.",
+                assignments.size(),
+                staffMemberId,
+                staffRole
+        );
+        return assignments;
+    }
+
+    /**
+     * Retrieves staff assignments for one staff member within one hackathon.
+     *
+     * @param staffMemberId staff member identifier.
+     * @param hackathonId hackathon identifier.
+     * @return immutable list of assignments.
+     */
+    public List<StaffAssignment> getStaffAssignmentsByStaffMemberAndHackathon(UUID staffMemberId, UUID hackathonId) {
+        if (staffMemberId == null) {
+            throw new IllegalArgumentException("staffMemberId must not be null.");
+        }
+        if (hackathonId == null) {
+            throw new IllegalArgumentException("hackathonId must not be null.");
+        }
+        List<StaffAssignment> assignments = getStaffAssignmentsByStaffMember(staffMemberId).stream()
+                .filter(assignment -> assignment.getHackathon() != null)
+                .filter(assignment -> hackathonId.equals(assignment.getHackathon().getId()))
+                .toList();
+        log.debug(
+                "Retrieved {} staff assignments for staffMemberId={} hackathonId={}.",
+                assignments.size(),
+                staffMemberId,
+                hackathonId
         );
         return assignments;
     }

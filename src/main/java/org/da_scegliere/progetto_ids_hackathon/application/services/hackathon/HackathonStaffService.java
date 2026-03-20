@@ -30,6 +30,7 @@ package org.da_scegliere.progetto_ids_hackathon.application.services.hackathon;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffAssignmentRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffMemberRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.InvalidHackathonStateOperationException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
@@ -67,6 +68,7 @@ public class HackathonStaffService {
 
     private final HackathonCrudService hackathonCrudService;
     private final IStaffMemberRepository staffMemberRepository;
+    private final IStaffAssignmentRepository staffAssignmentRepository;
     private final Clock clock;
 
     /**
@@ -148,6 +150,33 @@ public class HackathonStaffService {
 
         log.info("Deleted staff members from hackathon {}", hackathonId);
         return hackathon;
+    }
+
+    /**
+     * Deletes one staff assignment by assignment identifier within a hackathon.
+     *
+     * @param hackathonId target hackathon identifier.
+     * @param assignmentId assignment identifier.
+     * @return updated hackathon aggregate.
+     */
+    @Transactional
+    public Hackathon deleteStaffAssignment(UUID hackathonId, UUID assignmentId) {
+        if (assignmentId == null) {
+            throw new IllegalArgumentException("assignmentId must not be null.");
+        }
+        StaffAssignment assignment = staffAssignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new IllegalArgumentException("Staff assignment not found: " + assignmentId + "."));
+
+        UUID assignmentHackathonId = assignment.getHackathon() != null ? assignment.getHackathon().getId() : null;
+        if (!Objects.equals(assignmentHackathonId, hackathonId)) {
+            throw new IllegalArgumentException("Staff assignment does not belong to the specified hackathon.");
+        }
+
+        UUID staffMemberId = assignment.getStaffMember() != null ? assignment.getStaffMember().getId() : null;
+        if (staffMemberId == null) {
+            throw new IllegalArgumentException("Staff assignment is not linked to a valid staff member.");
+        }
+        return deleteStaffMembers(hackathonId, List.of(staffMemberId));
     }
 
     private static void validateStaffManagementState(Hackathon hackathon, LocalDate referenceDate) {

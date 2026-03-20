@@ -87,7 +87,6 @@ public class Hackathon {
     @Setter
     private LocalDate prizePaidAt;
 
-    @NotEmpty
     @OneToMany(mappedBy = "hackathon")
     @Setter
     private List<StaffAssignment> staff;

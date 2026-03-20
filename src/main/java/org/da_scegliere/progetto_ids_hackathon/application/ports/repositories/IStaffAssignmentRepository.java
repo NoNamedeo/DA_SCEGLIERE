@@ -32,12 +32,15 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignme
 import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface IStaffAssignmentRepository {
     List<StaffAssignment> findAll();
 
     List<StaffAssignment> findAllById(Iterable<UUID> assignmentIds);
+
+    Optional<StaffAssignment> findById(UUID assignmentId);
 
     List<StaffAssignment> findByHackathon_Id(UUID hackathonId);
 
