@@ -29,6 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.presentation.mapper;
 
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.HackathonTimeline;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 import org.da_scegliere.progetto_ids_hackathon.presentation.controller.StaffController;
@@ -51,13 +52,15 @@ public class StaffMapper{
     }
 
     public static HackathonSummaryResponse toHackathonSummary( Hackathon hackathon) {
+        HackathonTimeline timeline = hackathon.getTimeline();
+
         return new HackathonSummaryResponse(
                 hackathon.getId(),
                 hackathon.getName(),
                 hackathon.getDescription(),
-                hackathon.getRegistrationDeadline(),
-                hackathon.getSubmissionDeadline(),
-                hackathon.getEvaluationDeadline()
+                timeline == null ? null : timeline.registrationDeadline(),
+                timeline == null ? null : timeline.submissionDeadline(),
+                timeline == null ? null : timeline.evaluationDeadline()
         );
     }
 

@@ -35,6 +35,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.h
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.WinnerAssignmentNotAllowedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.HackathonTimeline;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Participation;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Submission;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
@@ -196,7 +197,8 @@ public class HackathonLifecycleService {
             return fallbackDate;
         }
 
-        LocalDate evaluationDeadline = hackathon.getEvaluationDeadline();
+        HackathonTimeline timeline = hackathon.getTimeline();
+        LocalDate evaluationDeadline = timeline == null ? null : timeline.evaluationDeadline();
         if (evaluationDeadline == null) {
             throw new InvalidHackathonStateOperationException(currentState, "Assign winner");
         }

@@ -29,8 +29,10 @@
 package org.da_scegliere.progetto_ids_hackathon.presentation.mapper;
 
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.HackathonTimeline;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.user.AbstractUser;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.staff.StaffAssignmentInputRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.hackathon.FullHackathonResponse;
@@ -38,6 +40,7 @@ import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.hackath
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.staff.StaffAssignmentResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.team.TeamResponse;
 
+import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +53,7 @@ public class HackathonMapper{
                 hackathon.getId(),
                 hackathon.getName(),
                 hackathon.getDescription(),
-                hackathon.getRegistrationDeadline()
+                registrationDeadlineOf(hackathon)
         );
     }
 
@@ -59,11 +62,12 @@ public class HackathonMapper{
                 hackathon.getId(),
                 hackathon.getName(),
                 hackathon.getDescription(),
+                hackathon.getAwardPrize(),
                 toTeam(hackathon.getWinner()),
                 toStaffAssignmentList(hackathon.getStaff()),
-                hackathon.getRegistrationDeadline(),
-                hackathon.getSubmissionDeadline(),
-                hackathon.getEvaluationDeadline()
+                registrationDeadlineOf(hackathon),
+                submissionDeadlineOf(hackathon),
+                evaluationDeadlineOf(hackathon)
         );
     }
 
@@ -78,13 +82,16 @@ public class HackathonMapper{
         return staffMap;
     }
 
-    private static TeamResponse toTeam(Team team){
+    private static TeamResponse toTeam( Team team){
         if (team == null) {
             return null;
         }
         return new TeamResponse(
                 team.getId(),
-                team.getName()
+                team.getName(),
+                team.getMembers().stream()
+                        .map(AbstractUser::getId)
+                        .toList()
         );
     }
 
@@ -97,5 +104,20 @@ public class HackathonMapper{
                         staffAssignment.getStaffRole().name()
                 ))
                 .toList();
+    }
+
+    private static LocalDate registrationDeadlineOf(Hackathon hackathon) {
+        HackathonTimeline timeline = hackathon.getTimeline();
+        return timeline == null ? null : timeline.registrationDeadline();
+    }
+
+    private static LocalDate submissionDeadlineOf(Hackathon hackathon) {
+        HackathonTimeline timeline = hackathon.getTimeline();
+        return timeline == null ? null : timeline.submissionDeadline();
+    }
+
+    private static LocalDate evaluationDeadlineOf(Hackathon hackathon) {
+        HackathonTimeline timeline = hackathon.getTimeline();
+        return timeline == null ? null : timeline.evaluationDeadline();
     }
 }

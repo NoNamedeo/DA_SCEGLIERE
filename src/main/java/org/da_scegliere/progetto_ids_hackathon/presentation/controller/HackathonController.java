@@ -30,11 +30,15 @@ package org.da_scegliere.progetto_ids_hackathon.presentation.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamParticipationRepository;
+import org.da_scegliere.progetto_ids_hackathon.application.services.TeamParticipationService;
 import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.HackathonCrudService;
 import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.HackathonLifecycleService;
 import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.HackathonStaffService;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.HackathonTimeline;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.hackathon.AssignStaffRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.staff.AddStaffAssignmentsRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.hackathon.AssignWinnerRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.hackathon.CreateHackathonRequest;
@@ -42,7 +46,9 @@ import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.hackatho
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.hackathon.FullHackathonResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.hackathon.HackathonStateResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.hackathon.PublicHackathonResponse;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.team.TeamResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.HackathonMapper;
+import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.TeamMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,6 +63,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -69,28 +76,23 @@ public class HackathonController {
     private final HackathonCrudService hackathonCrudService;
     private final HackathonStaffService hackathonStaffService;
     private final HackathonLifecycleService hackathonLifecycleService;
+    private final TeamParticipationService teamParticipationService;
 
     @GetMapping
     public ResponseEntity<List<PublicHackathonResponse>> getHackathons(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) HackathonState state
     ) {
-
         List<Hackathon> hackathons;
 
-        HackathonState parsedState = state != null
-                ? HackathonState.valueOf(state.toString().toUpperCase())
-                : null;
+        boolean hasName = name != null && !name.isBlank();
 
-        if (name != null && !name.isBlank()) {
-            if(state == null) {
-                hackathons = hackathonCrudService.getHackathonByName(name);
-            }else{
-                hackathons = hackathonCrudService.getAllHackathonsByNameAndState(name, parsedState);
-            }
+        if (hasName && state == null) {
+            hackathons = hackathonCrudService.getHackathonByName(name);
+        } else if (hasName) {
+            hackathons = hackathonCrudService.getAllHackathonsByNameAndState(name, state);
         } else if (state != null) {
-            hackathons = hackathonCrudService.getAllHackathonsByState(parsedState);
-
+            hackathons = hackathonCrudService.getAllHackathonsByState(state);
         } else {
             hackathons = hackathonCrudService.getAllHackathons();
         }
@@ -119,6 +121,18 @@ public class HackathonController {
         throw new IllegalArgumentException("view must be one of: public, full.");
     }
 
+    @GetMapping("/{hackathonId}/teams")
+    public ResponseEntity<List<TeamResponse>> getTeamsByHackathon(
+            @PathVariable UUID hackathonId
+    ) {
+        return ResponseEntity.ok(
+                teamParticipationService.getTeamsByHackathon(hackathonId)
+                        .stream()
+                        .map(TeamMapper::toResponse)
+                        .toList()
+        );
+    }
+
     @PostMapping
     public ResponseEntity<Void> createHackathon(@Valid @RequestBody CreateHackathonRequest request) {
         Hackathon createdHackathon = hackathonCrudService.createHackathon(
@@ -130,14 +144,15 @@ public class HackathonController {
                 null
         );
 
-        if (request.registrationDeadline() != null
-                || request.submissionDeadline() != null
-                || request.evaluationDeadline() != null) {
-            hackathonCrudService.changeHackathonDeadlines(
-                    createdHackathon.getId(),
+        if (hasTimelineInput(request.registrationDeadline(), request.submissionDeadline(), request.evaluationDeadline())) {
+            HackathonTimeline timeline = new HackathonTimeline(
                     request.registrationDeadline(),
                     request.submissionDeadline(),
                     request.evaluationDeadline()
+            );
+            hackathonCrudService.changeHackathonTimeline(
+                    createdHackathon.getId(),
+                    timeline
             );
         }
 
@@ -157,14 +172,15 @@ public class HackathonController {
             hackathonCrudService.changeDescription(hackathonId, request.description());
         }
 
-        if (request.registrationDeadline() != null
-                || request.submissionDeadline() != null
-                || request.evaluationDeadline() != null) {
-            hackathonCrudService.changeHackathonDeadlines(
-                    hackathonId,
+        if (hasTimelineInput(request.registrationDeadline(), request.submissionDeadline(), request.evaluationDeadline())) {
+            HackathonTimeline timeline = new HackathonTimeline(
                     request.registrationDeadline(),
-                    request.evaluationDeadline(),
-                    request.submissionDeadline()
+                    request.submissionDeadline(),
+                    request.evaluationDeadline()
+            );
+            hackathonCrudService.changeHackathonTimeline(
+                    hackathonId,
+                    timeline
             );
         }
 
@@ -194,6 +210,20 @@ public class HackathonController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{hackathonId}/staff-assignment")
+    public ResponseEntity<Void> assignStaff(
+            @PathVariable UUID hackathonId,
+            @Valid @RequestBody AssignStaffRequest request
+    ) {
+        hackathonStaffService.assignStaffToHackathon(
+                hackathonId,
+                request.staffMemberId(),
+                request.role()
+        );
+
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping("/{hackathonId}/winner")
     public ResponseEntity<Void> assignWinner(
             @PathVariable UUID hackathonId,
@@ -210,5 +240,13 @@ public class HackathonController {
     ) {
         hackathonStaffService.deleteStaffAssignment(hackathonId, assignmentId);
         return ResponseEntity.noContent().build();
+    }
+
+    private static boolean hasTimelineInput(
+            LocalDate registrationDeadline,
+            LocalDate submissionDeadline,
+            LocalDate evaluationDeadline
+    ) {
+        return registrationDeadline != null || submissionDeadline != null || evaluationDeadline != null;
     }
 }

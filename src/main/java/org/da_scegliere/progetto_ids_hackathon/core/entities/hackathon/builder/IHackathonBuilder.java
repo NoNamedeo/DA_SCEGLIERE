@@ -29,6 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.builder;
 
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.HackathonTimeline;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Participation;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 
@@ -54,9 +55,5 @@ public interface IHackathonBuilder {
 
     IHackathonBuilder setStaff(List<StaffAssignment> staff);
 
-    IHackathonBuilder setRegistrationDeadline(LocalDate date);
-
-    IHackathonBuilder setEvaluationDeadline(LocalDate date);
-
-    IHackathonBuilder setSubmissionDeadline(LocalDate date);
+    IHackathonBuilder setTimeline(HackathonTimeline timeline);
 }

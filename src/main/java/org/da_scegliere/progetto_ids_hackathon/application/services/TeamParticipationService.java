@@ -30,7 +30,9 @@ package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IHackathonRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamParticipationRepository;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.InvalidHackathonStateOperationException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.InvalidSubmissionEvaluationException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.SubmissionDeadlineExceededException;
@@ -38,7 +40,9 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.t
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.SubmissionNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamParticipationNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.HackathonTimeline;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Submission;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
 import org.springframework.stereotype.Service;
@@ -66,6 +70,7 @@ public class TeamParticipationService {
     private static final String OP_UPDATE_SUBMISSION_EVALUATION = "Update submission evaluation";
 
     private final ITeamParticipationRepository teamParticipationRepository;
+    private final IHackathonRepository hackathonRepository;
     private final Clock clock;
 
 
@@ -78,7 +83,7 @@ public class TeamParticipationService {
      * @throws TeamParticipationNotFoundException when participation does not exist.
      */
     public TeamParticipation getTeamParticipationById(UUID teamParticipationId) {
-        log.info("Get team participation teamParticipationId={}", teamParticipationId);
+        log.info("Getting team participation teamParticipationId={}", teamParticipationId);
 
         if (teamParticipationId == null) {
             throw new IllegalArgumentException("teamParticipationId must not be null.");
@@ -87,6 +92,19 @@ public class TeamParticipationService {
         return teamParticipationRepository
                 .findById(teamParticipationId)
                 .orElseThrow(() -> new TeamParticipationNotFoundException(teamParticipationId));
+    }
+
+    public List<Team> getTeamsByHackathon( UUID hackathonId) {
+        log.info("Getting teams by hackathonId={}", hackathonId);
+
+        Hackathon hackathon = hackathonRepository.findById(hackathonId)
+                .orElseThrow(() -> new HackathonNotFoundException(hackathonId));
+
+        return teamParticipationRepository.findByHackathon_id(hackathon.getId())
+                .stream()
+                .map(TeamParticipation::getTeam)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     /**
@@ -314,7 +332,8 @@ public class TeamParticipationService {
             throw new InvalidHackathonStateOperationException(currentState, operationName);
         }
 
-        LocalDate submissionDeadline = hackathon.getSubmissionDeadline();
+        HackathonTimeline timeline = hackathon.getTimeline();
+        LocalDate submissionDeadline = timeline == null ? null : timeline.submissionDeadline();
         if (submissionDeadline != null && referenceDate.isAfter(submissionDeadline)) {
             throw new SubmissionDeadlineExceededException(submissionDeadline);
         }

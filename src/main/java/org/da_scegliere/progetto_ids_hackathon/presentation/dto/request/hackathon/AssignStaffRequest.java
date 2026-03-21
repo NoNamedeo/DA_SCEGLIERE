@@ -26,20 +26,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
+package org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.hackathon;
 
-import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-public interface ITeamParticipationRepository {
-    Optional<TeamParticipation> findById(UUID teamParticipationId);
-
-    Optional<TeamParticipation> findBySubmissions_id(UUID submissionsId);
-
-    List<TeamParticipation> findByTeam_id(UUID teamId);
-
-    List<TeamParticipation> findByHackathon_id(UUID hackathonId);
-}
+public record AssignStaffRequest(
+        UUID staffMemberId,
+        StaffRole role
+) {}

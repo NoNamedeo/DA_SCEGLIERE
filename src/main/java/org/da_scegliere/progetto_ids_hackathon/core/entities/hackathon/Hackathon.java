@@ -89,26 +89,13 @@ public class Hackathon {
     @Setter
     private List<StaffAssignment> staff;
 
-    /**
-     * End of registration phase (inclusive).
-     * If null, registration is considered open until submission timeline starts.
-     */
-    @Setter
-    private LocalDate registrationDeadline;
-
-    /**
-     * End of ongoing/submission phase (inclusive).
-     * If null, ongoing phase has no temporal end configured.
-     */
-    @Setter
-    private LocalDate submissionDeadline;
-
-    /**
-     * End of evaluation phase (inclusive).
-     * If null, evaluation phase has no temporal end configured.
-     */
-    @Setter
-    private LocalDate evaluationDeadline;
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "registrationDeadline", column = @Column(name = "registration_deadline")),
+            @AttributeOverride(name = "submissionDeadline", column = @Column(name = "submission_deadline")),
+            @AttributeOverride(name = "evaluationDeadline", column = @Column(name = "evaluation_deadline"))
+    })
+    private HackathonTimeline timeline;
 
     public Hackathon(String name, String description, List<Participation> participations, List<StaffAssignment> staff, BigDecimal awardPrize) {
         this.name = name;
@@ -118,12 +105,12 @@ public class Hackathon {
         this.awardPrize = awardPrize;
         this.winner = null;
         this.prizePaidAt = null;
-        this.registrationDeadline = null;
-        this.submissionDeadline = null;
-        this.evaluationDeadline = null;
+        this.timeline = HackathonTimeline.empty();
     }
 
-    public Hackathon() {}
+    public Hackathon() {
+        this.timeline = HackathonTimeline.empty();
+    }
 
     /**
      * Returns lifecycle state derived from configured timeline and current date.
@@ -140,7 +127,10 @@ public class Hackathon {
      */
     public HackathonState getHackathonStateAt(LocalDate referenceDate) {
         Objects.requireNonNull(referenceDate, "referenceDate must not be null.");
-        validateTimelineOrThrow(registrationDeadline, submissionDeadline, evaluationDeadline);
+        HackathonTimeline currentTimeline = currentTimeline();
+        LocalDate registrationDeadline = currentTimeline.registrationDeadline();
+        LocalDate submissionDeadline = currentTimeline.submissionDeadline();
+        LocalDate evaluationDeadline = currentTimeline.evaluationDeadline();
 
         if (registrationDeadline != null && !referenceDate.isAfter(registrationDeadline)) {
             return HackathonState.REGISTRATION;
@@ -159,27 +149,8 @@ public class Hackathon {
         return HackathonState.ENDED;
     }
 
-    public void configureTimeline(
-            LocalDate registrationDeadline,
-            LocalDate submissionDeadline,
-            LocalDate evaluationDeadline
-    ) {
-        validateTimelineOrThrow(registrationDeadline, submissionDeadline, evaluationDeadline);
-        this.registrationDeadline = registrationDeadline;
-        this.submissionDeadline = submissionDeadline;
-        this.evaluationDeadline = evaluationDeadline;
-    }
-
-    public void setRegistrationDeadline(LocalDate registrationDeadline) {
-        configureTimeline(registrationDeadline, this.submissionDeadline, this.evaluationDeadline);
-    }
-
-    public void setSubmissionDeadline(LocalDate submissionDeadline) {
-        configureTimeline(this.registrationDeadline, submissionDeadline, this.evaluationDeadline);
-    }
-
-    public void setEvaluationDeadline(LocalDate evaluationDeadline) {
-        configureTimeline(this.registrationDeadline, this.submissionDeadline, evaluationDeadline);
+    public void updateTimeline(HackathonTimeline timeline) {
+        this.timeline = Objects.requireNonNull(timeline, "timeline must not be null.");
     }
 
     /**
@@ -189,19 +160,24 @@ public class Hackathon {
      */
     public void concludeAt(LocalDate referenceDate) {
         Objects.requireNonNull(referenceDate, "referenceDate must not be null.");
+        HackathonTimeline currentTimeline = currentTimeline();
 
         LocalDate endedThreshold = referenceDate.minusDays(1);
-        LocalDate effectiveSubmissionDeadline = submissionDeadline;
+        LocalDate effectiveSubmissionDeadline = currentTimeline.submissionDeadline();
         if (effectiveSubmissionDeadline == null || effectiveSubmissionDeadline.isAfter(endedThreshold)) {
             effectiveSubmissionDeadline = endedThreshold;
         }
 
-        LocalDate effectiveRegistrationDeadline = registrationDeadline;
+        LocalDate effectiveRegistrationDeadline = currentTimeline.registrationDeadline();
         if (effectiveRegistrationDeadline == null || effectiveRegistrationDeadline.isAfter(effectiveSubmissionDeadline)) {
             effectiveRegistrationDeadline = effectiveSubmissionDeadline;
         }
 
-        configureTimeline(effectiveRegistrationDeadline, effectiveSubmissionDeadline, endedThreshold);
+        updateTimeline(new HackathonTimeline(
+                effectiveRegistrationDeadline,
+                effectiveSubmissionDeadline,
+                endedThreshold
+        ));
     }
 
     /**
@@ -336,23 +312,7 @@ public class Hackathon {
         return firstId != null && Objects.equals(firstId, secondId);
     }
 
-    private static void validateTimelineOrThrow(
-            LocalDate registrationDeadline,
-            LocalDate submissionDeadline,
-            LocalDate evaluationDeadline
-    ) {
-        if (registrationDeadline != null
-                && submissionDeadline != null
-                && registrationDeadline.isAfter(submissionDeadline)) {
-            throw new IllegalArgumentException("registrationDeadline must be on or before submissionDeadline.");
-        }
-        if (submissionDeadline == null && evaluationDeadline != null) {
-            throw new IllegalArgumentException("evaluationDeadline requires submissionDeadline to be configured.");
-        }
-        if (submissionDeadline != null
-                && evaluationDeadline != null
-                && submissionDeadline.isAfter(evaluationDeadline)) {
-            throw new IllegalArgumentException("submissionDeadline must be on or before evaluationDeadline.");
-        }
+    private HackathonTimeline currentTimeline() {
+        return timeline == null ? HackathonTimeline.empty() : timeline;
     }
 }

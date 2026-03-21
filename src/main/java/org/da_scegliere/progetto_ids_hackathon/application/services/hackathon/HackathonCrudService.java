@@ -31,21 +31,25 @@ package org.da_scegliere.progetto_ids_hackathon.application.services.hackathon;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IHackathonRepository;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamParticipationRepository;
+import org.da_scegliere.progetto_ids_hackathon.application.services.TeamService;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamParticipationNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Participation;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.HackathonTimeline;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.builder.HackathonBuilder;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.builder.HackathonBuilderDirector;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.builder.IHackathonBuilder;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -62,6 +66,7 @@ import java.util.function.Consumer;
 public class HackathonCrudService {
 
     private final IHackathonRepository hackathonRepository;
+    private final ITeamParticipationRepository teamParticipationRepository;
 
     /**
      * Retrieves all hackathons.
@@ -135,7 +140,7 @@ public class HackathonCrudService {
      * @return immutable snapshot of all hackathons.
      */
     public List<Hackathon> getAllHackathonsByNameAndState( String name,  HackathonState hackathonState ) {
-        log.info("Getting all hackathons by name {} and hackathonState: {}", name, hackathonState);
+        log.info("Getting all hackathons by name {} and hackathonState: {}" , name , hackathonState);
         return List.copyOf(getHackathonByName(name)
                 .stream()
                 .filter(hackathon ->
@@ -188,30 +193,39 @@ public class HackathonCrudService {
      * Creates and persists a new long term hackathon aggregate.
      *
      * @param hackathonId hackathon id.
-     * @param registrationDeadline change hackathon registration deadLine if not null.
-     * @param submissionDeadline change hackathon submission deadLine if not null.
-     * @param evaluationDeadline change hackathon evaluation deadLine if not null.
+     * @param timeline new hackathon timeline values.
      * @return persisted hackathon.
      * @throws IllegalArgumentException when hackathonId is null.
      */
     @Transactional
-    public Hackathon changeHackathonDeadlines(
+    public Hackathon changeHackathonTimeline(
             UUID hackathonId,
-            LocalDate registrationDeadline,
-            LocalDate submissionDeadline,
-            LocalDate evaluationDeadline
+            HackathonTimeline timeline
     ) {
         if (hackathonId == null) {
             throw new IllegalArgumentException("hackathonId must not be null.");
         }
+        if (timeline == null) {
+            throw new IllegalArgumentException("timeline must not be null.");
+        }
 
         Hackathon hackathon = getHackathonById(hackathonId);
-
-        hackathon.configureTimeline(
-                registrationDeadline != null ? registrationDeadline : hackathon.getRegistrationDeadline(),
-                submissionDeadline != null ? submissionDeadline : hackathon.getSubmissionDeadline(),
-                evaluationDeadline != null ? evaluationDeadline : hackathon.getEvaluationDeadline()
+        HackathonTimeline currentTimeline = hackathon.getTimeline() == null
+                ? HackathonTimeline.empty()
+                : hackathon.getTimeline();
+        HackathonTimeline mergedTimeline = new HackathonTimeline(
+                timeline.registrationDeadline() != null
+                        ? timeline.registrationDeadline()
+                        : currentTimeline.registrationDeadline(),
+                timeline.submissionDeadline() != null
+                        ? timeline.submissionDeadline()
+                        : currentTimeline.submissionDeadline(),
+                timeline.evaluationDeadline() != null
+                        ? timeline.evaluationDeadline()
+                        : currentTimeline.evaluationDeadline()
         );
+
+        hackathon.updateTimeline(mergedTimeline);
 
         return hackathon;
     }

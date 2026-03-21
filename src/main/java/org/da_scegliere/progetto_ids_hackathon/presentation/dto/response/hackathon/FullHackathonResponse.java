@@ -32,6 +32,7 @@ import jakarta.validation.constraints.NotNull;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.staff.StaffAssignmentResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.team.TeamResponse;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -40,6 +41,7 @@ public record FullHackathonResponse(
         @NotNull UUID id,
         String name,
         String description ,
+        BigDecimal awardPrize,
         TeamResponse winner,
         List<StaffAssignmentResponse> staff,
         LocalDate registrationDeadLine,

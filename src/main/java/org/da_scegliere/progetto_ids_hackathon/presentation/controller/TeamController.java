@@ -36,7 +36,8 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.team.UpdateTeamRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.user.CreateTeamRequest;
-import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.team.TeamDetailsResponse;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.team.TeamResponse;
+import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.TeamMapper;
 import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.UserMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -80,12 +81,12 @@ public class TeamController {
     }
 
     @GetMapping("/{teamId}")
-    public ResponseEntity<TeamDetailsResponse> getTeamById(@PathVariable UUID teamId) {
-        return ResponseEntity.ok(toResponse(teamService.getTeamById(teamId)));
+    public ResponseEntity<TeamResponse> getTeamById( @PathVariable UUID teamId) {
+        return ResponseEntity.ok(TeamMapper.toResponse(teamService.getTeamById(teamId)));
     }
 
     @GetMapping
-    public ResponseEntity<List<TeamDetailsResponse>> getTeams(
+    public ResponseEntity<List<TeamResponse>> getTeams(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) UUID memberId
     ) {
@@ -103,25 +104,25 @@ public class TeamController {
             teams = teamService.getTeams();
         }
 
-        return ResponseEntity.ok(teams.stream().map(TeamController::toResponse).toList());
+        return ResponseEntity.ok(teams.stream().map(TeamMapper::toResponse).toList());
     }
 
     @PatchMapping("/{teamId}")
-    public ResponseEntity<TeamDetailsResponse> updateTeam(
+    public ResponseEntity<TeamResponse> updateTeam(
             @PathVariable UUID teamId,
             @Valid @RequestBody UpdateTeamRequest request
     ) {
         Team updatedTeam = teamService.changeTeamName(teamId, request.name());
-        return ResponseEntity.ok(toResponse(updatedTeam));
+        return ResponseEntity.ok(TeamMapper.toResponse(updatedTeam));
     }
 
     @PostMapping("/{teamId}/members/{userId}")
-    public ResponseEntity<TeamDetailsResponse> addMemberToTeam(
+    public ResponseEntity<TeamResponse> addMemberToTeam(
             @PathVariable UUID teamId,
             @PathVariable UUID userId
     ) {
         Team updatedTeam = teamService.addMemberToTeam(teamId, userId);
-        return ResponseEntity.ok(toResponse(updatedTeam));
+        return ResponseEntity.ok(TeamMapper.toResponse(updatedTeam));
     }
 
     @DeleteMapping("/{teamId}/members/{userId}")
@@ -139,10 +140,4 @@ public class TeamController {
         return ResponseEntity.noContent().build();
     }
 
-    private static TeamDetailsResponse toResponse(Team team) {
-        List<UUID> memberIds = team.getMembers() == null
-                ? List.of()
-                : team.getMembers().stream().map(User::getId).toList();
-        return new TeamDetailsResponse(team.getId(), team.getName(), memberIds);
-    }
 }

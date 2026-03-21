@@ -29,6 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.builder;
 
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.HackathonTimeline;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Participation;
 
@@ -90,20 +91,8 @@ public class HackathonBuilder implements IHackathonBuilder{
     }
 
     @Override
-    public IHackathonBuilder setRegistrationDeadline(LocalDate date) {
-        this.hackathon.setRegistrationDeadline(date);
-        return this;
-    }
-
-    @Override
-    public IHackathonBuilder setEvaluationDeadline(LocalDate date) {
-        this.hackathon.setEvaluationDeadline(date);
-        return this;
-    }
-
-    @Override
-    public IHackathonBuilder setSubmissionDeadline(LocalDate date) {
-        this.hackathon.setSubmissionDeadline(date);
+    public IHackathonBuilder setTimeline(HackathonTimeline timeline) {
+        this.hackathon.updateTimeline(timeline);
         return this;
     }
 }
