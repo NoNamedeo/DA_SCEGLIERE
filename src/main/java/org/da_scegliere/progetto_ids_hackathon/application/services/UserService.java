@@ -147,13 +147,13 @@ public class UserService{
      * @param name user display name.
      * @param age user age.
      * @param email user e-mail.
-     * @param teamId team currently associated to the user.
+     * @param teamId optional team currently associated to the user.
      * @return persisted user.
      */
     @Transactional
     public User createUser(String name, int age, String email, UUID teamId){
         log.info("Creating user for teamId={} email={}.", teamId, email);
-        Team team = teamService.getTeamById(teamId);
+        Team team = teamId == null ? null : teamService.getTeamById(teamId);
         User user = new User(name, age, email, team);
         User savedUser = userRepository.save(user);
         log.info("Created user id={} for teamId={}.", savedUser.getId(), teamId);

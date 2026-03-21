@@ -34,11 +34,12 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.Setter;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
-import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.team.LeaveTeamContext;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -65,14 +66,68 @@ public class Team {
     public Team() {}
 
     public void addMember(User user) {
+        Objects.requireNonNull(user, "user must not be null.");
+        ensureMembersInitialized();
+
+        if (containsMember(user)) {
+            throw new IllegalArgumentException("User is already a member of this team.");
+        }
+
+        Team currentTeam = user.getTeam();
+        if (currentTeam != null && !isSameTeam(currentTeam)) {
+            throw new IllegalArgumentException("User already belongs to another team.");
+        }
+
         members.add(user);
         user.setTeam(this);
     }
 
     public void removeMember(User user, BusinessPolicy<LeaveTeamContext> leaveTeamPolicy) {
+        Objects.requireNonNull(user, "user must not be null.");
+        Objects.requireNonNull(leaveTeamPolicy, "leaveTeamPolicy must not be null.");
+        ensureMembersInitialized();
+
+        if (!containsMember(user)) {
+            throw new IllegalArgumentException("User is not a member of this team.");
+        }
+
         LeaveTeamContext context = new LeaveTeamContext(this);
         leaveTeamPolicy.validate(context);
-        members.remove(user);
+        members.removeIf(member -> sameUser(member, user));
         user.setTeam(null);
+    }
+
+    private void ensureMembersInitialized() {
+        if (members == null) {
+            members = new ArrayList<>();
+        }
+    }
+
+    private boolean containsMember(User user) {
+        return members.stream().anyMatch(member -> sameUser(member, user));
+    }
+
+    private static boolean sameUser(User first, User second) {
+        if (first == null || second == null) {
+            return false;
+        }
+
+        UUID firstId = first.getId();
+        UUID secondId = second.getId();
+        if (firstId != null && secondId != null) {
+            return Objects.equals(firstId, secondId);
+        }
+        return first == second;
+    }
+
+    private boolean isSameTeam(Team otherTeam) {
+        if (otherTeam == null) {
+            return false;
+        }
+
+        if (this.id != null && otherTeam.getId() != null) {
+            return Objects.equals(this.id, otherTeam.getId());
+        }
+        return this == otherTeam;
     }
 }

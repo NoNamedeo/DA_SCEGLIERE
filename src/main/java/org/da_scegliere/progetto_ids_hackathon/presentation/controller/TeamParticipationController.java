@@ -34,6 +34,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.TeamParticip
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Submission;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.submission.CreateSubmissionRequest;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.teamParticipation.CreateTeamParticipationRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.submission.SubmissionResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.team.TeamParticipationResponse;
 import org.springframework.http.ResponseEntity;
@@ -55,6 +56,23 @@ import java.util.UUID;
 public class TeamParticipationController {
 
     private final TeamParticipationService teamParticipationService;
+
+    @PostMapping
+    public ResponseEntity<Void> createTeamParticipation(
+            @Valid @RequestBody CreateTeamParticipationRequest request
+    ) {
+        TeamParticipation createdParticipation = teamParticipationService.createTeamParticipation(
+                request.hackathonId(),
+                request.teamId(),
+                request.nickname()
+        );
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{participationId}")
+                .buildAndExpand(createdParticipation.getId())
+                .toUri();
+        return ResponseEntity.created(location).build();
+    }
 
     @GetMapping("/{participationId}")
     public ResponseEntity<TeamParticipationResponse> getTeamParticipation(@PathVariable UUID participationId) {
@@ -89,7 +107,7 @@ public class TeamParticipationController {
         return ResponseEntity.created(location).build();
     }
 
-    private static TeamParticipationResponse toResponse(TeamParticipation participation) {
+    public static TeamParticipationResponse toResponse(TeamParticipation participation) {
         UUID teamId = participation.getTeam() != null ? participation.getTeam().getId() : null;
         UUID hackathonId = participation.getHackathon() != null ? participation.getHackathon().getId() : null;
 

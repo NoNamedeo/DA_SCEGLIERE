@@ -44,9 +44,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -145,11 +147,13 @@ public class TeamService{
         if (members.stream().anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException("members must not contain null values.");
         }
+        ensureDistinctMembers(members);
+        ensureAllUsersWithoutTeam(members);
 
         log.info("Creating team name={} initialMembersCount={}.", name, members.size());
 
-        Team team = new Team(name, new ArrayList<>(members));
-        team.getMembers().forEach(member -> member.setTeam(team));
+        Team team = new Team(name, new ArrayList<>());
+        members.forEach(team::addMember);
 
         for(User user : members) {
             BaseNotification notification = new BaseNotification("Team creato", "il team è stato creato", user, 3);
@@ -217,9 +221,12 @@ public class TeamService{
     @Transactional
     public Team addMemberToTeam(UUID teamId, UUID userId) {
         log.info("Adding team member userId={} to teamId={}.", userId, teamId);
+        requireNonNullId(teamId, "teamId");
+        requireNonNullId(userId, "userId");
 
         Team team = getTeamById(teamId);
         User user = getUserById(userId);
+        ensureUserCanJoinTeam(user, team);
         team.addMember(user);
 
         for(User userToNotify : team.getMembers()){
@@ -241,10 +248,12 @@ public class TeamService{
     @Transactional
     public Optional<Team> removeMemberFromTeam(UUID teamId, UUID userId) {
         log.info("Removing team member userId={} from teamId={}.", userId, teamId);
+        requireNonNullId(teamId, "teamId");
+        requireNonNullId(userId, "userId");
 
         Team team = getTeamById(teamId);
         User user = getUserById(userId);
-        validateMembership(team, userId);
+        validateMembership(team, user);
 
         for(User userToNotify : team.getMembers()){
             BaseNotification notification = new BaseNotification("Membro rimosso", "il membro è stato rimosso", userToNotify, 3);
@@ -266,12 +275,57 @@ public class TeamService{
         }
     }
 
-    private static void validateMembership(Team team, UUID userId) {
+    private static void validateMembership(Team team, User user) {
+        Team currentUserTeam = user.getTeam();
+        UUID teamId = team.getId();
+        UUID currentUserTeamId = currentUserTeam != null ? currentUserTeam.getId() : null;
+
+        boolean userPointsToTeam = currentUserTeam != null && Objects.equals(currentUserTeamId, teamId);
         boolean isMember = team.getMembers() != null
                 && team.getMembers().stream()
-                .anyMatch(member -> member != null && userId.equals(member.getId()));
-        if (!isMember) {
+                .anyMatch(member -> member != null && Objects.equals(user.getId(), member.getId()));
+
+        if (!userPointsToTeam || !isMember) {
             throw new IllegalArgumentException("User is not a member of the specified team.");
+        }
+    }
+
+    private static void ensureDistinctMembers(List<User> members) {
+        Set<UUID> seenIds = new HashSet<>();
+        for (User member : members) {
+            UUID memberId = member.getId();
+            if (memberId != null && !seenIds.add(memberId)) {
+                throw new IllegalArgumentException("members must not contain duplicates.");
+            }
+        }
+    }
+
+    private static void ensureAllUsersWithoutTeam(List<User> members) {
+        for (User member : members) {
+            if (member.getTeam() != null) {
+                throw new IllegalArgumentException("Cannot create team with users already assigned to a team.");
+            }
+        }
+    }
+
+    private static void ensureUserCanJoinTeam(User user, Team targetTeam) {
+        Team currentTeam = user.getTeam();
+        if (currentTeam == null) {
+            return;
+        }
+
+        UUID currentTeamId = currentTeam.getId();
+        UUID targetTeamId = targetTeam.getId();
+
+        if (Objects.equals(currentTeamId, targetTeamId)) {
+            throw new IllegalArgumentException("User is already a member of this team.");
+        }
+        throw new IllegalArgumentException("User already belongs to another team.");
+    }
+
+    private static void requireNonNullId(UUID id, String fieldName) {
+        if (id == null) {
+            throw new IllegalArgumentException(fieldName + " must not be null.");
         }
     }
 

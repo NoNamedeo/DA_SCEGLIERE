@@ -32,12 +32,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IHackathonRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamParticipationRepository;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.InvalidHackathonStateOperationException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.InvalidSubmissionEvaluationException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.SubmissionDeadlineExceededException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.SubmissionEvaluationNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.SubmissionNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamAlreadyParticipatingException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamParticipationNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.HackathonTimeline;
@@ -50,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -64,15 +68,27 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TeamParticipationService {
 
+    private static final String OP_CREATE_TEAM_PARTICIPATION = "Create team participation";
     private static final String OP_CREATE_SUBMISSION = "Create submission";
     private static final String OP_UPDATE_SUBMISSION = "Update submission";
     private static final String OP_EVALUATE_SUBMISSION = "Evaluate submission";
     private static final String OP_UPDATE_SUBMISSION_EVALUATION = "Update submission evaluation";
 
     private final ITeamParticipationRepository teamParticipationRepository;
+    private final ITeamRepository teamRepository;
     private final IHackathonRepository hackathonRepository;
     private final Clock clock;
 
+
+    public List<TeamParticipation> getAllTeamParticipationsByTeamId(UUID teamId) {
+        log.info("Getting all team participations for teamId={}.", teamId);
+
+        if(teamId == null){
+            throw new IllegalArgumentException("teamId must not be null.");
+        }
+
+        return List.copyOf(teamParticipationRepository.findByTeam_id(teamId));
+    }
 
     /**
      * Retrieves a team participation by id.
@@ -92,6 +108,66 @@ public class TeamParticipationService {
         return teamParticipationRepository
                 .findById(teamParticipationId)
                 .orElseThrow(() -> new TeamParticipationNotFoundException(teamParticipationId));
+    }
+
+    /**
+     * Creates and persists a team participation for a given hackathon and team.
+     * <p>
+     * Operation allowed only during hackathon {@code REGISTRATION} phase.
+     *
+     * @param hackathonId target hackathon identifier.
+     * @param teamId team identifier.
+     * @param nickname participation nickname.
+     * @return persisted team participation.
+     * @throws IllegalArgumentException when input is invalid.
+     * @throws HackathonNotFoundException when hackathon does not exist.
+     * @throws TeamNotFoundException when team does not exist.
+     * @throws InvalidHackathonStateOperationException when hackathon state does not allow new participations.
+     * @throws TeamAlreadyParticipatingException when the team is already registered in the same hackathon.
+     */
+    @Transactional
+    public TeamParticipation createTeamParticipation(UUID hackathonId, UUID teamId, String nickname) {
+        log.info("Creating team participation hackathonId={} teamId={}", hackathonId, teamId);
+
+        if (hackathonId == null) {
+            throw new IllegalArgumentException("hackathonId must not be null.");
+        }
+        if (teamId == null) {
+            throw new IllegalArgumentException("teamId must not be null.");
+        }
+        requireNonBlank(nickname, "nickname");
+
+        Hackathon hackathon = hackathonRepository.findById(hackathonId)
+                .orElseThrow(() -> new HackathonNotFoundException(hackathonId));
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException(teamId));
+
+        LocalDate today = LocalDate.now(clock);
+        HackathonState currentState = hackathon.getHackathonStateAt(today);
+        if (currentState != HackathonState.REGISTRATION) {
+            throw new InvalidHackathonStateOperationException(currentState, OP_CREATE_TEAM_PARTICIPATION);
+        }
+
+        if (teamParticipationRepository.existsByHackathon_idAndTeam_id(hackathonId, teamId)) {
+            throw new TeamAlreadyParticipatingException(teamId, hackathonId);
+        }
+
+        TeamParticipation participation = new TeamParticipation(
+                today,
+                nickname,
+                hackathon,
+                team,
+                new ArrayList<>()
+        );
+
+        TeamParticipation savedParticipation = teamParticipationRepository.save(participation);
+        log.info(
+                "Created team participation participationId={} hackathonId={} teamId={}",
+                savedParticipation.getId(),
+                hackathonId,
+                teamId
+        );
+        return savedParticipation;
     }
 
     /**

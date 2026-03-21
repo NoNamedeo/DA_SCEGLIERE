@@ -30,12 +30,15 @@ package org.da_scegliere.progetto_ids_hackathon.presentation.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.da_scegliere.progetto_ids_hackathon.application.services.TeamParticipationService;
 import org.da_scegliere.progetto_ids_hackathon.application.services.TeamService;
 import org.da_scegliere.progetto_ids_hackathon.application.services.UserService;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.team.UpdateTeamRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.user.CreateTeamRequest;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.team.TeamParticipationResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.team.TeamResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.TeamMapper;
 import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.UserMapper;
@@ -63,6 +66,7 @@ public class TeamController {
 
     private final TeamService teamService;
     private final UserService userService;
+    private final TeamParticipationService teamParticipationService;
 
     @PostMapping
     public ResponseEntity<Void> createTeam(@Valid @RequestBody CreateTeamRequest request) {
@@ -105,6 +109,14 @@ public class TeamController {
         }
 
         return ResponseEntity.ok(teams.stream().map(TeamMapper::toResponse).toList());
+    }
+
+    @GetMapping("/{teamId}/team-participations")
+    public ResponseEntity<List<TeamParticipationResponse>> getTeamParticipations( @PathVariable UUID teamId){
+        List<TeamParticipation> teamParticipations = teamParticipationService
+                .getAllTeamParticipationsByTeamId(teamId);
+
+        return ResponseEntity.ok(teamParticipations.stream().map(TeamParticipationController::toResponse).toList());
     }
 
     @PatchMapping("/{teamId}")

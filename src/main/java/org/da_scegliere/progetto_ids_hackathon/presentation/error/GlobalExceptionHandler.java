@@ -32,6 +32,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.t
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.SubmissionDeadlineExceededException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.SubmissionEvaluationNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.SubmissionNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamAlreadyParticipatingException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamParticipationNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -101,6 +102,7 @@ public class GlobalExceptionHandler {
             StaffEmailAlreadyInUseException.class,
             InvalidSupportRequestStateTransitionException.class,
             SubmissionDeadlineExceededException.class,
+            TeamAlreadyParticipatingException.class,
             CalendarConflictException.class,
             CalendarProviderConflictException.class,
             WinnerNotProclaimedException.class

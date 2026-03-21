@@ -42,4 +42,8 @@ public interface ITeamParticipationRepository {
     List<TeamParticipation> findByTeam_id(UUID teamId);
 
     List<TeamParticipation> findByHackathon_id(UUID hackathonId);
+
+    boolean existsByHackathon_idAndTeam_id(UUID hackathonId, UUID teamId);
+
+    TeamParticipation save(TeamParticipation teamParticipation);
 }
