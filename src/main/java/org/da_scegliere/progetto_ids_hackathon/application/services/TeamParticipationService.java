@@ -94,6 +94,13 @@ public class TeamParticipationService {
                 .orElseThrow(() -> new TeamParticipationNotFoundException(teamParticipationId));
     }
 
+    /**
+     * Retrieves a teams by hackathonId.
+     *
+     * @param hackathonId hackathon identifier.
+     * @return list of participating teams.
+     * @throws HackathonNotFoundException when hackathon does not exist.
+     */
     public List<Team> getTeamsByHackathon( UUID hackathonId) {
         log.info("Getting teams by hackathonId={}", hackathonId);
 
