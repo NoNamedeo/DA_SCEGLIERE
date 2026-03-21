@@ -38,6 +38,7 @@ import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.staff.Cr
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.staff.UpdateStaffMemberRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.hackathon.HackathonSummaryResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.staff.StaffMemberResponse;
+import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.StaffMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -51,7 +52,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -80,7 +80,7 @@ public class StaffController {
 
     @GetMapping("/{staffMemberId}")
     public ResponseEntity<StaffMemberResponse> getStaffMember(@PathVariable UUID staffMemberId) {
-        return ResponseEntity.ok(toResponse(staffService.getStaffMemberById(staffMemberId)));
+        return ResponseEntity.ok(StaffMapper.toResponse(staffService.getStaffMemberById(staffMemberId)));
     }
 
     @GetMapping
@@ -102,7 +102,7 @@ public class StaffController {
             staffMembers = staffService.getAllStaffMembers();
         }
 
-        return ResponseEntity.ok(staffMembers.stream().map(StaffController::toResponse).toList());
+        return ResponseEntity.ok(staffMembers.stream().map(StaffMapper::toResponse).toList());
     }
 
     @PatchMapping("/{staffMemberId}")
@@ -111,7 +111,7 @@ public class StaffController {
             @Valid @RequestBody UpdateStaffMemberRequest request
     ) {
         StaffMember updatedStaffMember = staffService.changeStaffMemberName(staffMemberId, request.name());
-        return ResponseEntity.ok(toResponse(updatedStaffMember));
+        return ResponseEntity.ok(StaffMapper.toResponse(updatedStaffMember));
     }
 
     @GetMapping("/{staffMemberId}/managed-hackathons")
@@ -122,14 +122,14 @@ public class StaffController {
         List<Hackathon> hackathons = role == null
                 ? staffService.getHackathonsManagedByStaffMember(staffMemberId)
                 : staffService.getHackathonsManagedByStaffMemberAndRole(staffMemberId, role);
-        return ResponseEntity.ok(hackathons.stream().map(StaffController::toHackathonSummary).toList());
+        return ResponseEntity.ok(hackathons.stream().map(StaffMapper::toHackathonSummary).toList());
     }
 
     @GetMapping("/{staffMemberId}/managed-hackathons/grouped-by-role")
     public ResponseEntity<Map<StaffRole, List<HackathonSummaryResponse>>> getManagedHackathonsGroupedByRole(
             @PathVariable UUID staffMemberId
     ) {
-        Map<StaffRole, List<HackathonSummaryResponse>> response = toGroupedResponse(
+        Map<StaffRole, List<HackathonSummaryResponse>> response = StaffMapper.toGroupedResponse(
                 staffService.getHackathonsManagedByStaffMemberPerRole(staffMemberId)
         );
         return ResponseEntity.ok(response);
@@ -138,7 +138,7 @@ public class StaffController {
     @GetMapping("/managed-hackathons/grouped-by-role")
     public ResponseEntity<Map<StaffRole, List<HackathonSummaryResponse>>> getManagedHackathonsGroupedByRole() {
         Map<StaffRole, List<HackathonSummaryResponse>> response =
-                toGroupedResponse(staffService.getHackathonsManagedPerRole());
+                StaffMapper.toGroupedResponse(staffService.getHackathonsManagedPerRole());
         return ResponseEntity.ok(response);
     }
 

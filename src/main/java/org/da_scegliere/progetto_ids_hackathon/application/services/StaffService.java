@@ -31,6 +31,7 @@ package org.da_scegliere.progetto_ids_hackathon.application.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.*;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.StaffEmailAlreadyInUseException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff.StaffMemberNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
@@ -41,6 +42,8 @@ import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.*;
 
 /**
@@ -54,9 +57,11 @@ public class StaffService {
 
     private final IStaffMemberRepository staffMemberRepository;
     private final IStaffAssignmentRepository staffAssignmentRepository;
+    private final IHackathonRepository hackathonRepository;
     private final IUserRepository userRepository;
     private final IManagerRepository managerRepository;
     private final INotificationRepository notificationRepository;
+    private final Clock clock;
 
     /**
      * Retrieves all staff members.
@@ -368,8 +373,9 @@ public class StaffService {
         StaffMember staffMember = new StaffMember(name, age, email, new ArrayList<>());
         StaffMember savedStaffMember = staffMemberRepository.save(staffMember);
         
-            BaseNotification notification = new BaseNotification("Membro Staff creato", "é stato creato un nuovo membro Staff",staffMember, 3);
-            notificationRepository.save(notification);
+        BaseNotification notification = new BaseNotification("Creazione account staff", "Nuovo Staff account creato", staffMember, 3);
+        notificationRepository.save(notification);
+
         log.info("Created staff member id={}.", savedStaffMember.getId());
         return savedStaffMember;
     }
@@ -384,11 +390,15 @@ public class StaffService {
     @Transactional
     public StaffMember changeStaffMemberName(UUID staffMemberId, String newName) {
         log.info("Changing staff member name for staffMemberId={}.", staffMemberId);
+
         StaffMember staffMember = getStaffMemberById(staffMemberId);
         staffMember.setName(newName);
         StaffMember updatedStaffMember = staffMemberRepository.save(staffMember);
-        BaseNotification notification = new BaseNotification("Membro Staff aggiornato", "é stato aggiornato un membro Staff",staffMember, 3);
+
+        BaseNotification notification = new BaseNotification("Nome aggiornato",
+                "Il nome del tuo account è stato aggiornato in: " + newName, staffMember, 3);
         notificationRepository.save(notification);
+
         log.info("Changed staff member name for staffMemberId={}.", staffMemberId);
         return updatedStaffMember;
     }

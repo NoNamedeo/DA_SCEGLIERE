@@ -30,10 +30,14 @@ package org.da_scegliere.progetto_ids_hackathon.application.services.hackathon;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.INotificationRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffAssignmentRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffMemberRepository;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.InvalidHackathonStateOperationException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff.StaffMemberNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
@@ -69,6 +73,7 @@ public class HackathonStaffService {
     private final HackathonCrudService hackathonCrudService;
     private final IStaffMemberRepository staffMemberRepository;
     private final IStaffAssignmentRepository staffAssignmentRepository;
+    private final INotificationRepository notificationRepository;
     private final Clock clock;
 
     /**
@@ -86,6 +91,7 @@ public class HackathonStaffService {
     @Transactional
     public Hackathon addStaffMembers(UUID hackathonId, Map<UUID, StaffRole> staffMembersIdMap) {
         log.info("Adding staff members to hackathon {}", hackathonId);
+
         if (staffMembersIdMap == null) {
             throw new IllegalArgumentException("staffMembersIdMap must not be null.");
         }
@@ -99,18 +105,55 @@ public class HackathonStaffService {
         for (Map.Entry<UUID, StaffRole> entry : staffMembersIdMap.entrySet()) {
             UUID staffId = entry.getKey();
             StaffRole role = entry.getValue();
+
             if (staffId == null || role == null) {
                 throw new IllegalArgumentException("staffMembersIdMap must contain only non-null keys and values.");
             }
 
             StaffMember member = staffMemberRepository.findById(staffId)
-                    .orElseThrow(() -> new IllegalArgumentException("Staff member not found: " + staffId + "."));
-            StaffAssignment assignment = new StaffAssignment(LocalDate.now(clock), role, member, null);
-            hackathon.addStaffAssignment(assignment);
+                    .orElseThrow(() -> new StaffMemberNotFoundException(staffId));
+
+            createAndPersistAssignment(hackathon, member, role);
         }
 
         log.info("Added staff members to hackathon {}", hackathonId);
         return hackathon;
+    }
+
+    /**
+     * Assigns a {@link StaffMember} to a {@link Hackathon} with a specific {@link StaffRole}.
+     * <p>
+     * @param hackathonId identifier of the hackathon to which the staff member will be assigned
+     * @param staffMemberId identifier of the staff member to assign
+     * @param role role to assign within the hackathon (e.g. JUDGE, ORGANIZER, etc.)
+     * @return the persisted {@link StaffAssignment}
+     *
+     * @throws NullPointerException if any input parameter is {@code null}
+     * @throws HackathonNotFoundException if the hackathon cannot be found staff member
+     * @throws StaffMemberNotFoundException if the staff member  cannot be found
+     *
+     * @implNote
+     * This method is transactional and ensures atomic consistency between:
+     * hackathon aggregate state, assignment persistence, and notification creation.
+     */
+    @Transactional
+    public StaffAssignment assignStaffToHackathon(
+            UUID hackathonId,
+            UUID staffMemberId,
+            StaffRole role
+    ) {
+        Objects.requireNonNull(role, "role must not be null");
+
+        log.info("Assigning staffMember={} to hackathon={} with role={}",
+                staffMemberId, hackathonId, role);
+
+        Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
+        validateStaffManagementState(hackathon, LocalDate.now(clock));
+
+        StaffMember staffMember = staffMemberRepository.findById(staffMemberId)
+                .orElseThrow(() -> new StaffMemberNotFoundException(staffMemberId));
+
+        return createAndPersistAssignment(hackathon, staffMember, role);
     }
 
     /**
@@ -184,5 +227,37 @@ public class HackathonStaffService {
         if (hackathonState == HackathonState.EVALUATION || hackathonState == HackathonState.ENDED) {
             throw new InvalidHackathonStateOperationException(hackathonState, "Staff management");
         }
+    }
+
+    private StaffAssignment createAndPersistAssignment(
+            Hackathon hackathon,
+            StaffMember member,
+            StaffRole role
+    ) {
+        StaffAssignment assignment = new StaffAssignment(
+                LocalDate.now(clock),
+                role,
+                member,
+                hackathon
+        );
+
+        hackathon.addStaffAssignment(assignment);
+
+        StaffAssignment saved = staffAssignmentRepository.save(assignment);
+
+        notifyAssignment(member, role);
+
+        return saved;
+    }
+
+    private void notifyAssignment(StaffMember member, StaffRole role) {
+        notificationRepository.save(
+                new BaseNotification(
+                        "Nuovo incarico",
+                        "Sei stato assegnato a un hackathon come " + role,
+                        member,
+                        2
+                )
+        );
     }
 }

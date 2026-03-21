@@ -51,4 +51,6 @@ public interface IStaffAssignmentRepository {
     List<StaffAssignment> findByStaffMember_Id(UUID staffMemberId);
 
     List<StaffAssignment> findByStaffMember_IdAndStaffRole(UUID staffMemberId, StaffRole staffRole);
+
+    StaffAssignment save(StaffAssignment staffAssignment);
 }
