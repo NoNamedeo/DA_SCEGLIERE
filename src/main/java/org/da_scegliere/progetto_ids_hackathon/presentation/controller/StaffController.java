@@ -148,34 +148,4 @@ public class StaffController {
         return ResponseEntity.noContent().build();
     }
 
-    private static StaffMemberResponse toResponse(StaffMember staffMember) {
-        return new StaffMemberResponse(
-                staffMember.getId(),
-                staffMember.getName(),
-                staffMember.getAge(),
-                staffMember.getEmail(),
-                staffMember.getAccountStatus()
-        );
-    }
-
-    private static HackathonSummaryResponse toHackathonSummary(Hackathon hackathon) {
-        return new HackathonSummaryResponse(
-                hackathon.getId(),
-                hackathon.getName(),
-                hackathon.getDescription(),
-                hackathon.getRegistrationDeadline(),
-                hackathon.getSubmissionDeadline(),
-                hackathon.getEvaluationDeadline()
-        );
-    }
-
-    private static Map<StaffRole, List<HackathonSummaryResponse>> toGroupedResponse(
-            Map<StaffRole, List<Hackathon>> groupedHackathons
-    ) {
-        Map<StaffRole, List<HackathonSummaryResponse>> response = new EnumMap<>(StaffRole.class);
-        for (Map.Entry<StaffRole, List<Hackathon>> entry : groupedHackathons.entrySet()) {
-            response.put(entry.getKey(), entry.getValue().stream().map(StaffController::toHackathonSummary).toList());
-        }
-        return response;
-    }
 }
