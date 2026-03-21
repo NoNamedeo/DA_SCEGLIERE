@@ -40,7 +40,7 @@ public record NotificationResponse (
     String message,
     LocalDate date,
     NotificationStatus status,
-    int priority,
+    Integer priority,
     UUID targetId
 ) {
 

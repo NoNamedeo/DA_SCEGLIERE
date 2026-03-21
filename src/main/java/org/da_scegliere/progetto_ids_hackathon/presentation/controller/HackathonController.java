@@ -78,14 +78,18 @@ public class HackathonController {
 
         List<Hackathon> hackathons;
 
+        HackathonState parsedState = state != null
+                ? HackathonState.valueOf(state.toString().toUpperCase())
+                : null;
+
         if (name != null && !name.isBlank()) {
             if(state == null) {
                 hackathons = hackathonCrudService.getHackathonByName(name);
             }else{
-                hackathons = hackathonCrudService.getAllHackathonsByNameAndState(name, state);
+                hackathons = hackathonCrudService.getAllHackathonsByNameAndState(name, parsedState);
             }
         } else if (state != null) {
-            hackathons = hackathonCrudService.getAllHackathonsByState(state);
+            hackathons = hackathonCrudService.getAllHackathonsByState(parsedState);
 
         } else {
             hackathons = hackathonCrudService.getAllHackathons();
@@ -132,8 +136,8 @@ public class HackathonController {
             hackathonCrudService.changeHackathonDeadlines(
                     createdHackathon.getId(),
                     request.registrationDeadline(),
-                    request.evaluationDeadline(),
-                    request.submissionDeadline()
+                    request.submissionDeadline(),
+                    request.evaluationDeadline()
             );
         }
 

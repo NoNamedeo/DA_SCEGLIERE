@@ -29,6 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.infrastructure.jpa.repositories;
 
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.INotificationRepository;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.AbstractNotification;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -36,5 +37,5 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface JpaNotificationRepository extends JpaRepository<BaseNotification, UUID>, INotificationRepository {
+public interface JpaNotificationRepository extends JpaRepository<AbstractNotification, UUID>, INotificationRepository {
 }

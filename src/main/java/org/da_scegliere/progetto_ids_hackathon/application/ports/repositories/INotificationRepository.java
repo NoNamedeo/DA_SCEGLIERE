@@ -36,11 +36,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface INotificationRepository {
-    List<BaseNotification> findAll();
 
-    Optional<BaseNotification> findById( UUID notificationId);
+    List<AbstractNotification> findAll();
 
-    BaseNotification save( AbstractNotification notification);
+    Optional<AbstractNotification> findById(UUID notificationId);
 
-    void delete( BaseNotification notification);
+    List<AbstractNotification> findByTarget_Id(UUID targetId);
+
+    AbstractNotification save(AbstractNotification notification);
+
+    void delete(AbstractNotification notification);
 }

@@ -28,6 +28,7 @@
 
 package org.da_scegliere.progetto_ids_hackathon.presentation.mapper;
 
+import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.AbstractNotification;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.notifications.NotificationResponse;
 
@@ -36,31 +37,27 @@ import java.util.List;
 
 public class NotificationMapper {
 
-    public static List<NotificationResponse> toNotificationResponseList( List<BaseNotification> notifications ){
-        List<NotificationResponse> notificationResponses = new ArrayList<NotificationResponse>();
-        for(BaseNotification notification : notifications){
-            NotificationResponse notificationResponse = new NotificationResponse(
-                    notification.getId(),
-                    notification.getTitle(),
-                    notification.getMessage(),
-                    notification.getDate(),
-                    notification.getNotificationStatus(),
-                    notification.getPriority(),
-                    notification.getTarget().getId()
-            );
-            notificationResponses.add(notificationResponse);
-        }
-        return notificationResponses;
+    public static List<NotificationResponse> toNotificationResponseList(List<AbstractNotification> notifications) {
+        return notifications.stream()
+                .map(NotificationMapper::toNotificationResponse)
+                .toList();
     }
 
-    public static NotificationResponse toNotificationResponse( BaseNotification notification ){
+    public static NotificationResponse toNotificationResponse(AbstractNotification notification) {
+
+        Integer priority = null;
+
+        if (notification instanceof BaseNotification base) {
+            priority = base.getPriority();
+        }
+
         return new NotificationResponse(
                 notification.getId(),
                 notification.getTitle(),
                 notification.getMessage(),
                 notification.getDate(),
                 notification.getNotificationStatus(),
-                notification.getPriority(),
+                priority,
                 notification.getTarget().getId()
         );
     }

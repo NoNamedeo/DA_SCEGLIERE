@@ -189,8 +189,8 @@ public class HackathonCrudService {
      *
      * @param hackathonId hackathon id.
      * @param registrationDeadline change hackathon registration deadLine if not null.
-     * @param evaluationDeadLine change hackathon evaluation deadLine if not null.
-     * @param submissionDeadLine change hackathon submission deadLine if not null.
+     * @param submissionDeadline change hackathon submission deadLine if not null.
+     * @param evaluationDeadline change hackathon evaluation deadLine if not null.
      * @return persisted hackathon.
      * @throws IllegalArgumentException when hackathonId is null.
      */
@@ -198,20 +198,20 @@ public class HackathonCrudService {
     public Hackathon changeHackathonDeadlines(
             UUID hackathonId,
             LocalDate registrationDeadline,
-            LocalDate evaluationDeadLine,
-            LocalDate submissionDeadLine
+            LocalDate submissionDeadline,
+            LocalDate evaluationDeadline
     ) {
-        if(hackathonId == null) {
+        if (hackathonId == null) {
             throw new IllegalArgumentException("hackathonId must not be null.");
         }
 
         Hackathon hackathon = getHackathonById(hackathonId);
-        if(registrationDeadline != null)
-            hackathon.setRegistrationDeadline(registrationDeadline);
-        if(evaluationDeadLine != null)
-            hackathon.setEvaluationDeadline(evaluationDeadLine);
-        if(submissionDeadLine != null)
-            hackathon.setSubmissionDeadline(submissionDeadLine);
+
+        hackathon.configureTimeline(
+                registrationDeadline != null ? registrationDeadline : hackathon.getRegistrationDeadline(),
+                submissionDeadline != null ? submissionDeadline : hackathon.getSubmissionDeadline(),
+                evaluationDeadline != null ? evaluationDeadline : hackathon.getEvaluationDeadline()
+        );
 
         return hackathon;
     }
