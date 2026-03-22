@@ -30,12 +30,17 @@ package org.da_scegliere.progetto_ids_hackathon.presentation.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.da_scegliere.progetto_ids_hackathon.application.services.NotificationService;
+import org.da_scegliere.progetto_ids_hackathon.application.services.TeamService;
 import org.da_scegliere.progetto_ids_hackathon.application.services.UserService;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.AbstractNotification;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.user.AccountState;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.user.CreateUserRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.user.UpdateUserRequest;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.notifications.NotificationResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.user.UserResponse;
+import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.NotificationMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,6 +63,8 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final TeamService teamService;
+    private final NotificationService notificationService;
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable UUID userId) {
@@ -96,6 +103,13 @@ public class UserController {
         return ResponseEntity.ok(users.stream().map(UserController::toResponse).toList());
     }
 
+    @GetMapping("/{userId}/notifications")
+    public ResponseEntity<List<NotificationResponse>> getUserNotifications(@PathVariable UUID userId) {
+        List<AbstractNotification> notifications = notificationService.getNotificationsByTargetId(userId);
+
+        return ResponseEntity.ok(notifications.stream().map(NotificationMapper::toNotificationResponse).toList());
+    }
+
     @PostMapping
     public ResponseEntity<Void> createUser(@Valid @RequestBody CreateUserRequest request) {
         User createdUser = userService.createUser(
@@ -118,6 +132,12 @@ public class UserController {
     ) {
         User updatedUser = userService.changeUserName(userId, request.name());
         return ResponseEntity.ok(toResponse(updatedUser));
+    }
+
+    @DeleteMapping("/{userId}/team")
+    public ResponseEntity<Void> leaveCurrentTeam(@PathVariable UUID userId) {
+        teamService.leaveCurrentTeam(userId);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{userId}")

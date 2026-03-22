@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.INotificationRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserRepository;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.user.UserNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
@@ -178,7 +178,11 @@ public class TeamService{
         Team team = getTeamById(teamId);
 
         for(User user : team.getMembers()){
-            BaseNotification notification = new BaseNotification("Team cancellato", "il team è stato cancellato", user, 3);
+            user.setTeam(null);
+            BaseNotification notification = new BaseNotification(
+                    "Team cancellato",
+                    "il team: " + team.getName() + " è stato cancellato",
+                    user, 3);
             notificationRepository.save(notification);
         }
 
@@ -255,24 +259,62 @@ public class TeamService{
         User user = getUserById(userId);
         validateMembership(team, user);
 
-        for(User userToNotify : team.getMembers()){
-            BaseNotification notification = new BaseNotification("Membro rimosso", "il membro è stato rimosso", userToNotify, 3);
-            notificationRepository.save(notification);
-        }
-
         try{
             team.removeMember(user, leaveTeamPolicy);
+            for (User remainingMember : team.getMembers()) {
+                BaseNotification notification = new BaseNotification(
+                        "Membro uscito dal team",
+                        "Il membro " + user.getName() + " ha abbandonato il team " + team.getName() + ".",
+                        remainingMember,
+                        3
+                );
+                notificationRepository.save(notification);
+            }
             log.info("Removed team member userId={} from teamId={}.", userId, teamId);
             return Optional.of(team);
         }
         catch(IllegalStateException ex){
-            for(User lastUser : team.getMembers()) {
-                lastUser.setTeam(null);
+            List<User> membersBeforeDelete = List.copyOf(team.getMembers());
+
+            for (User member : membersBeforeDelete) {
+                member.setTeam(null);
             }
-            deleteTeam(teamId);
+
+            membersBeforeDelete.stream()
+                    .filter(member -> !Objects.equals(member.getId(), userId))
+                    .forEach(member -> notificationRepository.save(
+                            new BaseNotification(
+                                    "Team cancellato",
+                                    "Il team " + team.getName() + " è stato cancellato dopo l'abbandono di " + user.getName() + ".",
+                                    member,
+                                    3
+                            )
+                    ));
+
+            teamRepository.delete(team);
             log.info("Removed team member userId={} and deleted now-empty teamId={}.", userId, teamId);
             return Optional.empty();
         }
+    }
+
+    /**
+     * Removes a user from their current team.
+     *
+     * @param userId user identifier.
+     * @return optional updated team; empty when the team is deleted as a consequence of leave.
+     */
+    @Transactional
+    public Optional<Team> leaveCurrentTeam(UUID userId) {
+        log.info("Leaving current team userId={}.", userId);
+        requireNonNullId(userId, "userId");
+
+        User user = getUserById(userId);
+        Team currentTeam = user.getTeam();
+        if (currentTeam == null) {
+            throw new IllegalArgumentException("User does not belong to any team.");
+        }
+
+        return removeMemberFromTeam(currentTeam.getId(), userId);
     }
 
     private static void validateMembership(Team team, User user) {

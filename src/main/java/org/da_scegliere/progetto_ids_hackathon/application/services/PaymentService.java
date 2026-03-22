@@ -30,12 +30,13 @@ package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IHackathonRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.INotificationRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.PaymentStrategy;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.PaymentProviderException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.payment.PaymentFailedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.payment.WinnerNotProclaimedException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.HackathonCrudService;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
@@ -58,7 +59,7 @@ import java.util.UUID;
 public class PaymentService {
 
     private final PaymentStrategy paymentStrategy;
-    private final HackathonCrudService hackathonCrudService;
+    private final IHackathonRepository hackathonRepository;
     private final Clock clock;
     private final INotificationRepository notificationRepository;
 
@@ -74,7 +75,8 @@ public class PaymentService {
         if (hackathonId == null) {
             throw new IllegalArgumentException("hackathonId must not be null.");
         }
-        Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
+        Hackathon hackathon = hackathonRepository.findByIdForUpdate(hackathonId)
+                .orElseThrow(() -> new HackathonNotFoundException(hackathonId));
         return awardPrizeToWinner(prize, hackathon);
     }
 

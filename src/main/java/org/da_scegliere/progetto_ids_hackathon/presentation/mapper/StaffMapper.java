@@ -32,7 +32,6 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.HackathonTimeline;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
-import org.da_scegliere.progetto_ids_hackathon.presentation.controller.StaffController;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.hackathon.HackathonSummaryResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.staff.StaffMemberResponse;
 

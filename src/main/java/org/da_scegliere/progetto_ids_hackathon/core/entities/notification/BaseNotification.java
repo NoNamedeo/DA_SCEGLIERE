@@ -29,6 +29,8 @@
 package org.da_scegliere.progetto_ids_hackathon.core.entities.notification;
 
 import jakarta.persistence.Entity;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,8 +42,18 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.user.AbstractUser;
 public class BaseNotification extends AbstractNotification{
 
     @NotNull
+    @Min(0)
+    @Max(10)
     private int priority;
 
+    /**
+     * Base notification used to notify users.
+     *
+     * @param title title of the notification.
+     * @param message a short message used to describe what to the target user.
+     * @param target user target.
+     * @param priority number between {@code 0} and {@code 10}
+     */
     public BaseNotification( String title, String message, AbstractUser target, int priority) {
         super(title, message, target);
         this.priority = priority;

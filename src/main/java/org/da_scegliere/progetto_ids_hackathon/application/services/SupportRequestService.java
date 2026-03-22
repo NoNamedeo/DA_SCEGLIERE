@@ -160,7 +160,10 @@ public class SupportRequestService {
         log.info("Created support request supportRequestId={} sendingTeamId={}.", savedRequest.getId(), sendingTeamId);
 
         for(User UserToNotify : sendingTeam.getMembers()){
-            BaseNotification notification = new BaseNotification("Richiesta di supporto inviata", "La richiesta di supporto é stata inviata", UserToNotify, 3);
+            BaseNotification notification = new BaseNotification(
+                    "Richiesta di supporto", "Richiesta di supporto ricevuta dal team: " +
+                    sendingTeam.getName() + ", per il: " + dateSlot.getDayOfMonth() + ", " + dateSlot.getMonth(),
+                    UserToNotify, 3);
             notificationRepository.save(notification);
         }
         return savedRequest;

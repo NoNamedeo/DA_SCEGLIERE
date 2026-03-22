@@ -79,6 +79,16 @@ public class HackathonCrudService {
     }
 
     /**
+     * Retrieves all hackathon identifiers.
+     *
+     * @return immutable snapshot of all hackathon ids.
+     */
+    public List<UUID> getAllHackathonIds() {
+        log.debug("Getting all hackathon ids");
+        return List.copyOf(hackathonRepository.findAllIds());
+    }
+
+    /**
      * Retrieves all hackathons by the provided state.
      *
      * @return immutable snapshot of all hackathons.

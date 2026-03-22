@@ -37,7 +37,11 @@ import java.util.UUID;
 public interface IHackathonRepository {
     List<Hackathon> findAll();
 
+    List<UUID> findAllIds();
+
     Optional<Hackathon> findById(UUID hackathonId);
+
+    Optional<Hackathon> findByIdForUpdate(UUID hackathonId);
 
     List<Hackathon> findHackathonByName( String name );
 

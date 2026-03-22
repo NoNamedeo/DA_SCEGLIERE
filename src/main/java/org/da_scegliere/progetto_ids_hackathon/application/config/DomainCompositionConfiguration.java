@@ -28,6 +28,7 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.config;
 
+import org.da_scegliere.progetto_ids_hackathon.application.config.properties.ClockProperties;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.support.SupportRequestState;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.user.AccountState;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
@@ -53,19 +54,37 @@ import org.da_scegliere.progetto_ids_hackathon.core.state.user.state.RevokedAcco
 import org.da_scegliere.progetto_ids_hackathon.core.state.user.state.SuspendedAccountState;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 
 /**
  * Composition root for domain state machines and policy implementations.
  */
 @Configuration
+@EnableConfigurationProperties(ClockProperties.class)
 public class DomainCompositionConfiguration {
 
     @Bean
-    public Clock clock() {
-        return Clock.systemDefaultZone();
+    public Clock clock(ClockProperties clockProperties) {
+        ZoneId zone = clockProperties.getZone() == null
+                ? ZoneId.systemDefault()
+                : clockProperties.getZone();
+
+        if (clockProperties.getMode() == ClockProperties.Mode.FIXED) {
+            Instant fixedInstant = clockProperties.getFixedInstant();
+            if (fixedInstant == null) {
+                throw new IllegalStateException(
+                        "app.clock.fixed-instant must be provided when app.clock.mode=FIXED."
+                );
+            }
+            return Clock.fixed(fixedInstant, zone);
+        }
+
+        return Clock.system(zone);
     }
 
     @Bean

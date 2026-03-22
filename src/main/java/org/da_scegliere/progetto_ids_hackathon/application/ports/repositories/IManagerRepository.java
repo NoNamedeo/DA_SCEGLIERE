@@ -32,13 +32,22 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.Manager;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface IManagerRepository {
+    List<Manager> findAll();
+
     Optional<Manager> findById(UUID managerId);
 
+    Optional<Manager> findManagerByName(@NotBlank String name);
+
     Optional<Manager> findByEmail(@NotBlank @Email String email);
+
+    Manager save(Manager manager);
+
+    void delete(Manager manager);
 
     boolean existsById(UUID managerId);
 

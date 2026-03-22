@@ -26,12 +26,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation;
+package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff;
 
-import java.util.UUID;
-
-public class UserReportAlreadyProcessedException extends RuntimeException {
-    public UserReportAlreadyProcessedException(UUID reportId) {
-        super("User report: " + reportId + " is already processed.");
+public class StaffEmailAlreadyInUseException extends RuntimeException {
+    public StaffEmailAlreadyInUseException(String email) {
+        super("Cannot create staff account: email '" + email + "' is already in use.");
     }
 }

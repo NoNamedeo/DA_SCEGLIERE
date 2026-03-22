@@ -35,6 +35,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IS
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffMemberRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.InvalidHackathonStateOperationException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff.StaffAssignmentConflictException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff.StaffMemberNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
@@ -224,7 +225,7 @@ public class HackathonStaffService {
 
     private static void validateStaffManagementState(Hackathon hackathon, LocalDate referenceDate) {
         HackathonState hackathonState = hackathon.getHackathonStateAt(referenceDate);
-        if (hackathonState == HackathonState.EVALUATION || hackathonState == HackathonState.ENDED) {
+        if (!(hackathonState == HackathonState.REGISTRATION || hackathonState == HackathonState.ONGOING)) {
             throw new InvalidHackathonStateOperationException(hackathonState, "Staff management");
         }
     }
@@ -241,7 +242,11 @@ public class HackathonStaffService {
                 hackathon
         );
 
-        hackathon.addStaffAssignment(assignment);
+        try {
+            hackathon.addStaffAssignment(assignment);
+        } catch (IllegalStateException ex) {
+            throw new StaffAssignmentConflictException(ex.getMessage());
+        }
 
         StaffAssignment saved = staffAssignmentRepository.save(assignment);
 

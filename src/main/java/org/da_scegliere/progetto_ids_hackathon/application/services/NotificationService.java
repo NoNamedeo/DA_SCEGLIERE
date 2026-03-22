@@ -64,7 +64,7 @@ public class NotificationService {
         return notificationRepository.findById(notificationId).orElse(null);
     }
 
-    public List<AbstractNotification> getNotificationsByTargetId( UUID targetId) {
+    public List<AbstractNotification> getNotificationsByTargetId(UUID targetId) {
         log.info("Getting notifications by targetId={}", targetId);
 
         if (targetId == null) {

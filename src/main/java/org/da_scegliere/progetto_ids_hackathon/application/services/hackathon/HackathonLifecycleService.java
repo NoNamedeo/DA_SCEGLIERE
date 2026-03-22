@@ -81,6 +81,19 @@ public class HackathonLifecycleService {
     public HackathonState determineCurrentState(UUID hackathonId) {
         log.info("Determine hackathon state hackathonId={}", hackathonId);
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
+        return determineCurrentState(hackathon);
+    }
+
+    /**
+     * Resolves the current time-driven lifecycle state of a loaded hackathon aggregate.
+     *
+     * @param hackathon loaded hackathon aggregate.
+     * @return lifecycle state at current clock date.
+     */
+    public HackathonState determineCurrentState(Hackathon hackathon) {
+        if (hackathon == null) {
+            throw new IllegalArgumentException("hackathon must not be null.");
+        }
         return hackathon.getHackathonStateAt(LocalDate.now(clock));
     }
 
@@ -95,9 +108,22 @@ public class HackathonLifecycleService {
         log.info("Conclude hackathon hackathonId={}", hackathonId);
 
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
-        hackathon.concludeAt(LocalDate.now(clock));
+        return concludeHackathon(hackathon);
+    }
 
-        log.info("Concluded hackathon hackathonId={}", hackathonId);
+    /**
+     * Concludes a loaded hackathon aggregate by forcing ENDED state.
+     *
+     * @param hackathon loaded hackathon aggregate.
+     * @return updated hackathon aggregate.
+     */
+    @Transactional
+    public Hackathon concludeHackathon(Hackathon hackathon) {
+        if (hackathon == null) {
+            throw new IllegalArgumentException("hackathon must not be null.");
+        }
+        hackathon.concludeAt(LocalDate.now(clock));
+        log.info("Concluded hackathon hackathonId={}", hackathon.getId());
         return hackathon;
     }
 
@@ -105,8 +131,25 @@ public class HackathonLifecycleService {
         log.info("Determine hackathon winner hackathonId={}", hackathonId);
 
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
+        return determineWinnerTeam(hackathon);
+    }
 
-        return hackathon.getParticipations().stream()
+    /**
+     * Determines winner team on a loaded hackathon aggregate.
+     *
+     * @param hackathon loaded hackathon aggregate.
+     * @return winner team according to maximum judged score.
+     */
+    public Team determineWinnerTeam(Hackathon hackathon) {
+        if (hackathon == null) {
+            throw new IllegalArgumentException("hackathon must not be null.");
+        }
+        List<Participation> participations = hackathon.getParticipations();
+        if (participations == null || participations.isEmpty()) {
+            throw new IllegalStateException("No participations found");
+        }
+
+        return participations.stream()
                 .filter(TeamParticipation.class::isInstance)
                 .map(p -> (TeamParticipation) p)
                 .flatMap(tp -> tp.getSubmissions().stream()
@@ -136,10 +179,25 @@ public class HackathonLifecycleService {
      */
     @Transactional
     public Hackathon assignWinner(UUID hackathonId, Team winnerTeam) {
-        Team safeWinnerTeam = requireWinnerTeam(winnerTeam);
-        log.info("Assign hackathon winner hackathonId={}, winnerTeamId={}", hackathonId, safeWinnerTeam.getId());
-
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
+        return assignWinner(hackathon, winnerTeam);
+    }
+
+    /**
+     * Assigns winner team on a loaded hackathon aggregate.
+     *
+     * @param hackathon loaded hackathon aggregate.
+     * @param winnerTeam winner team candidate.
+     * @return hackathon with assigned winner.
+     */
+    @Transactional
+    public Hackathon assignWinner(Hackathon hackathon, Team winnerTeam) {
+        if (hackathon == null) {
+            throw new IllegalArgumentException("hackathon must not be null.");
+        }
+        Team safeWinnerTeam = requireWinnerTeam(winnerTeam);
+        log.info("Assign hackathon winner hackathonId={}, winnerTeamId={}", hackathon.getId(), safeWinnerTeam.getId());
+
         LocalDate today = LocalDate.now(clock);
         HackathonState currentState = hackathon.getHackathonStateAt(today);
         LocalDate referenceDateForAssignment = resolveReferenceDateForWinnerAssignment(hackathon, currentState, today);
@@ -154,7 +212,7 @@ public class HackathonLifecycleService {
             throw new WinnerAssignmentNotAllowedException(ex.getMessage());
         }
 
-        log.info("Assigned hackathon winner hackathonId={}, winnerTeamId={}", hackathonId, safeWinnerTeam.getId());
+        log.info("Assigned hackathon winner hackathonId={}, winnerTeamId={}", hackathon.getId(), safeWinnerTeam.getId());
         return hackathon;
     }
 

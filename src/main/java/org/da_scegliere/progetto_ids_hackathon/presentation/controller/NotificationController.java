@@ -29,12 +29,12 @@
 package org.da_scegliere.progetto_ids_hackathon.presentation.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.da_scegliere.progetto_ids_hackathon.application.services.ManagerService;
+import org.da_scegliere.progetto_ids_hackathon.application.services.moderation.manager.ManagerService;
 import org.da_scegliere.progetto_ids_hackathon.application.services.NotificationService;
 import org.da_scegliere.progetto_ids_hackathon.application.services.StaffService;
 import org.da_scegliere.progetto_ids_hackathon.application.services.UserService;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.AbstractNotification;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.notification.NotificationStatus;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.notifications.NotificationResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.NotificationMapper;
 import org.springframework.http.ResponseEntity;
@@ -65,5 +65,12 @@ public class NotificationController {
     ){
         AbstractNotification notification = notificationService.getNotificationById(notificationId);
         return ResponseEntity.ok(NotificationMapper.toNotificationResponse(notification));
+    }
+
+    @PatchMapping("/{notificationId}")
+    public ResponseEntity<NotificationResponse> updateNotification( @RequestParam NotificationStatus notificationStatus, @PathVariable UUID notificationId ){
+        notificationService.changeNotificationStatus(notificationId, notificationStatus);
+
+        return ResponseEntity.ok(NotificationMapper.toNotificationResponse(notificationService.getNotificationById(notificationId)));
     }
 }

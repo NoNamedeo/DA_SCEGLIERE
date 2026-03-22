@@ -26,11 +26,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation.controller;
+package org.da_scegliere.progetto_ids_hackathon.presentation.controller.moderation;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.da_scegliere.progetto_ids_hackathon.application.services.ModerationReportService;
+import org.da_scegliere.progetto_ids_hackathon.application.services.moderation.ModerationReportService;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.StaffReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.UserReport;

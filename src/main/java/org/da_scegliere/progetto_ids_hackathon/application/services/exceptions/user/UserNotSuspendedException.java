@@ -26,12 +26,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation;
+package org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.user;
 
 import java.util.UUID;
 
-public class UserAlreadyRevokedException extends RuntimeException {
-    public UserAlreadyRevokedException(UUID userId) {
-        super("User: " + userId + " account is already revoked.");
+public class UserNotSuspendedException extends RuntimeException {
+    public UserNotSuspendedException(UUID userId) {
+        super("User: " + userId + " is not suspended.");
     }
 }

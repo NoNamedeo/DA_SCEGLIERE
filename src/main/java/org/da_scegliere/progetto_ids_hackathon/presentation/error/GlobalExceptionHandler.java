@@ -13,13 +13,15 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.h
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.InvalidHackathonStateOperationException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.WinnerAssignmentNotAllowedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.ManagerNotFoundException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.StaffEmailAlreadyInUseException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserAccountRevokedException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserAlreadyRevokedException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserAlreadySuspendedException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserNotFoundException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserNotSuspendedException;
-import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.UserReportAlreadyProcessedException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.ManagerEmailAlreadyInUseException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff.StaffEmailAlreadyInUseException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff.StaffAssignmentConflictException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.user.UserAccountRevokedException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.user.UserAlreadyRevokedException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.user.UserAlreadySuspendedException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.user.UserNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.user.UserNotSuspendedException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.user.UserReportAlreadyProcessedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.ReportNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.payment.PaymentFailedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.payment.WinnerNotProclaimedException;
@@ -100,6 +102,8 @@ public class GlobalExceptionHandler {
             UserNotSuspendedException.class,
             UserReportAlreadyProcessedException.class,
             StaffEmailAlreadyInUseException.class,
+            StaffAssignmentConflictException.class,
+            ManagerEmailAlreadyInUseException.class,
             InvalidSupportRequestStateTransitionException.class,
             SubmissionDeadlineExceededException.class,
             TeamAlreadyParticipatingException.class,

@@ -34,4 +34,8 @@ public class ManagerNotFoundException extends RuntimeException {
     public ManagerNotFoundException(UUID managerId) {
         super("Manager: " + managerId + " not found.");
     }
+
+    public ManagerNotFoundException(String value, String field) {
+        super("Manager with " + field + " '" + value + "' not found.");
+    }
 }

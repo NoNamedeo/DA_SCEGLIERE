@@ -26,7 +26,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package org.da_scegliere.progetto_ids_hackathon.presentation.controller;
+package org.da_scegliere.progetto_ids_hackathon.presentation.controller.team;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
