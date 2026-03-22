@@ -44,20 +44,25 @@ import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 public class HackathonMapper{
 
-    public static PublicHackathonResponse toPublic( Hackathon hackathon ){
+    public static PublicHackathonResponse toPublic(Hackathon hackathon, LocalDate referenceDate){
+        Objects.requireNonNull(referenceDate, "referenceDate must not be null.");
         return new PublicHackathonResponse(
                 hackathon.getId(),
                 hackathon.getName(),
                 hackathon.getDescription(),
-                registrationDeadlineOf(hackathon)
+                registrationDeadlineOf(hackathon),
+                submissionDeadlineOf(hackathon),
+                hackathon.getHackathonStateAt(referenceDate)
         );
     }
 
-    public static FullHackathonResponse toFull( Hackathon hackathon ){
+    public static FullHackathonResponse toFull(Hackathon hackathon, LocalDate referenceDate){
+        Objects.requireNonNull(referenceDate, "referenceDate must not be null.");
         return new FullHackathonResponse(
                 hackathon.getId(),
                 hackathon.getName(),
@@ -67,7 +72,8 @@ public class HackathonMapper{
                 toStaffAssignmentList(hackathon.getStaff()),
                 registrationDeadlineOf(hackathon),
                 submissionDeadlineOf(hackathon),
-                evaluationDeadlineOf(hackathon)
+                evaluationDeadlineOf(hackathon),
+                hackathon.getHackathonStateAt(referenceDate)
         );
     }
 

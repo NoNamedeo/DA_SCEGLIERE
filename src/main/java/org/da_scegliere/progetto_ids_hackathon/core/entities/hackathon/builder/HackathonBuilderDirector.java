@@ -31,49 +31,54 @@ package org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.builder;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.HackathonTimeline;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 public class HackathonBuilderDirector {
 
     /**
      * Automatic BuilderDirector that builds a hackathon with some
-     * specific short deadlines; which are (referring to LocalDate.now() as now):
-     * RegistrationDeadline: 20 days from now
-     * SubmissionDeadline: 65 days from now
-     * EvaluationDeadline: 85 days from now
-     * PrizePaidAt: 90 days from now
+     * specific short deadlines based on a provided reference date:
+     * RegistrationDeadline: +20 days
+     * SubmissionDeadline: +65 days
+     * EvaluationDeadline: +85 days
+     * PrizePaidAt: +90 days
      *
      * @param builder
+     * @param referenceDate reference date used to compute deadlines
      * @return IHackathonBuilder
      */
-    public static IHackathonBuilder makeShortHackathonDeadlines(HackathonBuilder builder){
+    public static IHackathonBuilder makeShortHackathonDeadlines(HackathonBuilder builder, LocalDate referenceDate){
+        LocalDate safeReferenceDate = Objects.requireNonNull(referenceDate, "referenceDate must not be null.");
         return builder
                 .setTimeline(new HackathonTimeline(
-                        LocalDate.now().plusDays(20),
-                        LocalDate.now().plusDays(65),
-                        LocalDate.now().plusDays(85)
+                        safeReferenceDate.plusDays(20),
+                        safeReferenceDate.plusDays(65),
+                        safeReferenceDate.plusDays(85)
                 ))
-                .setPrizePaidAt(LocalDate.now().plusDays(90));
+                .setPrizePaidAt(safeReferenceDate.plusDays(90));
     }
 
     /**
      * Automatic BuilderDirector that builds a hackathon with some
-     * specific long deadlines; which are (referring to LocalDate.now() as now):
-     * RegistrationDeadline: 50 days from now
-     * SubmissionDeadline: 150 days from now
-     * EvaluationDeadline: 175 days from now
-     * PrizePaidAt: 190 days from now
+     * specific long deadlines based on a provided reference date:
+     * RegistrationDeadline: +50 days
+     * SubmissionDeadline: +150 days
+     * EvaluationDeadline: +175 days
+     * PrizePaidAt: +190 days
      *
      * @param builder
+     * @param referenceDate reference date used to compute deadlines
      * @return IHackathonBuilder
      */
-    public static IHackathonBuilder makeLongHackathonDeadlines(HackathonBuilder builder){
+    public static IHackathonBuilder makeLongHackathonDeadlines(HackathonBuilder builder, LocalDate referenceDate){
+        LocalDate safeReferenceDate = Objects.requireNonNull(referenceDate, "referenceDate must not be null.");
         return builder
                 .setTimeline(new HackathonTimeline(
-                        LocalDate.now().plusDays(50),
-                        LocalDate.now().plusDays(150),
-                        LocalDate.now().plusDays(175)
+                        safeReferenceDate.plusDays(50),
+                        safeReferenceDate.plusDays(150),
+                        safeReferenceDate.plusDays(175)
                 ))
-                .setPrizePaidAt(LocalDate.now().plusDays(190));
+                .setPrizePaidAt(safeReferenceDate.plusDays(190));
     }
 
 }

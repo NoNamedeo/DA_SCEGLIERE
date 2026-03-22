@@ -113,13 +113,6 @@ public class Hackathon {
     }
 
     /**
-     * Returns lifecycle state derived from configured timeline and current date.
-     */
-    public HackathonState getHackathonState() {
-        return getHackathonStateAt(LocalDate.now());
-    }
-
-    /**
      * Returns lifecycle state derived from configured timeline at a given reference date.
      *
      * @param referenceDate date used to resolve temporal phase.

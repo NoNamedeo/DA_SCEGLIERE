@@ -29,6 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.hackathon;
 
 import jakarta.validation.constraints.NotNull;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.staff.StaffAssignmentResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.team.TeamResponse;
 
@@ -46,6 +47,7 @@ public record FullHackathonResponse(
         List<StaffAssignmentResponse> staff,
         LocalDate registrationDeadLine,
         LocalDate submissionDeadline,
-        LocalDate evaluationDeadline
+        LocalDate evaluationDeadline,
+        HackathonState state
 ){
 }

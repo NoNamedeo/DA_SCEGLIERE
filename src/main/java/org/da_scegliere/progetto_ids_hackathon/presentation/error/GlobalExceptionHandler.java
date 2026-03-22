@@ -39,6 +39,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.t
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -236,6 +237,39 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(TransactionSystemException.class)
+    public ResponseEntity<ApiErrorResponse> handleTransactionSystemException(
+            TransactionSystemException ex,
+            HttpServletRequest request
+    ) {
+        ConstraintViolationException validationCause = findCause(ex, ConstraintViolationException.class);
+        if (validationCause != null) {
+            List<ApiFieldViolation> violations = validationCause.getConstraintViolations()
+                    .stream()
+                    .map(this::toFieldViolation)
+                    .toList();
+            return buildErrorResponse(
+                    HttpStatus.BAD_REQUEST,
+                    ApiErrorCode.VALIDATION_ERROR,
+                    VALIDATION_FAILED_MESSAGE,
+                    request,
+                    violations,
+                    validationCause,
+                    ErrorType.CLIENT
+            );
+        }
+
+        return buildErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                ApiErrorCode.INTERNAL_SERVER_ERROR,
+                INTERNAL_ERROR_MESSAGE,
+                request,
+                List.of(),
+                ex,
+                ErrorType.SERVER
+        );
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorResponse> handleMalformedBody(
             HttpMessageNotReadableException ex,
@@ -418,6 +452,17 @@ public class GlobalExceptionHandler {
             return serialized;
         }
         return serialized.substring(0, MAX_REJECTED_VALUE_LENGTH - 3) + "...";
+    }
+
+    private <T extends Throwable> T findCause(Throwable throwable, Class<T> targetType) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (targetType.isInstance(current)) {
+                return targetType.cast(current);
+            }
+            current = current.getCause();
+        }
+        return null;
     }
 
     private enum ErrorType {

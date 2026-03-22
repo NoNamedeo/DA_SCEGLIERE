@@ -50,7 +50,6 @@ public class Submission {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @PastOrPresent
     private LocalDate submittedAt;
 
     @NotNull
@@ -63,7 +62,6 @@ public class Submission {
 
     private String judgeJudgement;
 
-    @PastOrPresent
     private LocalDate evaluatedAt;
 
     @ManyToOne

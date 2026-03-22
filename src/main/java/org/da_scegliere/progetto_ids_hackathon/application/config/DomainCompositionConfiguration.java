@@ -55,6 +55,7 @@ import org.da_scegliere.progetto_ids_hackathon.core.state.user.state.SuspendedAc
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -85,6 +86,13 @@ public class DomainCompositionConfiguration {
         }
 
         return Clock.system(zone);
+    }
+
+    @Bean
+    public LocalValidatorFactoryBean validator(Clock clock) {
+        LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+        validator.setConfigurationInitializer(configuration -> configuration.clockProvider(() -> clock));
+        return validator;
     }
 
     @Bean

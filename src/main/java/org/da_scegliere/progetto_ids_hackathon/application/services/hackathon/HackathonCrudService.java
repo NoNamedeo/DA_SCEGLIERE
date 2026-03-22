@@ -48,6 +48,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -67,6 +69,7 @@ public class HackathonCrudService {
 
     private final IHackathonRepository hackathonRepository;
     private final ITeamParticipationRepository teamParticipationRepository;
+    private final Clock clock;
 
     /**
      * Retrieves all hackathons.
@@ -95,10 +98,11 @@ public class HackathonCrudService {
      */
     public List<Hackathon> getAllHackathonsByState( HackathonState hackathonState ) {
         log.info("Getting all hackathons by hackathonState: {}", hackathonState);
+        LocalDate today = LocalDate.now(clock);
         return List.copyOf(hackathonRepository.findAll()
                 .stream()
                 .filter(hackathon ->
-                        hackathon.getHackathonState().equals(hackathonState))
+                        hackathon.getHackathonStateAt(today).equals(hackathonState))
                 .toList());
     }
 
@@ -151,10 +155,11 @@ public class HackathonCrudService {
      */
     public List<Hackathon> getAllHackathonsByNameAndState( String name,  HackathonState hackathonState ) {
         log.info("Getting all hackathons by name {} and hackathonState: {}" , name , hackathonState);
+        LocalDate today = LocalDate.now(clock);
         return List.copyOf(getHackathonByName(name)
                 .stream()
                 .filter(hackathon ->
-                        hackathon.getHackathonState().equals(hackathonState)).toList());
+                        hackathon.getHackathonStateAt(today).equals(hackathonState)).toList());
     }
 
     /**

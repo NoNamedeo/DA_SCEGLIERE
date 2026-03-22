@@ -46,8 +46,10 @@ import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.hackatho
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.hackathon.FullHackathonResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.hackathon.HackathonStateResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.hackathon.PublicHackathonResponse;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.submission.SubmissionResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.team.TeamResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.HackathonMapper;
+import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.SubmissionMapper;
 import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.TeamMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -63,6 +65,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +80,7 @@ public class HackathonController {
     private final HackathonStaffService hackathonStaffService;
     private final HackathonLifecycleService hackathonLifecycleService;
     private final TeamParticipationService teamParticipationService;
+    private final Clock clock;
 
     @GetMapping
     public ResponseEntity<List<PublicHackathonResponse>> getHackathons(
@@ -84,6 +88,7 @@ public class HackathonController {
             @RequestParam(required = false) HackathonState state
     ) {
         List<Hackathon> hackathons;
+        LocalDate today = LocalDate.now(clock);
 
         boolean hasName = name != null && !name.isBlank();
 
@@ -98,7 +103,7 @@ public class HackathonController {
         }
 
         List<PublicHackathonResponse> response = hackathons.stream()
-                .map(HackathonMapper::toPublic)
+                .map(hackathon -> HackathonMapper.toPublic(hackathon, today))
                 .toList();
 
         return ResponseEntity.ok(response);
@@ -110,12 +115,13 @@ public class HackathonController {
             @RequestParam(name = "view", defaultValue = "full") String view
     ) {
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
+        LocalDate today = LocalDate.now(clock);
 
         if ("public".equalsIgnoreCase(view)) {
-            return ResponseEntity.ok(HackathonMapper.toPublic(hackathon));
+            return ResponseEntity.ok(HackathonMapper.toPublic(hackathon, today));
         }
         if ("full".equalsIgnoreCase(view)) {
-            FullHackathonResponse fullResponse = HackathonMapper.toFull(hackathon);
+            FullHackathonResponse fullResponse = HackathonMapper.toFull(hackathon, today);
             return ResponseEntity.ok(fullResponse);
         }
         throw new IllegalArgumentException("view must be one of: public, full.");
@@ -129,6 +135,18 @@ public class HackathonController {
                 teamParticipationService.getTeamsByHackathon(hackathonId)
                         .stream()
                         .map(TeamMapper::toResponse)
+                        .toList()
+        );
+    }
+
+    @GetMapping("/{hackathonId}/submissions")
+    public ResponseEntity<List<SubmissionResponse>> getSubmissionsByHackathon(
+            @PathVariable UUID hackathonId
+    ) {
+        return ResponseEntity.ok(
+                teamParticipationService.getSubmissionsByHackathon(hackathonId)
+                        .stream()
+                        .map(SubmissionMapper::toResponse)
                         .toList()
         );
     }

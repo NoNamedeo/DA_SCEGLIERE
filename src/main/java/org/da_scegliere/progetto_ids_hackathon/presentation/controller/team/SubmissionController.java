@@ -35,6 +35,7 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Submission;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.submission.EvaluateSubmissionRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.submission.UpdateSubmissionRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.submission.SubmissionResponse;
+import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.SubmissionMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,7 +57,7 @@ public class SubmissionController {
 
     @GetMapping("/{submissionId}")
     public ResponseEntity<SubmissionResponse> getSubmission(@PathVariable UUID submissionId) {
-        return ResponseEntity.ok(toResponse(teamParticipationService.getSubmissionById(submissionId)));
+        return ResponseEntity.ok(SubmissionMapper.toResponse(teamParticipationService.getSubmissionById(submissionId)));
     }
 
     @PatchMapping("/{submissionId}")
@@ -69,7 +70,7 @@ public class SubmissionController {
                 request.title(),
                 request.description()
         );
-        return ResponseEntity.ok(toResponse(updated));
+        return ResponseEntity.ok(SubmissionMapper.toResponse(updated));
     }
 
     @PostMapping("/{submissionId}/evaluations")
@@ -78,7 +79,7 @@ public class SubmissionController {
             @Valid @RequestBody EvaluateSubmissionRequest request
     ) {
         Submission evaluated = teamParticipationService.evaluateSubmission(submissionId, request.score(), request.judgement());
-        return ResponseEntity.ok(toResponse(evaluated));
+        return ResponseEntity.ok(SubmissionMapper.toResponse(evaluated));
     }
 
     @PatchMapping("/{submissionId}/evaluations")
@@ -91,28 +92,12 @@ public class SubmissionController {
                 request.score(),
                 request.judgement()
         );
-        return ResponseEntity.ok(toResponse(updated));
+        return ResponseEntity.ok(SubmissionMapper.toResponse(updated));
     }
 
     @DeleteMapping("/{submissionId}")
     public ResponseEntity<Void> deleteSubmission(@PathVariable UUID submissionId) {
         teamParticipationService.deleteSubmission(submissionId);
         return ResponseEntity.noContent().build();
-    }
-
-    static SubmissionResponse toResponse(Submission submission) {
-        UUID teamParticipationId = submission.getTeamParticipation() != null
-                ? submission.getTeamParticipation().getId()
-                : null;
-        return new SubmissionResponse(
-                submission.getId(),
-                submission.getTitle(),
-                submission.getDescription(),
-                submission.getJudgeScore(),
-                submission.getJudgeJudgement(),
-                submission.getSubmittedAt(),
-                submission.getEvaluatedAt(),
-                teamParticipationId
-        );
     }
 }

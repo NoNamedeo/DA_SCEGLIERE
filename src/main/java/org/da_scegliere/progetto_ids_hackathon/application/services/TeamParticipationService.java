@@ -191,6 +191,32 @@ public class TeamParticipationService {
     }
 
     /**
+     * Retrieves all submissions belonging to one hackathon.
+     *
+     * @param hackathonId hackathon identifier.
+     * @return immutable snapshot of submissions.
+     * @throws IllegalArgumentException when {@code hackathonId} is {@code null}.
+     * @throws HackathonNotFoundException when hackathon does not exist.
+     */
+    public List<Submission> getSubmissionsByHackathon(UUID hackathonId) {
+        log.info("Getting submissions by hackathonId={}", hackathonId);
+
+        if (hackathonId == null) {
+            throw new IllegalArgumentException("hackathonId must not be null.");
+        }
+        if (!hackathonRepository.existsById(hackathonId)) {
+            throw new HackathonNotFoundException(hackathonId);
+        }
+
+        List<Submission> submissions = teamParticipationRepository.findByHackathon_id(hackathonId)
+                .stream()
+                .flatMap(participation -> participation.getSubmissions().stream())
+                .toList();
+        log.info("Retrieved {} submissions for hackathonId={}.", submissions.size(), hackathonId);
+        return List.copyOf(submissions);
+    }
+
+    /**
      * Retrieves a submission by id.
      *
      * @param submissionId submission identifier.

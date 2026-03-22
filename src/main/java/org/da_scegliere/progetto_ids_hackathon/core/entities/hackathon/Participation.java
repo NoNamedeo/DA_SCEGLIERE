@@ -43,7 +43,6 @@ public abstract class Participation {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @PastOrPresent
     private LocalDate entryDate;
 
     private String nickname;

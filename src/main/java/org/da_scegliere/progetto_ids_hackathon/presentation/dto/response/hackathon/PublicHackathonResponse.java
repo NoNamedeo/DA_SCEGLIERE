@@ -29,6 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.hackathon;
 
 import jakarta.validation.constraints.NotNull;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -37,6 +38,8 @@ public record PublicHackathonResponse(
         @NotNull UUID id,
         String name,
         String description ,
-        LocalDate registrationDeadLine
+        LocalDate registrationDeadLine,
+        LocalDate submissionDeadLine,
+        HackathonState state
 ){
 }

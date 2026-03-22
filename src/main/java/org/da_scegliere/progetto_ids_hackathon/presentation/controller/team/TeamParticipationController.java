@@ -37,6 +37,7 @@ import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.submissi
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.teamParticipation.CreateTeamParticipationRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.submission.SubmissionResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.team.TeamParticipationResponse;
+import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.SubmissionMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -84,7 +85,7 @@ public class TeamParticipationController {
     public ResponseEntity<List<SubmissionResponse>> getSubmissions(@PathVariable UUID participationId) {
         List<SubmissionResponse> responses = teamParticipationService.getSubmissionsByTeamParticipation(participationId)
                 .stream()
-                .map(SubmissionController::toResponse)
+                .map(SubmissionMapper::toResponse)
                 .toList();
         return ResponseEntity.ok(responses);
     }

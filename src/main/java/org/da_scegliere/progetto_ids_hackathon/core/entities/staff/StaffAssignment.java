@@ -48,7 +48,6 @@ public class StaffAssignment {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @PastOrPresent
     private LocalDate assignmentDate;
 
     @NotNull
