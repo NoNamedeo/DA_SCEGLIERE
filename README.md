@@ -20,6 +20,12 @@ Questa organizzazione consente di ottenere un sistema altamente modulare, testab
 
 ---
 
+## Web Interface
+Frontend ufficiale (React + Tailwind):  
+[https://marvelous-cajeta-1a68ff.netlify.app/](https://marvelous-cajeta-1a68ff.netlify.app/)
+
+---
+
 ## Architecture
 
 Il progetto segue la Clean Architecture con separazione in layer:
