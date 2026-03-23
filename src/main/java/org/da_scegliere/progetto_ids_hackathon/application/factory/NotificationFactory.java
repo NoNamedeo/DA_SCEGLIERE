@@ -2,6 +2,7 @@ package org.da_scegliere.progetto_ids_hackathon.application.factory;
 
 import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.user.AbstractUser;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.da_scegliere.progetto_ids_hackathon.core.events.hackathon.HackathonConcludedEvent;
 import org.da_scegliere.progetto_ids_hackathon.core.events.hackathon.HackathonStaffAssignedEvent;
@@ -31,7 +32,7 @@ public class NotificationFactory {
     public List<BaseNotification> forTeamCreated(TeamCreatedEvent event) {
         List<BaseNotification> notifications = new ArrayList<>();
         for (User member : event.members()) {
-            notifications.add(new BaseNotification(
+            notifications.add(create(
                     "Team creato",
                     "il team è stato creato",
                     member,
@@ -44,7 +45,7 @@ public class NotificationFactory {
     public List<BaseNotification> forTeamDeleted(TeamDeletedEvent event) {
         List<BaseNotification> notifications = new ArrayList<>();
         for (User member : event.formerMembers()) {
-            notifications.add(new BaseNotification(
+            notifications.add(create(
                     "Team cancellato",
                     "il team: " + event.teamName() + " è stato cancellato",
                     member,
@@ -57,7 +58,7 @@ public class NotificationFactory {
     public List<BaseNotification> forTeamMemberAdded(TeamMemberAddedEvent event) {
         List<BaseNotification> notifications = new ArrayList<>();
         for (User member : event.membersToNotify()) {
-            notifications.add(new BaseNotification(
+            notifications.add(create(
                     "Nuovo membro",
                     "il team ha un nuovo membro: " + event.newMember().getName(),
                     member,
@@ -70,7 +71,7 @@ public class NotificationFactory {
     public List<BaseNotification> forTeamMemberRemoved(TeamMemberRemovedEvent event) {
         List<BaseNotification> notifications = new ArrayList<>();
         for (User member : event.remainingMembers()) {
-            notifications.add(new BaseNotification(
+            notifications.add(create(
                     "Membro uscito dal team",
                     "Il membro " + event.removedMember().getName()
                             + " ha abbandonato il team " + event.teamName() + ".",
@@ -84,7 +85,7 @@ public class NotificationFactory {
     public List<BaseNotification> forTeamDeletedAfterLeave(TeamDeletedAfterLeaveEvent event) {
         List<BaseNotification> notifications = new ArrayList<>();
         for (User member : event.membersToNotify()) {
-            notifications.add(new BaseNotification(
+            notifications.add(create(
                     "Team cancellato",
                     "Il team " + event.teamName() + " è stato cancellato dopo l'abbandono di "
                             + event.removedMember().getName() + ".",
@@ -97,7 +98,7 @@ public class NotificationFactory {
 
     public BaseNotification forStaffMemberCreated(StaffMemberCreatedEvent event) {
         StaffMember staffMember = event.staffMember();
-        return new BaseNotification(
+        return create(
                 "Creazione account staff",
                 "Nuovo Staff account creato",
                 staffMember,
@@ -107,7 +108,7 @@ public class NotificationFactory {
 
     public BaseNotification forStaffMemberNameChanged(StaffMemberNameChangedEvent event) {
         StaffMember staffMember = event.staffMember();
-        return new BaseNotification(
+        return create(
                 "Nome aggiornato",
                 "Il nome del tuo account è stato aggiornato in: " + event.newName(),
                 staffMember,
@@ -116,7 +117,7 @@ public class NotificationFactory {
     }
 
     public BaseNotification forUserSuspended(UserSuspendedEvent event) {
-        return new BaseNotification(
+        return create(
                 "Sospensione account",
                 "Il tuo account è stato sospeso per la seguente motivazione: " + event.suspensionReason(),
                 event.user(),
@@ -127,7 +128,7 @@ public class NotificationFactory {
     public List<BaseNotification> forWinnerPrizePaid(WinnerPrizePaidEvent event) {
         List<BaseNotification> notifications = new ArrayList<>();
         for (User winner : event.winners()) {
-            notifications.add(new BaseNotification(
+            notifications.add(create(
                     "Pagamento effettuato",
                     "il pagamento é stato effettuato",
                     winner,
@@ -138,7 +139,7 @@ public class NotificationFactory {
     }
 
     public BaseNotification forHackathonStaffAssigned(HackathonStaffAssignedEvent event) {
-        return new BaseNotification(
+        return create(
                 "Nuovo incarico",
                 "Sei stato assegnato a un hackathon come " + event.role(),
                 event.staffMember(),
@@ -149,7 +150,7 @@ public class NotificationFactory {
     public List<BaseNotification> forHackathonConcluded(HackathonConcludedEvent event) {
         List<BaseNotification> notifications = new ArrayList<>();
         for (User participant : event.participants()) {
-            notifications.add(new BaseNotification(
+            notifications.add(create(
                     "Hackathon concluso",
                     "L'hackathon " + event.hackathonName()
                             + " si è concluso con team vincitore: " + event.winnerTeamName(),
@@ -163,7 +164,7 @@ public class NotificationFactory {
     public List<BaseNotification> forSupportRequestCreated(SupportRequestCreatedEvent event) {
         List<BaseNotification> notifications = new ArrayList<>();
         for (StaffMember staffMember : event.recipients()) {
-            notifications.add(new BaseNotification(
+            notifications.add(create(
                     "Richiesta di supporto",
                     "Richiesta di supporto ricevuta dal team: " + event.sendingTeamName()
                             + ", per il: " + event.dateSlot().getDayOfMonth()
@@ -178,7 +179,7 @@ public class NotificationFactory {
     public List<BaseNotification> forSupportRequestAccepted(SupportRequestAcceptedEvent event) {
         List<BaseNotification> notifications = new ArrayList<>();
         for (User teamMember : event.teamMembers()) {
-            notifications.add(new BaseNotification(
+            notifications.add(create(
                     "Richiesta di supporto accettata",
                     "Il mentore " + event.mentorName()
                             + " ha accettato la richiesta di supporto inviata dal tuo team.",
@@ -192,7 +193,7 @@ public class NotificationFactory {
     public List<BaseNotification> forSupportRequestRejected(SupportRequestRejectedEvent event) {
         List<BaseNotification> notifications = new ArrayList<>();
         for (User teamMember : event.teamMembers()) {
-            notifications.add(new BaseNotification(
+            notifications.add(create(
                     "Richiesta di supporto rifiutata",
                     "Il mentore ha rifiutato la richiesta di supporto inviata dal tuo team.",
                     teamMember,
@@ -203,12 +204,21 @@ public class NotificationFactory {
     }
 
     public BaseNotification forTeamInvitationRejected(TeamInvitationRejectedEvent event) {
-        return new BaseNotification(
+        return create(
                 "Invito rifiutato",
                 "L'utente " + event.invitee().getName()
                         + " ha rifiutato l'invito al team '" + event.teamName() + "'.",
                 event.creator(),
                 DEFAULT_PRIORITY
         );
+    }
+
+    private BaseNotification create(
+            String title,
+            String message,
+            AbstractUser recipient,
+            int priority
+    ) {
+        return new BaseNotification(title, message, recipient, priority);
     }
 }
