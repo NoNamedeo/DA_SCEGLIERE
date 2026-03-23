@@ -43,6 +43,7 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.builder.I
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,6 +70,7 @@ public class HackathonCrudService {
 
     private final IHackathonRepository hackathonRepository;
     private final ITeamParticipationRepository teamParticipationRepository;
+    private final HackathonStaffService  hackathonStaffService;
     private final Clock clock;
 
     /**
@@ -165,6 +167,7 @@ public class HackathonCrudService {
     /**
      * Creates and persists a new hackathon aggregate.
      *
+     * @param creatorId the user id that is creating the hackathon.
      * @param name hackathon name.
      * @param description hackathon description/regulation summary.
      * @param participations initial participation's list.
@@ -177,6 +180,7 @@ public class HackathonCrudService {
      */
     @Transactional
     public Hackathon createHackathon(
+            UUID creatorId,
             String name,
             String description,
             List<Participation> participations,
@@ -200,8 +204,16 @@ public class HackathonCrudService {
                 .setAwardPrize(awardPrize)
                 .build();
 
-        log.info("Hackathon created hackathonId={}", hackathon.getId());
-        return hackathonRepository.save(hackathon);
+        Hackathon savedHackathon = hackathonRepository.save(hackathon);
+        hackathonStaffService.assignStaffToHackathon(
+                creatorId,
+                savedHackathon.getId(),
+                creatorId,
+                StaffRole.ORGANIZER
+        );
+
+        log.info("Hackathon created hackathonId={}", savedHackathon.getId());
+        return savedHackathon;
     }
 
     /**

@@ -41,6 +41,8 @@ public final class OpenSupportRequestState implements SupportRequestLifecycleSta
     public SupportRequestState transitionTo(SupportRequestState targetState) {
         if (targetState == SupportRequestState.IN_PROGRESS) {
             return SupportRequestState.IN_PROGRESS;
+        } else if (targetState == SupportRequestState.REJECTED) {
+            return SupportRequestState.REJECTED;
         }
         throw invalidTransition(SupportRequestState.OPEN, targetState);
     }

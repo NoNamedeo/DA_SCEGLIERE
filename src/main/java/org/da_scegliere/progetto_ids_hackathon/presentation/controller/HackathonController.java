@@ -155,6 +155,7 @@ public class HackathonController {
     @PostMapping
     public ResponseEntity<Void> createHackathon(@Valid @RequestBody CreateHackathonRequest request) {
         Hackathon createdHackathon = hackathonCrudService.createHackathon(
+                request.creatorId(),
                 request.name(),
                 request.description(),
                 new ArrayList<>(),

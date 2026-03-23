@@ -31,6 +31,7 @@ package org.da_scegliere.progetto_ids_hackathon.application.services.hackathon;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.events.DomainEventPublisher;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IHackathonRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffAssignmentRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffMemberRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException;
@@ -67,7 +68,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class HackathonStaffService {
 
-    private final HackathonCrudService hackathonCrudService;
+    private final IHackathonRepository hackathonRepository;
     private final IStaffMemberRepository staffMemberRepository;
     private final IStaffAssignmentRepository staffAssignmentRepository;
     private final DomainEventPublisher domainEventPublisher;
@@ -148,7 +149,7 @@ public class HackathonStaffService {
         log.info("Assigning staffMember={} to hackathon={} with role={}",
                 staffMemberId, hackathonId, role);
 
-        Hackathon hackathon = prepareAssignment(staffMemberId, hackathonId);
+        Hackathon hackathon = prepareAssignment(assignerId, hackathonId);
 
         StaffMember staffMember = staffMemberRepository.findById(staffMemberId)
                 .orElseThrow(() -> new StaffMemberNotFoundException(staffMemberId));
@@ -182,7 +183,8 @@ public class HackathonStaffService {
             throw new IllegalArgumentException("staffMembersId must not contain null values.");
         }
 
-        Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
+        Hackathon hackathon = getHackathon(hackathonId);
+
         validateStaffManagementState(hackathon, LocalDate.now(clock));
 
         Set<UUID> idsToDelete = new HashSet<>(staffMembersId);
@@ -222,10 +224,18 @@ public class HackathonStaffService {
         return deleteStaffMembers(hackathonId, List.of(staffMemberId));
     }
 
+    private Hackathon getHackathon( UUID hackathonId ) {
+        if (hackathonId == null) {
+            throw new IllegalArgumentException("hackathonId must not be null.");
+        }
+        return hackathonRepository.findById(hackathonId)
+                .orElseThrow(() -> new HackathonNotFoundException(hackathonId));
+    }
+
     private Hackathon prepareAssignment(UUID assignerId, UUID hackathonId) {
-        Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
+        Hackathon hackathon = getHackathon(hackathonId);
         validateStaffManagementState(hackathon, LocalDate.now(clock));
-        validateAssignerRole(assignerId, hackathonId);
+        validateAssignerRole(assignerId, hackathon);
         return hackathon;
     }
 
@@ -260,7 +270,7 @@ public class HackathonStaffService {
         return saved;
     }
 
-    private void validateAssignerRole( UUID assignerId, UUID  hackathonId )  {
+    private void validateAssignerRole( UUID assignerId, Hackathon  hackathon )  {
         if(assignerId == null) {
             throw new IllegalArgumentException("assignerId must not be null.");
         }
@@ -271,12 +281,12 @@ public class HackathonStaffService {
                 .stream()
                 .anyMatch(assignment ->
                         assignment.getStaffRole() == StaffRole.ORGANIZER &&
-                                Objects.equals(assignment.getHackathon().getId(), hackathonId)
+                                Objects.equals(assignment.getHackathon().getId(), hackathon.getId())
                 );
 
-        if (!isOrganizer) {
+        if (!isOrganizer && !hackathon.getStaff().isEmpty()) {
             throw new StaffAssignmentConflictException(
-                    "Assigner must be an organizer of hackathon " + hackathonId
+                    "Assigner must be an organizer of hackathon " + hackathon.getId()
             );
         }
     }

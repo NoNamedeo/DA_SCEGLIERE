@@ -7,8 +7,10 @@ import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 public record CreateHackathonRequest(
+        @NotNull UUID creatorId,
         @NotBlank String name,
         @NotBlank String description,
         @NotNull @DecimalMin(value = "0.01") BigDecimal awardPrize,
