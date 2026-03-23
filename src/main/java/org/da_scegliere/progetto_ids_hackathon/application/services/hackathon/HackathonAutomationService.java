@@ -35,19 +35,11 @@ import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IH
 import org.da_scegliere.progetto_ids_hackathon.application.services.PaymentService;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Participation;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
-import org.da_scegliere.progetto_ids_hackathon.core.events.hackathon.HackathonConcludedEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -92,15 +84,11 @@ public class HackathonAutomationService {
 
         if (hackathon.getWinner() != null && state != HackathonState.ENDED) {
             lifecycleService.concludeHackathon(hackathon);
-            List<User> participantsToNotify = collectConclusionNotificationRecipients(hackathon);
-            if (!participantsToNotify.isEmpty()) {
-                domainEventPublisher.publish(new HackathonConcludedEvent(
-                        hackathon.getName(),
-                        hackathon.getWinner().getName(),
-                        participantsToNotify
-                ));
+            var concludedEvent = hackathon.toConcludedEvent();
+            if (!concludedEvent.participants().isEmpty()) {
+                domainEventPublisher.publish(concludedEvent);
             }
-            int notifiedUsers = participantsToNotify.size();
+            int notifiedUsers = concludedEvent.participants().size();
             concluded = true;
             log.info("Hackathon concluded by automation hackathonId={} notifiedUsers={}.", hackathonId, notifiedUsers);
         }
@@ -121,39 +109,6 @@ public class HackathonAutomationService {
                 concluded,
                 prizeAwarded
         );
-    }
-
-    private List<User> collectConclusionNotificationRecipients(Hackathon hackathon) {
-        Team winner = hackathon.getWinner();
-        if (winner == null) {
-            return List.of();
-        }
-
-        List<Participation> participations = hackathon.getParticipations();
-        if (participations == null || participations.isEmpty()) {
-            return List.of();
-        }
-
-        Set<UUID> notifiedUserIds = new HashSet<>();
-        List<User> recipients = new ArrayList<>();
-
-        for (Participation participation : participations) {
-            if (!(participation instanceof TeamParticipation teamParticipation)) {
-                continue;
-            }
-            Team team = teamParticipation.getTeam();
-            if (team == null || team.getMembers() == null) {
-                continue;
-            }
-
-            for (User user : team.getMembers()) {
-                if (user == null || user.getId() == null || !notifiedUserIds.add(user.getId())) {
-                    continue;
-                }
-                recipients.add(user);
-            }
-        }
-        return List.copyOf(recipients);
     }
 
     private static boolean canAssignWinner(HackathonState state) {

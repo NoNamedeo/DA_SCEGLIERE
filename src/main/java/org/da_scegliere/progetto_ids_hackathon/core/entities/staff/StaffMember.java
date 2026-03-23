@@ -31,11 +31,13 @@ package org.da_scegliere.progetto_ids_hackathon.core.entities.staff;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.AbstractUser;
+import org.da_scegliere.progetto_ids_hackathon.core.events.staff.StaffMemberCreatedEvent;
+import org.da_scegliere.progetto_ids_hackathon.core.events.staff.StaffMemberNameChangedEvent;
 
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Entity
@@ -47,6 +49,19 @@ public class StaffMember extends AbstractUser{
     public StaffMember(String name, int age, String email, List<StaffAssignment> staffAssignmentList) {
         super(name, age, email);
         this.staffAssignmentList = staffAssignmentList;
+    }
+
+    public StaffMemberCreatedEvent toCreatedEvent() {
+        return new StaffMemberCreatedEvent(this);
+    }
+
+    public StaffMemberNameChangedEvent renameAndCreateNameChangedEvent(String newName) {
+        Objects.requireNonNull(newName, "newName must not be null.");
+        if (newName.isBlank()) {
+            throw new IllegalArgumentException("newName must not be blank.");
+        }
+        setName(newName);
+        return new StaffMemberNameChangedEvent(this, newName);
     }
 
     public StaffMember() {}

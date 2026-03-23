@@ -42,7 +42,6 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignme
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
-import org.da_scegliere.progetto_ids_hackathon.core.events.hackathon.HackathonStaffAssignedEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -249,7 +248,7 @@ public class HackathonStaffService {
         }
 
         StaffAssignment saved = staffAssignmentRepository.save(assignment);
-        domainEventPublisher.publish(new HackathonStaffAssignedEvent(member, role));
+        domainEventPublisher.publish(saved.toAssignedEvent());
 
         return saved;
     }

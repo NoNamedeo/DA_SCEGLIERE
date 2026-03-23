@@ -18,7 +18,6 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.team.TeamCreationRequestStatus;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.team.TeamInvitationStatus;
-import org.da_scegliere.progetto_ids_hackathon.core.events.team.TeamInvitationRejectedEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -354,7 +353,7 @@ public class TeamInvitationService {
     private void notifyCreatorAboutRejection(TeamInviteNotification invitation) {
         User creator = getUserOrThrow(invitation.getCreatorId());
         User invitee = getUserOrThrow(invitation.getTarget().getId());
-        domainEventPublisher.publish(new TeamInvitationRejectedEvent(creator, invitee, invitation.getTeamName()));
+        domainEventPublisher.publish(invitation.toRejectedEvent(creator, invitee));
     }
 
     private List<TeamInviteNotification> getOpenRequestInvitationsOrThrow(UUID requestId) {

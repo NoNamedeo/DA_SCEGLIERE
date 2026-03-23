@@ -33,6 +33,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
+import org.da_scegliere.progetto_ids_hackathon.core.events.user.UserSuspendedEvent;
 
 @Setter
 @Getter
@@ -51,5 +52,9 @@ public class User extends AbstractUser{
 
     public User() {
         super();
+    }
+
+    public UserSuspendedEvent toSuspendedEvent(String suspensionReason) {
+        return new UserSuspendedEvent(this, suspensionReason);
     }
 }

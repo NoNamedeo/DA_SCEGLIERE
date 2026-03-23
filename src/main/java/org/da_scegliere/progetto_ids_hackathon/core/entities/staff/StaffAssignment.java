@@ -35,9 +35,11 @@ import jakarta.validation.constraints.PastOrPresent;
 import lombok.Getter;
 import lombok.Setter;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.events.hackathon.HackathonStaffAssignedEvent;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -69,6 +71,13 @@ public class StaffAssignment {
         this.staffRole = staffRole;
         this.staffMember = staffMember;
         this.hackathon = hackathon;
+    }
+
+    public HackathonStaffAssignedEvent toAssignedEvent() {
+        return new HackathonStaffAssignedEvent(
+                Objects.requireNonNull(staffMember, "staffMember must not be null."),
+                Objects.requireNonNull(staffRole, "staffRole must not be null.")
+        );
     }
 
     public StaffAssignment() {}

@@ -38,7 +38,6 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.p
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.payment.WinnerNotProclaimedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
-import org.da_scegliere.progetto_ids_hackathon.core.events.payment.WinnerPrizePaidEvent;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -104,7 +103,7 @@ public class PaymentService {
             return false;
         }
         executePayment(prize, winner);
-        domainEventPublisher.publish(new WinnerPrizePaidEvent(winner.getMembers()));
+        domainEventPublisher.publish(winner.toWinnerPrizePaidEvent());
         safeHackathon.markPrizeAsPaid(LocalDate.now(clock));
         log.info("Awarded winner prize={} for hackathonId={}.", prize, safeHackathon.getId());
         return true;

@@ -37,7 +37,6 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.s
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.user.*;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.UserReport;
-import org.da_scegliere.progetto_ids_hackathon.core.events.user.UserSuspendedEvent;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.Manager;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
@@ -144,7 +143,7 @@ public class ManagerService {
         ensureSuspendable(user);
         user.suspend(suspensionReason, accountStateMachine);
 
-        domainEventPublisher.publish(new UserSuspendedEvent(user, suspensionReason));
+        domainEventPublisher.publish(user.toSuspendedEvent(suspensionReason));
 
         log.info("Suspended user userId={} requestedByManagerId={}.", userId, managerId);
         return user;
@@ -192,6 +191,7 @@ public class ManagerService {
 
         user.suspend(suspensionReason, accountStateMachine);
         report.accept(manager, reportResolutionNotes);
+        domainEventPublisher.publish(user.toSuspendedEvent(suspensionReason));
 
         log.info(
                 "Suspended user userId={} requestedByManagerId={} viaReportId={}.",

@@ -37,7 +37,6 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.t
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.user.UserNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
-import org.da_scegliere.progetto_ids_hackathon.core.events.team.TeamCreatedEvent;
 import org.da_scegliere.progetto_ids_hackathon.core.events.team.TeamDeletedAfterLeaveEvent;
 import org.da_scegliere.progetto_ids_hackathon.core.events.team.TeamDeletedEvent;
 import org.da_scegliere.progetto_ids_hackathon.core.events.team.TeamMemberAddedEvent;
@@ -102,11 +101,7 @@ public class TeamService {
         Team team = Team.create(name, members);
         Team savedTeam = teamRepository.save(team);
 
-        domainEventPublisher.publish(new TeamCreatedEvent(
-                savedTeam.getId(),
-                savedTeam.getName(),
-                List.copyOf(savedTeam.getMembers())
-        ));
+        domainEventPublisher.publish(savedTeam.toCreatedEvent());
 
         log.info("Created team teamId={} name={}", savedTeam.getId(), savedTeam.getName());
         return savedTeam;
@@ -117,15 +112,10 @@ public class TeamService {
         log.info("Deleting team teamId={}", teamId);
 
         Team team = getTeamById(teamId);
-        List<User> formerMembers = team.detachAllMembers();
+        TeamDeletedEvent event = team.createDeletedEventAndDetachMembers();
 
         teamRepository.delete(team);
-
-        domainEventPublisher.publish(new TeamDeletedEvent(
-                team.getId(),
-                team.getName(),
-                formerMembers
-        ));
+        domainEventPublisher.publish(event);
 
         log.info("Deleted team teamId={}", teamId);
     }
@@ -148,14 +138,8 @@ public class TeamService {
         Team team = getTeamById(teamId);
         User user = getUserById(userId);
 
-        team.addMember(user);
-
-        domainEventPublisher.publish(new TeamMemberAddedEvent(
-                team.getId(),
-                team.getName(),
-                user,
-                List.copyOf(team.getMembers())
-        ));
+        TeamMemberAddedEvent event = team.addMember(user);
+        domainEventPublisher.publish(event);
 
         log.info("Added team member userId={} to teamId={}", userId, teamId);
         return team;
@@ -173,14 +157,8 @@ public class TeamService {
         }
 
         try {
-            team.removeMember(user, leaveTeamPolicy);
-
-            domainEventPublisher.publish(new TeamMemberRemovedEvent(
-                    team.getId(),
-                    team.getName(),
-                    user,
-                    List.copyOf(team.getMembers())
-            ));
+            TeamMemberRemovedEvent event = team.removeMember(user, leaveTeamPolicy);
+            domainEventPublisher.publish(event);
 
             log.info("Removed team member userId={} from teamId={}", userId, teamId);
             return Optional.of(team);
@@ -203,19 +181,9 @@ public class TeamService {
     }
 
     private Optional<Team> deleteTeamAfterMemberLeave(Team team, User removedUser) {
-        List<User> formerMembers = team.detachAllMembers();
-        List<User> membersToNotify = formerMembers.stream()
-                .filter(member -> !member.getId().equals(removedUser.getId()))
-                .toList();
-
+        TeamDeletedAfterLeaveEvent event = team.createDeletedAfterLeaveEventAndDetachMembers(removedUser);
         teamRepository.delete(team);
-
-        domainEventPublisher.publish(new TeamDeletedAfterLeaveEvent(
-                team.getId(),
-                team.getName(),
-                removedUser,
-                membersToNotify
-        ));
+        domainEventPublisher.publish(event);
 
         log.info("Removed team member userId={} and deleted teamId={}", removedUser.getId(), team.getId());
         return Optional.empty();

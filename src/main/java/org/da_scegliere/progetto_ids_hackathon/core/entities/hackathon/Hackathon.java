@@ -40,12 +40,15 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignme
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Submission;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
+import org.da_scegliere.progetto_ids_hackathon.core.events.hackathon.HackathonConcludedEvent;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -264,6 +267,37 @@ public class Hackathon {
 
         this.staff = remainingAssignments;
         return removedCount;
+    }
+
+    public HackathonConcludedEvent toConcludedEvent() {
+        if (winner == null) {
+            throw new IllegalStateException("Cannot create conclusion event without winner.");
+        }
+
+        Set<UUID> notifiedUserIds = new HashSet<>();
+        List<User> participantsToNotify = new ArrayList<>();
+
+        if (participations != null) {
+            for (Participation participation : participations) {
+                if (!(participation instanceof TeamParticipation teamParticipation)) {
+                    continue;
+                }
+
+                Team team = teamParticipation.getTeam();
+                if (team == null || team.getMembers() == null) {
+                    continue;
+                }
+
+                for (User member : team.getMembers()) {
+                    if (member == null || member.getId() == null || !notifiedUserIds.add(member.getId())) {
+                        continue;
+                    }
+                    participantsToNotify.add(member);
+                }
+            }
+        }
+
+        return new HackathonConcludedEvent(name, winner.getName(), participantsToNotify);
     }
 
 

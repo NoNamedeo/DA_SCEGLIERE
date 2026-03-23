@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.team.TeamInvitationStatus;
+import org.da_scegliere.progetto_ids_hackathon.core.events.team.TeamInvitationRejectedEvent;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -106,6 +107,10 @@ public class TeamInviteNotification extends BaseNotification {
         ensurePending();
         this.invitationStatus = TeamInvitationStatus.EXPIRED;
         this.respondedAt = date;
+    }
+
+    public TeamInvitationRejectedEvent toRejectedEvent(User creator, User invitee) {
+        return new TeamInvitationRejectedEvent(creator, invitee, teamName);
     }
 
     private void ensurePending() {

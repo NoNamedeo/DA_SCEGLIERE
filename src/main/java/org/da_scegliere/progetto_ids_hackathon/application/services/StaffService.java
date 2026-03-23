@@ -37,8 +37,6 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.s
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
-import org.da_scegliere.progetto_ids_hackathon.core.events.staff.StaffMemberCreatedEvent;
-import org.da_scegliere.progetto_ids_hackathon.core.events.staff.StaffMemberNameChangedEvent;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -371,7 +369,7 @@ public class StaffService {
         StaffMember staffMember = new StaffMember(name, age, email, new ArrayList<>());
         StaffMember savedStaffMember = staffMemberRepository.save(staffMember);
 
-        domainEventPublisher.publish(new StaffMemberCreatedEvent(savedStaffMember));
+        domainEventPublisher.publish(savedStaffMember.toCreatedEvent());
 
         log.info("Created staff member id={}.", savedStaffMember.getId());
         return savedStaffMember;
@@ -389,10 +387,10 @@ public class StaffService {
         log.info("Changing staff member name for staffMemberId={}.", staffMemberId);
 
         StaffMember staffMember = getStaffMemberById(staffMemberId);
-        staffMember.setName(newName);
+        var nameChangedEvent = staffMember.renameAndCreateNameChangedEvent(newName);
         StaffMember updatedStaffMember = staffMemberRepository.save(staffMember);
 
-        domainEventPublisher.publish(new StaffMemberNameChangedEvent(updatedStaffMember, newName));
+        domainEventPublisher.publish(nameChangedEvent);
 
         log.info("Changed staff member name for staffMemberId={}.", staffMemberId);
         return updatedStaffMember;

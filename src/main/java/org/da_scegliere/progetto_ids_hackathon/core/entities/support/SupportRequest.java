@@ -34,8 +34,13 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.support.SupportRequestState;
+import org.da_scegliere.progetto_ids_hackathon.core.events.support.SupportRequestAcceptedEvent;
+import org.da_scegliere.progetto_ids_hackathon.core.events.support.SupportRequestCreatedEvent;
+import org.da_scegliere.progetto_ids_hackathon.core.events.support.SupportRequestRejectedEvent;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.support.SupportRequestMentorSelectionContext;
 import org.da_scegliere.progetto_ids_hackathon.core.state.support.SupportRequestLifecycleStateMachine;
@@ -115,6 +120,28 @@ public class SupportRequest {
         this.state = stateMachine.transition(this.state, targetState);
     }
 
+    public SupportRequestCreatedEvent toCreatedEvent() {
+        List<StaffMember> recipients = selectedMentors == null
+                ? List.of()
+                : selectedMentors.stream()
+                .map(StaffAssignment::getStaffMember)
+                .filter(Objects::nonNull)
+                .toList();
+        String sendingTeamName = sendingTeam != null ? sendingTeam.getName() : "Team sconosciuto";
+        return new SupportRequestCreatedEvent(sendingTeamName, dateSlot, recipients);
+    }
+
+    public SupportRequestAcceptedEvent toAcceptedEvent() {
+        String mentorName = acceptingMentor != null && acceptingMentor.getStaffMember() != null
+                ? acceptingMentor.getStaffMember().getName()
+                : "Mentore assegnato";
+        return new SupportRequestAcceptedEvent(mentorName, teamMembersSnapshot());
+    }
+
+    public SupportRequestRejectedEvent toRejectedEvent() {
+        return new SupportRequestRejectedEvent(teamMembersSnapshot());
+    }
+
     /**
      * Validates mentor selection against team hackathon enrollment context.
      *
@@ -132,6 +159,13 @@ public class SupportRequest {
                 teamHackathonIds
         );
         mentorSelectionPolicy.validate(context);
+    }
+
+    private List<User> teamMembersSnapshot() {
+        if (sendingTeam == null || sendingTeam.getMembers() == null) {
+            return List.of();
+        }
+        return List.copyOf(sendingTeam.getMembers());
     }
 
 }

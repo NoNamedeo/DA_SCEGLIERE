@@ -38,15 +38,10 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.s
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.support.SupportRequestState;
-import org.da_scegliere.progetto_ids_hackathon.core.events.support.SupportRequestAcceptedEvent;
-import org.da_scegliere.progetto_ids_hackathon.core.events.support.SupportRequestCreatedEvent;
-import org.da_scegliere.progetto_ids_hackathon.core.events.support.SupportRequestRejectedEvent;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.support.SupportRequestMentorSelectionContext;
 import org.da_scegliere.progetto_ids_hackathon.core.state.support.SupportRequestLifecycleStateMachine;
@@ -163,10 +158,7 @@ public class SupportRequestService {
         SupportRequest savedRequest = supportRequestRepository.save(request);
         log.info("Created support request supportRequestId={} sendingTeamId={}.", savedRequest.getId(), sendingTeamId);
 
-        List<StaffMember> recipients = staffAssignments.stream()
-                .map(StaffAssignment::getStaffMember)
-                .toList();
-        domainEventPublisher.publish(new SupportRequestCreatedEvent(persistedTeam.getName(), dateSlot, recipients));
+        domainEventPublisher.publish(savedRequest.toCreatedEvent());
         return savedRequest;
     }
 
@@ -238,7 +230,7 @@ public class SupportRequestService {
                 ));
 
         SupportRequest updatedRequest = markInProgress(requestId, acceptingMentor);
-        publishAcceptedSupportRequestEvent(updatedRequest, acceptingMentor);
+        publishAcceptedSupportRequestEvent(updatedRequest);
         return updatedRequest;
     }
 
@@ -364,21 +356,11 @@ public class SupportRequestService {
         return assignments;
     }
 
-    private void publishAcceptedSupportRequestEvent(SupportRequest request, StaffAssignment acceptingMentor) {
-        String mentorName = acceptingMentor.getStaffMember() != null
-                ? acceptingMentor.getStaffMember().getName()
-                : "Mentore assegnato";
-        domainEventPublisher.publish(new SupportRequestAcceptedEvent(mentorName, extractTeamMembers(request)));
+    private void publishAcceptedSupportRequestEvent(SupportRequest request) {
+        domainEventPublisher.publish(request.toAcceptedEvent());
     }
 
     private void publishRejectedSupportRequestEvent(SupportRequest request) {
-        domainEventPublisher.publish(new SupportRequestRejectedEvent(extractTeamMembers(request)));
-    }
-
-    private static List<User> extractTeamMembers(SupportRequest request) {
-        if (request.getSendingTeam() == null || request.getSendingTeam().getMembers() == null) {
-            return List.of();
-        }
-        return List.copyOf(request.getSendingTeam().getMembers());
+        domainEventPublisher.publish(request.toRejectedEvent());
     }
 }

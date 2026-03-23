@@ -137,4 +137,19 @@ public abstract class AbstractUser {
             throw new IllegalArgumentException("moderation note must not be blank.");
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AbstractUser that)) return false;
+
+        if (this.id == null || that.id == null) return false;
+
+        return id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

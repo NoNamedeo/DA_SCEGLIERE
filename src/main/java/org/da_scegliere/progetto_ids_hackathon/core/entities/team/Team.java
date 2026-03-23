@@ -38,6 +38,12 @@ import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
+import org.da_scegliere.progetto_ids_hackathon.core.events.team.TeamCreatedEvent;
+import org.da_scegliere.progetto_ids_hackathon.core.events.team.TeamDeletedAfterLeaveEvent;
+import org.da_scegliere.progetto_ids_hackathon.core.events.team.TeamDeletedEvent;
+import org.da_scegliere.progetto_ids_hackathon.core.events.team.TeamMemberAddedEvent;
+import org.da_scegliere.progetto_ids_hackathon.core.events.team.TeamMemberRemovedEvent;
+import org.da_scegliere.progetto_ids_hackathon.core.events.payment.WinnerPrizePaidEvent;
 import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.DuplicateTeamMemberException;
 import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.NullTeamMemberException;
 import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.TeamMembersEmptyException;
@@ -100,6 +106,11 @@ public class Team {
         return team;
     }
 
+    public TeamCreatedEvent toCreatedEvent() {
+        ensureMembersInitialized();
+        return new TeamCreatedEvent(id, name, List.copyOf(members));
+    }
+
     public void rename(String newName) {
         if (newName == null || newName.isBlank()) {
             throw new TeamNameBlankException();
@@ -107,7 +118,7 @@ public class Team {
         this.name = newName;
     }
 
-    public void addMember(User user) {
+    public TeamMemberAddedEvent addMember(User user) {
         Objects.requireNonNull(user, "user must not be null.");
         ensureMembersInitialized();
 
@@ -122,9 +133,11 @@ public class Team {
 
         members.add(user);
         user.setTeam(this);
+
+        return new TeamMemberAddedEvent(id, name, user, List.copyOf(members));
     }
 
-    public void removeMember(User user, BusinessPolicy<LeaveTeamContext> leaveTeamPolicy) {
+    public TeamMemberRemovedEvent removeMember(User user, BusinessPolicy<LeaveTeamContext> leaveTeamPolicy) {
         Objects.requireNonNull(user, "user must not be null.");
         Objects.requireNonNull(leaveTeamPolicy, "leaveTeamPolicy must not be null.");
         ensureMembersInitialized();
@@ -136,11 +149,31 @@ public class Team {
         LeaveTeamContext context = new LeaveTeamContext(this);
         leaveTeamPolicy.validate(context);
 
-        members.removeIf(member -> sameUser(member, user));
+        members.remove(user);
         user.setTeam(null);
+        return new TeamMemberRemovedEvent(id, name, user, List.copyOf(members));
     }
 
-    public List<User> detachAllMembers() {
+    public TeamDeletedEvent createDeletedEventAndDetachMembers() {
+        List<User> formerMembers = detachAllMembers();
+        return new TeamDeletedEvent(id, name, formerMembers);
+    }
+
+    public TeamDeletedAfterLeaveEvent createDeletedAfterLeaveEventAndDetachMembers(User removedUser) {
+        Objects.requireNonNull(removedUser, "removedUser must not be null.");
+        List<User> formerMembers = detachAllMembers();
+        List<User> membersToNotify = formerMembers.stream()
+                .filter(member -> !member.equals(removedUser))
+                .toList();
+        return new TeamDeletedAfterLeaveEvent(id, name, removedUser, membersToNotify);
+    }
+
+    public WinnerPrizePaidEvent toWinnerPrizePaidEvent() {
+        ensureMembersInitialized();
+        return new WinnerPrizePaidEvent(List.copyOf(members));
+    }
+
+    private List<User> detachAllMembers() {
         ensureMembersInitialized();
         List<User> previousMembers = List.copyOf(members);
         for (User member : previousMembers) {
@@ -162,20 +195,7 @@ public class Team {
     }
 
     private boolean containsMember(User user) {
-        return members.stream().anyMatch(member -> sameUser(member, user));
-    }
-
-    private static boolean sameUser(User first, User second) {
-        if (first == null || second == null) {
-            return false;
-        }
-
-        UUID firstId = first.getId();
-        UUID secondId = second.getId();
-        if (firstId != null && secondId != null) {
-            return Objects.equals(firstId, secondId);
-        }
-        return first == second;
+        return members.contains(user);
     }
 
     private boolean isSameTeam(Team otherTeam) {
