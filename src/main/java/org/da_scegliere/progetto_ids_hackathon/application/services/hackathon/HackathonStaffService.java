@@ -45,13 +45,10 @@ import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.Hackat
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.management.relation.InvalidRoleValueException;
 import java.time.Clock;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -79,6 +76,7 @@ public class HackathonStaffService {
     /**
      * Assigns multiple staff members to a hackathon.
      *
+     * @param assignerId assigner of the staff member.
      * @param hackathonId target hackathon identifier.
      * @param staffMembersIdMap map of staff member id to role.
      * @return updated hackathon aggregate.
@@ -89,7 +87,9 @@ public class HackathonStaffService {
      * @throws InvalidHackathonStateOperationException when staff management is not allowed in current state.
      */
     @Transactional
-    public Hackathon addStaffMembers(UUID hackathonId, Map<UUID, StaffRole> staffMembersIdMap) {
+    public Hackathon addStaffMembers(UUID assignerId,
+                                     UUID hackathonId,
+                                     Map<UUID, StaffRole> staffMembersIdMap){
         log.info("Adding staff members to hackathon {}", hackathonId);
 
         if (staffMembersIdMap == null) {
@@ -99,8 +99,7 @@ public class HackathonStaffService {
             throw new IllegalArgumentException("staffMembersIdMap must not be empty.");
         }
 
-        Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
-        validateStaffManagementState(hackathon, LocalDate.now(clock));
+        Hackathon hackathon = prepareAssignment(assignerId, hackathonId);
 
         for (Map.Entry<UUID, StaffRole> entry : staffMembersIdMap.entrySet()) {
             UUID staffId = entry.getKey();
@@ -123,6 +122,7 @@ public class HackathonStaffService {
     /**
      * Assigns a {@link StaffMember} to a {@link Hackathon} with a specific {@link StaffRole}.
      * <p>
+     * @param assignerId assigner of the staff member.
      * @param hackathonId identifier of the hackathon to which the staff member will be assigned
      * @param staffMemberId identifier of the staff member to assign
      * @param role role to assign within the hackathon (e.g. JUDGE, ORGANIZER, etc.)
@@ -138,17 +138,17 @@ public class HackathonStaffService {
      */
     @Transactional
     public StaffAssignment assignStaffToHackathon(
+            UUID assignerId,
             UUID hackathonId,
             UUID staffMemberId,
             StaffRole role
-    ) {
+    ){
         Objects.requireNonNull(role, "role must not be null");
 
         log.info("Assigning staffMember={} to hackathon={} with role={}",
                 staffMemberId, hackathonId, role);
 
-        Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
-        validateStaffManagementState(hackathon, LocalDate.now(clock));
+        Hackathon hackathon = prepareAssignment(staffMemberId, hackathonId);
 
         StaffMember staffMember = staffMemberRepository.findById(staffMemberId)
                 .orElseThrow(() -> new StaffMemberNotFoundException(staffMemberId));
@@ -185,7 +185,7 @@ public class HackathonStaffService {
         Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
         validateStaffManagementState(hackathon, LocalDate.now(clock));
 
-        Set<UUID> idsToDelete = staffMembersId.stream().collect(Collectors.toSet());
+        Set<UUID> idsToDelete = new HashSet<>(staffMembersId);
         int removedCount = hackathon.removeStaffAssignmentsByStaffMemberIds(idsToDelete);
         if (removedCount != idsToDelete.size()) {
             throw new IllegalArgumentException("One or more staff members are not assigned to this hackathon.");
@@ -222,6 +222,13 @@ public class HackathonStaffService {
         return deleteStaffMembers(hackathonId, List.of(staffMemberId));
     }
 
+    private Hackathon prepareAssignment(UUID assignerId, UUID hackathonId) {
+        Hackathon hackathon = hackathonCrudService.getHackathonById(hackathonId);
+        validateStaffManagementState(hackathon, LocalDate.now(clock));
+        validateAssignerRole(assignerId, hackathonId);
+        return hackathon;
+    }
+
     private static void validateStaffManagementState(Hackathon hackathon, LocalDate referenceDate) {
         HackathonState hackathonState = hackathon.getHackathonStateAt(referenceDate);
         if (!(hackathonState == HackathonState.REGISTRATION || hackathonState == HackathonState.ONGOING)) {
@@ -251,5 +258,26 @@ public class HackathonStaffService {
         domainEventPublisher.publish(saved.toAssignedEvent());
 
         return saved;
+    }
+
+    private void validateAssignerRole( UUID assignerId, UUID  hackathonId )  {
+        if(assignerId == null) {
+            throw new IllegalArgumentException("assignerId must not be null.");
+        }
+        StaffMember assigner = staffMemberRepository.findById(assignerId)
+                .orElseThrow(() -> new StaffMemberNotFoundException(assignerId));
+
+        boolean isOrganizer = assigner.getStaffAssignmentList()
+                .stream()
+                .anyMatch(assignment ->
+                        assignment.getStaffRole() == StaffRole.ORGANIZER &&
+                                Objects.equals(assignment.getHackathon().getId(), hackathonId)
+                );
+
+        if (!isOrganizer) {
+            throw new StaffAssignmentConflictException(
+                    "Assigner must be an organizer of hackathon " + hackathonId
+            );
+        }
     }
 }

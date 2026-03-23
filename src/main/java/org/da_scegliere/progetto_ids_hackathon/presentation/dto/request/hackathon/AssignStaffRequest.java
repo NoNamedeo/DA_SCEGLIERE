@@ -28,11 +28,13 @@
 
 package org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.hackathon;
 
+import jakarta.validation.constraints.NotNull;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 
 import java.util.UUID;
 
 public record AssignStaffRequest(
-        UUID staffMemberId,
-        StaffRole role
+        @NotNull  UUID assignerId,
+        @NotNull UUID staffMemberId,
+        @NotNull StaffRole role
 ) {}

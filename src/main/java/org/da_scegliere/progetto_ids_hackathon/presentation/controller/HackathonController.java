@@ -64,6 +64,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.management.relation.InvalidRoleValueException;
 import java.net.URI;
 import java.time.Clock;
 import java.time.LocalDate;
@@ -218,7 +219,7 @@ public class HackathonController {
             @PathVariable UUID hackathonId,
             @Valid @RequestBody AddStaffAssignmentsRequest request
     ) {
-        hackathonStaffService.addStaffMembers(hackathonId, HackathonMapper.toStaffMap(request.staffAssignments()));
+        hackathonStaffService.addStaffMembers(request.assignerId() ,hackathonId, HackathonMapper.toStaffMap(request.staffAssignments()));
         return ResponseEntity.noContent().build();
     }
 
@@ -234,6 +235,7 @@ public class HackathonController {
             @Valid @RequestBody AssignStaffRequest request
     ) {
         hackathonStaffService.assignStaffToHackathon(
+                request.assignerId(),
                 hackathonId,
                 request.staffMemberId(),
                 request.role()
