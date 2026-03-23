@@ -20,12 +20,6 @@ Questa organizzazione consente di ottenere un sistema altamente modulare, testab
 
 ---
 
-## Web Interface
-Frontend ufficiale (React + Tailwind):  
-[https://marvelous-cajeta-1a68ff.netlify.app/](https://marvelous-cajeta-1a68ff.netlify.app/)
-
----
-
 ## Architecture
 
 Il progetto segue la Clean Architecture con separazione in layer:
@@ -196,6 +190,29 @@ Configurazioni disponibili:
 app.scheduler.hackathon-lifecycle-cron=0 */5 * * * *  (ogni 5 minuti)
 app.scheduler.team-invitation-expiration-cron=0 */10 * * * * (ogni 10 minuti)
 ```
+
+---
+
+## Web Interface
+Frontend ufficiale (React + Tailwind):  
+[https://marvelous-cajeta-1a68ff.netlify.app/](https://marvelous-cajeta-1a68ff.netlify.app/)
+
+## Avvio Frontend + Backend
+Per usare il frontend con il backend locale:
+
+1. Avvia il backend Spring Boot sulla porta `8080` (Default)
+```bash
+./mvnw spring-boot:run
+```
+
+2. Apri il frontend dal browser:
+[https://marvelous-cajeta-1a68ff.netlify.app/](https://marvelous-cajeta-1a68ff.netlify.app/)
+
+3. Quando il browser mostra il popup `Access other apps and services on this device`, accettalo.
+
+4. Il frontend comunicherà con il backend locale su `http://localhost:8080`.
+
+5. Se il backend non è ancora attivo o la porta `8080` è occupata, il frontend non potra' completare le chiamate API.
 
 ---
 
