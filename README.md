@@ -40,11 +40,14 @@ application/
 │   └── strategies/       → interfacce per servizi esterni
 ├── services/             → use cases applicativi
 ├── scheduler/            → job automatici
+├── factory/              → factory (notification)
+├── listeners/            → listeners (eventi di dominio)
 └── config/               → configurazione (clock, DI)
 
 core/
 ├── entities/             → modelli di dominio
 ├── enums/                → stati e tipi
+├── events/               → eventi
 ├── state/                → state machines
 └── policies/             → business rules (Specification/Policy)
 
@@ -103,6 +106,90 @@ Per la creazione di hackathon:
 
 * `HackathonBuilder`
 * `HackathonBuilderDirector`
+
+---
+
+## Prerequisiti
+- JDK 21
+- Maven (oppure wrapper `./mvnw`)
+
+Verifica rapida:
+```bash
+java -version
+./mvnw -v
+```
+
+## Installazione
+```bash
+git clone <repo-url>
+cd DA_SCEGLIERE
+./mvnw clean compile
+```
+
+## Esecuzione
+Avvio applicazione:
+```bash
+./mvnw spring-boot:run
+```
+
+Build jar:
+```bash
+./mvnw clean package
+java -jar target/Progetto_IdS_Hackathon-0.0.1-SNAPSHOT.jar
+```
+
+## Endpoint Utili in Locale
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+
+## Database e Seed
+Configurazione default:
+- URL: `jdbc:h2:file:~/hackathon-db;AUTO_SERVER=TRUE`
+- user: `sa`
+- password: vuota
+- `spring.jpa.hibernate.ddl-auto=create-drop`
+- seed automatico da `classpath:sql/dev-refresh-seed.sql`
+
+Note:
+- ad ogni avvio viene ricreato schema + seed (in dev)
+- DB file in home: `~/hackathon-db.mv.db`
+
+## Clock Testabile (fondamentale per lifecycle hackathon)
+Il progetto usa `Clock` centralizzato (`DomainCompositionConfiguration`) e supporta due modalità:
+- `SYSTEM`: tempo reale macchina
+- `FIXED`: istante fisso deterministico (ottimo per test manuali e demo scheduler)
+
+Proprietà (`application.properties`):
+```properties
+app.clock.mode=FIXED
+app.clock.zone=Europe/Rome
+app.clock.fixed-instant=2026-03-29T12:00:00Z
+```
+
+### Esempi pratici
+Tempo reale:
+```properties
+app.clock.mode=SYSTEM
+app.clock.zone=Europe/Rome
+```
+
+Tempo fisso per forzare stati hackathon:
+```properties
+app.clock.mode=FIXED
+app.clock.zone=Europe/Rome
+app.clock.fixed-instant=2026-04-10T10:00:00Z
+```
+
+Importante:
+- se `app.clock.mode=FIXED`, `app.clock.fixed-instant` deve essere valorizzato
+- il validator Bean Validation usa lo stesso `Clock`, quindi anche controlli `@PastOrPresent`, `@FutureOrPresent` restano coerenti
+
+## Scheduler
+Configurazioni disponibili:
+```properties
+app.scheduler.hackathon-lifecycle-cron=0 */5 * * * *  (ogni 5 minuti)
+app.scheduler.team-invitation-expiration-cron=0 */10 * * * * (ogni 10 minuti)
+```
 
 ---
 
