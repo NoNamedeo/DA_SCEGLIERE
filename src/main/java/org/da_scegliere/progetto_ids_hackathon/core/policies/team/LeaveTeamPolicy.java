@@ -28,6 +28,7 @@
 
 package org.da_scegliere.progetto_ids_hackathon.core.policies.team;
 
+import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.TeamMinimumMembersViolationException;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.PolicyRule;
 
@@ -41,7 +42,7 @@ public class LeaveTeamPolicy implements BusinessPolicy<LeaveTeamContext> {
                     context ->
                             context.team().getMembers().size() > 2,
                     context ->
-                            new IllegalStateException("Team should have at least two members.")
+                            new TeamMinimumMembersViolationException()
             )
     );
 
@@ -49,7 +50,7 @@ public class LeaveTeamPolicy implements BusinessPolicy<LeaveTeamContext> {
      * Validates the removal of a team member and throws on first violated rule.
      *
      * @param context team context to validate.
-     * @throws IllegalStateException when a rule is violated.
+     * @throws TeamMinimumMembersViolationException when a rule is violated.
      */
     @Override
     public void validate(LeaveTeamContext context) {

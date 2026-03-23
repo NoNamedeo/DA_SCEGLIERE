@@ -30,12 +30,47 @@ package org.da_scegliere.progetto_ids_hackathon.infrastructure.jpa.repositories;
 
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.INotificationRepository;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.AbstractNotification;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.TeamInviteNotification;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.team.TeamInvitationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface JpaNotificationRepository extends JpaRepository<AbstractNotification, UUID>, INotificationRepository {
+
+    @Override
+    @Query("select n from TeamInviteNotification n where n.id = :invitationId and n.target.id = :inviteeId")
+    Optional<TeamInviteNotification> findTeamInvitationByIdAndTarget_Id(
+            @Param("invitationId") UUID invitationId,
+            @Param("inviteeId") UUID inviteeId
+    );
+
+    @Override
+    @Query("select n from TeamInviteNotification n where n.requestId = :requestId")
+    List<TeamInviteNotification> findTeamInvitationsByRequestId(@Param("requestId") UUID requestId);
+
+    @Override
+    @Query("select n from TeamInviteNotification n where n.creatorId = :creatorId")
+    List<TeamInviteNotification> findTeamInvitationsByCreatorId(@Param("creatorId") UUID creatorId);
+
+    @Override
+    @Query("select n from TeamInviteNotification n where n.target.id = :inviteeId")
+    List<TeamInviteNotification> findTeamInvitationsByTargetId(@Param("inviteeId") UUID inviteeId);
+
+    @Override
+    @Query("select n from TeamInviteNotification n where n.target.id = :inviteeId and n.invitationStatus = :status")
+    List<TeamInviteNotification> findTeamInvitationsByTargetIdAndStatus(
+            @Param("inviteeId") UUID inviteeId,
+            @Param("status") TeamInvitationStatus status
+    );
+
+    @Override
+    @Query("select n from TeamInviteNotification n where n.invitationStatus = :status")
+    List<TeamInviteNotification> findTeamInvitationsByStatus(@Param("status") TeamInvitationStatus status);
 }

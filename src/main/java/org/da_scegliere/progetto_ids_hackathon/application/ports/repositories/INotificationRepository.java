@@ -29,7 +29,8 @@
 package org.da_scegliere.progetto_ids_hackathon.application.ports.repositories;
 
 import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.AbstractNotification;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.TeamInviteNotification;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.team.TeamInvitationStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,6 +43,18 @@ public interface INotificationRepository {
     Optional<AbstractNotification> findById(UUID notificationId);
 
     List<AbstractNotification> findByTarget_Id(UUID targetId);
+
+    Optional<TeamInviteNotification> findTeamInvitationByIdAndTarget_Id(UUID invitationId, UUID inviteeId);
+
+    List<TeamInviteNotification> findTeamInvitationsByRequestId(UUID requestId);
+
+    List<TeamInviteNotification> findTeamInvitationsByCreatorId(UUID creatorId);
+
+    List<TeamInviteNotification> findTeamInvitationsByTargetId(UUID inviteeId);
+
+    List<TeamInviteNotification> findTeamInvitationsByTargetIdAndStatus(UUID inviteeId, TeamInvitationStatus status);
+
+    List<TeamInviteNotification> findTeamInvitationsByStatus(TeamInvitationStatus status);
 
     AbstractNotification save(AbstractNotification notification);
 

@@ -30,18 +30,17 @@ package org.da_scegliere.progetto_ids_hackathon.presentation.controller.team;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.da_scegliere.progetto_ids_hackathon.application.services.TeamInvitationService;
 import org.da_scegliere.progetto_ids_hackathon.application.services.TeamParticipationService;
 import org.da_scegliere.progetto_ids_hackathon.application.services.TeamService;
-import org.da_scegliere.progetto_ids_hackathon.application.services.UserService;
+import org.da_scegliere.progetto_ids_hackathon.application.services.views.team.TeamCreationRequestView;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.team.UpdateTeamRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.user.CreateTeamRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.team.TeamParticipationResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.team.TeamResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.TeamMapper;
-import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.UserMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,7 +54,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -65,23 +63,27 @@ import java.util.UUID;
 public class TeamController {
 
     private final TeamService teamService;
-    private final UserService userService;
+    private final TeamInvitationService teamInvitationService;
     private final TeamParticipationService teamParticipationService;
 
     @PostMapping
     public ResponseEntity<Void> createTeam(@Valid @RequestBody CreateTeamRequest request) {
-        List<UUID> usersId = UserMapper.toUserList(request.teamMembers());
-        List<User> users = new ArrayList<>();
-        for (UUID uuid : usersId) {
-            users.add(userService.getUserById(uuid));
+        UUID creatorId = request.resolvedCreatorId();
+        if (creatorId == null) {
+            throw new IllegalArgumentException("creatorId must be provided.");
         }
 
-        Team createdTeam = teamService.createTeam(request.teamName(), users);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{teamId}")
-                .buildAndExpand(createdTeam.getId())
+        TeamCreationRequestView creationRequest = teamInvitationService.startTeamCreationRequest(
+                creatorId,
+                request.teamName(),
+                request.resolvedInviteeIds()
+        );
+
+        URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/v1/team-creation-requests/{requestId}")
+                .buildAndExpand(creationRequest.id())
                 .toUri();
-        return ResponseEntity.created(location).build();
+        return ResponseEntity.accepted().location(location).build();
     }
 
     @GetMapping("/{teamId}")

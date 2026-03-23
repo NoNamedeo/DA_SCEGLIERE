@@ -81,8 +81,8 @@ public class SupportRequest {
 
     @Setter
     @NotNull
-    @OneToOne
-    @JoinColumn(name = "sending_team_id")
+    @ManyToOne
+    @JoinColumn(name = "sending_team_id", nullable = false)
     private Team sendingTeam;
 
     public SupportRequest(LocalDate dateSlot, Team sendingTeam, List<StaffAssignment> selectedMentors) {

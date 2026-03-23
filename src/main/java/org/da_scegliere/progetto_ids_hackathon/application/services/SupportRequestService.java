@@ -30,19 +30,23 @@ package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.events.DomainEventPublisher;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.*;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.supportRequest.SupportRequestNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.supportRequest.InvalidSupportRequestMentorSelectionException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.supportRequest.InvalidSupportRequestStateTransitionException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.support.SupportRequestState;
+import org.da_scegliere.progetto_ids_hackathon.core.events.support.SupportRequestAcceptedEvent;
+import org.da_scegliere.progetto_ids_hackathon.core.events.support.SupportRequestCreatedEvent;
+import org.da_scegliere.progetto_ids_hackathon.core.events.support.SupportRequestRejectedEvent;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.support.SupportRequestMentorSelectionContext;
 import org.da_scegliere.progetto_ids_hackathon.core.state.support.SupportRequestLifecycleStateMachine;
@@ -74,7 +78,7 @@ public class SupportRequestService {
     private final SupportRequestLifecycleStateMachine supportRequestStateMachine;
     private final Clock clock;
     private final BusinessPolicy<SupportRequestMentorSelectionContext> mentorSelectionPolicy;
-    private final INotificationRepository notificationRepository;
+    private final DomainEventPublisher domainEventPublisher;
 
     /**
      * Retrieves all support requests currently stored.
@@ -159,13 +163,10 @@ public class SupportRequestService {
         SupportRequest savedRequest = supportRequestRepository.save(request);
         log.info("Created support request supportRequestId={} sendingTeamId={}.", savedRequest.getId(), sendingTeamId);
 
-        for(User UserToNotify : sendingTeam.getMembers()){
-            BaseNotification notification = new BaseNotification(
-                    "Richiesta di supporto", "Richiesta di supporto ricevuta dal team: " +
-                    sendingTeam.getName() + ", per il: " + dateSlot.getDayOfMonth() + ", " + dateSlot.getMonth(),
-                    UserToNotify, 3);
-            notificationRepository.save(notification);
-        }
+        List<StaffMember> recipients = staffAssignments.stream()
+                .map(StaffAssignment::getStaffMember)
+                .toList();
+        domainEventPublisher.publish(new SupportRequestCreatedEvent(persistedTeam.getName(), dateSlot, recipients));
         return savedRequest;
     }
 
@@ -214,6 +215,7 @@ public class SupportRequestService {
 
         transitionRequest(request, SupportRequestState.IN_PROGRESS);
         request.acceptedBy(acceptingMentor);
+
         log.info("Marked support request as IN_PROGRESS requestId={}.", requestId);
         return request;
     }
@@ -234,7 +236,10 @@ public class SupportRequestService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Staff assignment not found: " + acceptingMentorAssignmentId + "."
                 ));
-        return markInProgress(requestId, acceptingMentor);
+
+        SupportRequest updatedRequest = markInProgress(requestId, acceptingMentor);
+        publishAcceptedSupportRequestEvent(updatedRequest, acceptingMentor);
+        return updatedRequest;
     }
 
     /**
@@ -248,8 +253,10 @@ public class SupportRequestService {
     @Transactional
     public SupportRequest resolveRequest(UUID requestId) {
         log.info("Resolving support request requestId={}.", requestId);
+
         SupportRequest request = getSupportRequestById(requestId);
         transitionRequest(request, SupportRequestState.RESOLVED);
+
         log.info("Resolved support request requestId={}.", requestId);
         return request;
     }
@@ -265,8 +272,11 @@ public class SupportRequestService {
     @Transactional
     public SupportRequest rejectRequest(UUID requestId) {
         log.info("Rejecting support request requestId={}.", requestId);
+
         SupportRequest request = getSupportRequestById(requestId);
         transitionRequest(request, SupportRequestState.REJECTED);
+        publishRejectedSupportRequestEvent(request);
+
         log.info("Rejected support request requestId={}.", requestId);
         return request;
     }
@@ -352,5 +362,23 @@ public class SupportRequestService {
             throw new IllegalArgumentException("Staff assignments not found: " + missingIds + ".");
         }
         return assignments;
+    }
+
+    private void publishAcceptedSupportRequestEvent(SupportRequest request, StaffAssignment acceptingMentor) {
+        String mentorName = acceptingMentor.getStaffMember() != null
+                ? acceptingMentor.getStaffMember().getName()
+                : "Mentore assegnato";
+        domainEventPublisher.publish(new SupportRequestAcceptedEvent(mentorName, extractTeamMembers(request)));
+    }
+
+    private void publishRejectedSupportRequestEvent(SupportRequest request) {
+        domainEventPublisher.publish(new SupportRequestRejectedEvent(extractTeamMembers(request)));
+    }
+
+    private static List<User> extractTeamMembers(SupportRequest request) {
+        if (request.getSendingTeam() == null || request.getSendingTeam().getMembers() == null) {
+            return List.of();
+        }
+        return List.copyOf(request.getSendingTeam().getMembers());
     }
 }

@@ -30,12 +30,25 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.s
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.supportRequest.SupportRequestNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff.StaffMemberNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamCreationRequestNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamInvitationNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamCreationRequestClosedException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamInvitationAlreadyProcessedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.InvalidSubmissionEvaluationException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.SubmissionDeadlineExceededException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.SubmissionEvaluationNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.SubmissionNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamAlreadyParticipatingException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamParticipationNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.DuplicateTeamMemberException;
+import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.NullTeamMemberException;
+import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.TeamMembersEmptyException;
+import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.TeamMinimumMembersViolationException;
+import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.TeamNameBlankException;
+import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.UserAlreadyAssignedToAnotherTeamException;
+import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.UserAlreadyInTeamException;
+import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.UserNotInTeamException;
+import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.UserWithoutTeamException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -79,6 +92,8 @@ public class GlobalExceptionHandler {
             SupportRequestNotFoundException.class,
             StaffMemberNotFoundException.class,
             TeamNotFoundException.class,
+            TeamCreationRequestNotFoundException.class,
+            TeamInvitationNotFoundException.class,
             SubmissionNotFoundException.class,
             TeamParticipationNotFoundException.class,
             SubmissionEvaluationNotFoundException.class
@@ -104,6 +119,11 @@ public class GlobalExceptionHandler {
             UserReportAlreadyProcessedException.class,
             StaffEmailAlreadyInUseException.class,
             StaffAssignmentConflictException.class,
+            TeamCreationRequestClosedException.class,
+            TeamInvitationAlreadyProcessedException.class,
+            TeamMinimumMembersViolationException.class,
+            UserAlreadyAssignedToAnotherTeamException.class,
+            UserAlreadyInTeamException.class,
             ManagerEmailAlreadyInUseException.class,
             InvalidSupportRequestStateTransitionException.class,
             SubmissionDeadlineExceededException.class,
@@ -126,6 +146,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({
             IllegalArgumentException.class,
+            TeamNameBlankException.class,
+            TeamMembersEmptyException.class,
+            DuplicateTeamMemberException.class,
+            NullTeamMemberException.class,
+            UserNotInTeamException.class,
+            UserWithoutTeamException.class,
             InvalidSupportRequestMentorSelectionException.class,
             InvalidSubmissionEvaluationException.class
     })

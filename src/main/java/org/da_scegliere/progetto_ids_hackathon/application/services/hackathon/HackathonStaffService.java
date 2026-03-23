@@ -30,7 +30,7 @@ package org.da_scegliere.progetto_ids_hackathon.application.services.hackathon;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.INotificationRepository;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.events.DomainEventPublisher;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffAssignmentRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffMemberRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException;
@@ -38,11 +38,11 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.h
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff.StaffAssignmentConflictException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff.StaffMemberNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.hackathon.HackathonState;
+import org.da_scegliere.progetto_ids_hackathon.core.events.hackathon.HackathonStaffAssignedEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,7 +74,7 @@ public class HackathonStaffService {
     private final HackathonCrudService hackathonCrudService;
     private final IStaffMemberRepository staffMemberRepository;
     private final IStaffAssignmentRepository staffAssignmentRepository;
-    private final INotificationRepository notificationRepository;
+    private final DomainEventPublisher domainEventPublisher;
     private final Clock clock;
 
     /**
@@ -249,20 +249,8 @@ public class HackathonStaffService {
         }
 
         StaffAssignment saved = staffAssignmentRepository.save(assignment);
-
-        notifyAssignment(member, role);
+        domainEventPublisher.publish(new HackathonStaffAssignedEvent(member, role));
 
         return saved;
-    }
-
-    private void notifyAssignment(StaffMember member, StaffRole role) {
-        notificationRepository.save(
-                new BaseNotification(
-                        "Nuovo incarico",
-                        "Sei stato assegnato a un hackathon come " + role,
-                        member,
-                        2
-                )
-        );
     }
 }

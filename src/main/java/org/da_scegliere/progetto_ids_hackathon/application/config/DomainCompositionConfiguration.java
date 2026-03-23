@@ -29,6 +29,7 @@
 package org.da_scegliere.progetto_ids_hackathon.application.config;
 
 import org.da_scegliere.progetto_ids_hackathon.application.config.properties.ClockProperties;
+import org.da_scegliere.progetto_ids_hackathon.application.config.properties.TeamCreationProperties;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.support.SupportRequestState;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.user.AccountState;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
@@ -66,7 +67,7 @@ import java.util.List;
  * Composition root for domain state machines and policy implementations.
  */
 @Configuration
-@EnableConfigurationProperties(ClockProperties.class)
+@EnableConfigurationProperties({ClockProperties.class, TeamCreationProperties.class})
 public class DomainCompositionConfiguration {
 
     @Bean

@@ -46,7 +46,7 @@ public class HackathonScheduler {
     private final HackathonCrudService hackathonCrudService;
     private final HackathonAutomationService hackathonAutomationService;
 
-    @Scheduled(cron = "${app.scheduler.hackathon-lifecycle-cron:0 */5 * * * *}")
+    @Scheduled(cron = "${app.scheduler.hackathon-lifecycle-cron:*/30 * * * * *}")
     public void processHackathonsLifecycle() {
         log.info("Processing hackathons lifecycle.");
 

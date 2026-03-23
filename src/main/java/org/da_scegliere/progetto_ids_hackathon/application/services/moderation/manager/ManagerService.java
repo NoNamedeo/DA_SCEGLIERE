@@ -30,13 +30,14 @@ package org.da_scegliere.progetto_ids_hackathon.application.services.moderation.
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.events.DomainEventPublisher;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.*;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.*;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff.StaffEmailAlreadyInUseException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.user.*;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.UserReport;
-import org.da_scegliere.progetto_ids_hackathon.core.entities.notification.BaseNotification;
+import org.da_scegliere.progetto_ids_hackathon.core.events.user.UserSuspendedEvent;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.Manager;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
@@ -68,7 +69,7 @@ public class ManagerService {
     private final IUserReportRepository userReportRepository;
     private final IStaffMemberRepository staffMemberRepository;
     private final AccountLifecycleStateMachine accountStateMachine;
-    private final INotificationRepository notificationRepository;
+    private final DomainEventPublisher domainEventPublisher;
 
     /**
      * Retrieves all moderation reports, regardless of specific target type.
@@ -143,10 +144,7 @@ public class ManagerService {
         ensureSuspendable(user);
         user.suspend(suspensionReason, accountStateMachine);
 
-        BaseNotification notification = new BaseNotification("Sospensione account",
-                "Il tuo account è stato sospeso per la seguente motivazione: " + suspensionReason, user,
-                4);
-        notificationRepository.save(notification);
+        domainEventPublisher.publish(new UserSuspendedEvent(user, suspensionReason));
 
         log.info("Suspended user userId={} requestedByManagerId={}.", userId, managerId);
         return user;

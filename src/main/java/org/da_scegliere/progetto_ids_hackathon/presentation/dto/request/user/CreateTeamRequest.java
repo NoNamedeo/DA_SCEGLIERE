@@ -30,10 +30,48 @@ package org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.user;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public record CreateTeamRequest(
+        UUID creatorId,
         @NotEmpty List<@Valid UserInputRequest> teamMembers,
         @NotEmpty String teamName
 ) {
+
+    public UUID resolvedCreatorId() {
+        if (creatorId != null) {
+            return creatorId;
+        }
+        if (teamMembers == null || teamMembers.isEmpty()) {
+            return null;
+        }
+        return teamMembers.getFirst().userId();
+    }
+
+    public List<UUID> resolvedInviteeIds() {
+        List<UUID> members = teamMembers == null
+                ? List.of()
+                : teamMembers.stream().map(UserInputRequest::userId).toList();
+
+        UUID resolvedCreator = resolvedCreatorId();
+        if (resolvedCreator == null) {
+            return List.of();
+        }
+
+        List<UUID> invitees = new ArrayList<>();
+        boolean creatorRemovedInLegacyMode = false;
+        for (UUID memberId : members) {
+            if (!creatorRemovedInLegacyMode && creatorId == null && resolvedCreator.equals(memberId)) {
+                creatorRemovedInLegacyMode = true;
+                continue;
+            }
+            if (!resolvedCreator.equals(memberId)) {
+                invitees.add(memberId);
+            }
+        }
+        return List.copyOf(invitees);
+    }
 }

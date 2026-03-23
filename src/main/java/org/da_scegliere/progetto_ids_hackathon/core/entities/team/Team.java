@@ -29,17 +29,30 @@
 package org.da_scegliere.progetto_ids_hackathon.core.entities.team;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
-import lombok.Setter;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.User;
+import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.DuplicateTeamMemberException;
+import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.NullTeamMemberException;
+import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.TeamMembersEmptyException;
+import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.TeamNameBlankException;
+import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.UserAlreadyAssignedToAnotherTeamException;
+import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.UserAlreadyInTeamException;
+import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.UserNotInTeamException;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.BusinessPolicy;
 import org.da_scegliere.progetto_ids_hackathon.core.policies.team.LeaveTeamContext;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -51,7 +64,6 @@ public class Team {
     private UUID id;
 
     @NotEmpty
-    @Setter
     private String name;
 
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL)
@@ -59,23 +71,53 @@ public class Team {
     private List<User> members;
 
     public Team(String name, List<User> members) {
-        this.name = name;
-        this.members = members;
+        this.members = members == null ? new ArrayList<>() : members;
+        rename(name);
     }
 
-    public Team() {}
+    public Team() {
+    }
+
+    public static Team create(String name, List<User> initialMembers) {
+        if (initialMembers == null || initialMembers.isEmpty()) {
+            throw new TeamMembersEmptyException();
+        }
+
+        Team team = new Team(name, new ArrayList<>());
+        Set<UUID> seenMemberIds = new HashSet<>();
+        for (User member : initialMembers) {
+            if (member == null) {
+                throw new NullTeamMemberException();
+            }
+
+            UUID memberId = member.getId();
+            if (memberId != null && !seenMemberIds.add(memberId)) {
+                throw new DuplicateTeamMemberException(memberId);
+            }
+
+            team.addMember(member);
+        }
+        return team;
+    }
+
+    public void rename(String newName) {
+        if (newName == null || newName.isBlank()) {
+            throw new TeamNameBlankException();
+        }
+        this.name = newName;
+    }
 
     public void addMember(User user) {
         Objects.requireNonNull(user, "user must not be null.");
         ensureMembersInitialized();
 
         if (containsMember(user)) {
-            throw new IllegalArgumentException("User is already a member of this team.");
+            throw new UserAlreadyInTeamException(user.getId());
         }
 
         Team currentTeam = user.getTeam();
         if (currentTeam != null && !isSameTeam(currentTeam)) {
-            throw new IllegalArgumentException("User already belongs to another team.");
+            throw new UserAlreadyAssignedToAnotherTeamException(user.getId());
         }
 
         members.add(user);
@@ -88,13 +130,29 @@ public class Team {
         ensureMembersInitialized();
 
         if (!containsMember(user)) {
-            throw new IllegalArgumentException("User is not a member of this team.");
+            throw new UserNotInTeamException(user.getId());
         }
 
         LeaveTeamContext context = new LeaveTeamContext(this);
         leaveTeamPolicy.validate(context);
+
         members.removeIf(member -> sameUser(member, user));
         user.setTeam(null);
+    }
+
+    public List<User> detachAllMembers() {
+        ensureMembersInitialized();
+        List<User> previousMembers = List.copyOf(members);
+        for (User member : previousMembers) {
+            member.setTeam(null);
+        }
+        members.clear();
+        return previousMembers;
+    }
+
+    public boolean hasMember(User user) {
+        ensureMembersInitialized();
+        return containsMember(user);
     }
 
     private void ensureMembersInitialized() {
