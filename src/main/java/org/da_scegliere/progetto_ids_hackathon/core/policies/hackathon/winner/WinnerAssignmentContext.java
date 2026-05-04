@@ -73,6 +73,7 @@ public record WinnerAssignmentContext(
             return false;
         }
         return teamParticipations.stream()
+                .filter(participation -> !participation.isDisqualified())
                 .map(TeamParticipation::getTeam)
                 .filter(Objects::nonNull)
                 .map(Team::getId)

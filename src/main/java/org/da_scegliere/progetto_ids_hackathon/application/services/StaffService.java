@@ -34,13 +34,21 @@ import org.da_scegliere.progetto_ids_hackathon.application.ports.events.DomainEv
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.*;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff.StaffEmailAlreadyInUseException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff.StaffMemberNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamParticipationAlreadyDisqualifiedException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamParticipationNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamParticipationReportAlreadyProcessedException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.TeamParticipationReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.*;
 
 /**
@@ -54,10 +62,13 @@ public class StaffService {
 
     private final IStaffMemberRepository staffMemberRepository;
     private final IStaffAssignmentRepository staffAssignmentRepository;
+    private final ITeamParticipationRepository teamParticipationRepository;
+    private final ITeamParticipationReportRepository teamParticipationReportRepository;
     private final IHackathonRepository hackathonRepository;
     private final IUserRepository userRepository;
     private final IManagerRepository managerRepository;
     private final DomainEventPublisher domainEventPublisher;
+    private final Clock clock;
 
     /**
      * Retrieves all staff members.
@@ -408,12 +419,73 @@ public class StaffService {
         log.info("Deleted staff member staffMemberId={}.", staffMemberId);
     }
 
+    @Transactional(noRollbackFor = TeamParticipationNotFoundException.class)
+    public TeamParticipation disqualifyTeamParticipationFromReport(
+            UUID staffMemberId,
+            UUID reportId,
+            String disqualificationReason,
+            String reportResolutionNotes
+    ) {
+        log.info("Disqualifying team participation from report reportId={} requestedByStaffMemberId={}.", reportId, staffMemberId);
+
+        StaffMember staffMember = getStaffMemberById(staffMemberId);
+        TeamParticipationReport report = getTeamParticipationReportOrThrow(reportId);
+
+        if (!report.isOpen()) {
+            throw new TeamParticipationReportAlreadyProcessedException(reportId);
+        }
+
+        UUID reportedTeamParticipationId = report.getReportedTeamParticipationId();
+        TeamParticipation teamParticipation = teamParticipationRepository.findById(reportedTeamParticipationId).orElse(null);
+
+        if (teamParticipation == null) {
+            report.rejectByStaffMember(
+                    staffMember,
+                    "Disqualification cancelled: reported team participation does not exist anymore."
+            );
+            log.warn(
+                    "Cannot disqualify from report reportId={}: reported team participation teamParticipationId={} not found.",
+                    reportId,
+                    reportedTeamParticipationId
+            );
+            throw new TeamParticipationNotFoundException(reportedTeamParticipationId);
+        }
+
+        ensureDisqualifiable(teamParticipation);
+
+        LocalDate today = LocalDate.now(clock);
+        teamParticipation.disqualify(disqualificationReason, today);
+        report.acceptByStaffMember(staffMember, reportResolutionNotes);
+
+        log.info(
+                "Disqualified team participation teamParticipationId={} requestedByStaffMemberId={} viaReportId={}.",
+                teamParticipation.getId(),
+                staffMemberId,
+                reportId
+        );
+        return teamParticipation;
+    }
+
     private void ensureEmailIsAvailable(String normalizedEmail) {
         boolean alreadyUsed = staffMemberRepository.existsByEmailIgnoreCase(normalizedEmail)
                 || userRepository.existsByEmailIgnoreCase(normalizedEmail)
                 || managerRepository.existsByEmailIgnoreCase(normalizedEmail);
         if (alreadyUsed) {
             throw new StaffEmailAlreadyInUseException(normalizedEmail);
+        }
+    }
+
+    private TeamParticipationReport getTeamParticipationReportOrThrow(UUID reportId) {
+        if (reportId == null) {
+            throw new IllegalArgumentException("reportId must not be null.");
+        }
+        return teamParticipationReportRepository.findById(reportId)
+                .orElseThrow(() -> new org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.ReportNotFoundException(reportId));
+    }
+
+    private static void ensureDisqualifiable(TeamParticipation teamParticipation) {
+        if (teamParticipation.isDisqualified()) {
+            throw new TeamParticipationAlreadyDisqualifiedException(teamParticipation.getId());
         }
     }
 

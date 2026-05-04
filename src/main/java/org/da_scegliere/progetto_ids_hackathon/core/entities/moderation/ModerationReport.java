@@ -32,6 +32,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.report.ReporterType;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.user.Manager;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
@@ -76,6 +77,10 @@ public abstract class ModerationReport {
     @JoinColumn(name = "processed_by_manager_id")
     private Manager processedBy;
 
+    @ManyToOne
+    @JoinColumn(name = "processed_by_staff_member_id")
+    private StaffMember processedByStaffMember;
+
     @NotNull
     private LocalDateTime createdAt;
 
@@ -92,6 +97,8 @@ public abstract class ModerationReport {
         this.createdAt = LocalDateTime.now();
         this.processedAt = null;
         this.processingNotes = null;
+        this.processedBy = null;
+        this.processedByStaffMember = null;
     }
 
     protected ModerationReport() {
@@ -100,6 +107,7 @@ public abstract class ModerationReport {
     public void accept(Manager manager, String notes) {
         ensureOpen();
         this.processedBy = Objects.requireNonNull(manager, "manager must not be null.");
+        this.processedByStaffMember = null;
         this.processingNotes = requireNonBlank(notes, "notes");
         this.state = UserReportState.ACCEPTED;
         this.processedAt = LocalDateTime.now();
@@ -108,6 +116,25 @@ public abstract class ModerationReport {
     public void reject(Manager manager, String notes) {
         ensureOpen();
         this.processedBy = Objects.requireNonNull(manager, "manager must not be null.");
+        this.processedByStaffMember = null;
+        this.processingNotes = requireNonBlank(notes, "notes");
+        this.state = UserReportState.REJECTED;
+        this.processedAt = LocalDateTime.now();
+    }
+
+    public void acceptByStaffMember(StaffMember staffMember, String notes) {
+        ensureOpen();
+        this.processedByStaffMember = Objects.requireNonNull(staffMember, "staffMember must not be null.");
+        this.processedBy = null;
+        this.processingNotes = requireNonBlank(notes, "notes");
+        this.state = UserReportState.ACCEPTED;
+        this.processedAt = LocalDateTime.now();
+    }
+
+    public void rejectByStaffMember(StaffMember staffMember, String notes) {
+        ensureOpen();
+        this.processedByStaffMember = Objects.requireNonNull(staffMember, "staffMember must not be null.");
+        this.processedBy = null;
         this.processingNotes = requireNonBlank(notes, "notes");
         this.state = UserReportState.REJECTED;
         this.processedAt = LocalDateTime.now();

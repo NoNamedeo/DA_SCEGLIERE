@@ -31,11 +31,15 @@ package org.da_scegliere.progetto_ids_hackathon.presentation.controller.moderati
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.da_scegliere.progetto_ids_hackathon.application.services.moderation.ModerationReportService;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.BugReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.StaffReport;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.TeamParticipationReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.UserReport;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.moderation.CreateBugModerationReportRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.moderation.CreateStaffModerationReportRequest;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.moderation.CreateTeamParticipationModerationReportRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.moderation.CreateUserModerationReportRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.moderation.ModerationReportResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.ModerationReportMapper;
@@ -92,6 +96,39 @@ public class ModerationReportController {
         return ResponseEntity.created(location).build();
     }
 
+    @PostMapping("/bugs")
+    public ResponseEntity<Void> createBugReport(@Valid @RequestBody CreateBugModerationReportRequest request) {
+        BugReport created = moderationReportService.createBugReport(
+                request.reporterId(),
+                request.reporterType(),
+                request.title(),
+                request.description()
+        );
+        URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/v1/moderation-reports/{reportId}")
+                .buildAndExpand(created.getId())
+                .toUri();
+        return ResponseEntity.created(location).build();
+    }
+
+    @PostMapping("/team-participations")
+    public ResponseEntity<Void> createTeamParticipationReport(
+            @Valid @RequestBody CreateTeamParticipationModerationReportRequest request
+    ) {
+        TeamParticipationReport created = moderationReportService.createTeamParticipationReport(
+                request.reporterId(),
+                request.reporterType(),
+                request.reportedTeamParticipationId(),
+                request.title(),
+                request.description()
+        );
+        URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/v1/moderation-reports/{reportId}")
+                .buildAndExpand(created.getId())
+                .toUri();
+        return ResponseEntity.created(location).build();
+    }
+
     @GetMapping
     public ResponseEntity<List<ModerationReportResponse>> getReports(
             @RequestParam(required = false) UserReportState state,
@@ -125,7 +162,15 @@ public class ModerationReportController {
                 List<StaffReport> reports = moderationReportService.getAllStaffReports();
                 yield state == null ? reports : reports.stream().filter(report -> report.getState() == state).toList();
             }
-            default -> throw new IllegalArgumentException("targetType must be one of: USER, STAFF.");
+            case "BUG" -> {
+                List<BugReport> reports = moderationReportService.getAllBugReports();
+                yield state == null ? reports : reports.stream().filter(report -> report.getState() == state).toList();
+            }
+            case "TEAM" -> {
+                List<TeamParticipationReport> reports = moderationReportService.getAllTeamParticipationReports();
+                yield state == null ? reports : reports.stream().filter(report -> report.getState() == state).toList();
+            }
+            default -> throw new IllegalArgumentException("targetType must be one of: USER, STAFF, BUG, TEAM.");
         };
     }
 

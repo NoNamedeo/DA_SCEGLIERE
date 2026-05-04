@@ -285,7 +285,10 @@ INSERT INTO PUBLIC.PARTICIPATION (
     entry_date,
     nickname,
     hackathon_id,
-    team_id
+    team_id,
+    disqualified,
+    disqualified_at,
+    disqualification_reason
 )
 VALUES
     (
@@ -294,7 +297,10 @@ VALUES
         DATE '2026-03-21',
         'alpha-ongoing',
         UUID '50000000-0000-0000-0000-000000000002',
-        UUID '40000000-0000-0000-0000-000000000001'
+        UUID '40000000-0000-0000-0000-000000000001',
+        FALSE,
+        NULL,
+        NULL
     ),
     (
         'TeamParticipation',
@@ -302,7 +308,10 @@ VALUES
         DATE '2026-03-12',
         'alpha-eval',
         UUID '50000000-0000-0000-0000-000000000003',
-        UUID '40000000-0000-0000-0000-000000000001'
+        UUID '40000000-0000-0000-0000-000000000001',
+        FALSE,
+        NULL,
+        NULL
     ),
     (
         'TeamParticipation',
@@ -310,7 +319,10 @@ VALUES
         DATE '2026-03-12',
         'beta-eval',
         UUID '50000000-0000-0000-0000-000000000003',
-        UUID '40000000-0000-0000-0000-000000000002'
+        UUID '40000000-0000-0000-0000-000000000002',
+        FALSE,
+        NULL,
+        NULL
     );
 
 INSERT INTO PUBLIC.SUBMISSION (

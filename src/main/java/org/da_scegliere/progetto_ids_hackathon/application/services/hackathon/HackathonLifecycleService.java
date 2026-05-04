@@ -152,6 +152,7 @@ public class HackathonLifecycleService {
         return participations.stream()
                 .filter(TeamParticipation.class::isInstance)
                 .map(p -> (TeamParticipation) p)
+                .filter(tp -> !tp.isDisqualified())
                 .flatMap(tp -> tp.getSubmissions().stream()
                         .filter(s -> s.getJudgeScore() != null)
                         .map(s -> new SubmissionWithTeam(s, tp.getTeam()))

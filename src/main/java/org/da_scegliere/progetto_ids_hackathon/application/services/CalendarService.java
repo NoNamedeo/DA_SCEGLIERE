@@ -30,12 +30,20 @@ package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffAssignmentRepository;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.CalendarStrategy;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.CalendarProviderConflictException;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.exceptions.CalendarProviderUnavailableException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.calendar.CalendarConflictException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.calendar.CalendarUnavailableException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff.StaffMemberNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.team.TeamNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.views.calendar.CalendarView;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -59,6 +67,8 @@ public class CalendarService {
 
     private final CalendarStrategy calendarStrategy;
     private final SupportRequestService supportRequestService;
+    private final ITeamRepository teamRepository;
+    private final IStaffAssignmentRepository staffAssignmentRepository;
     private final Clock clock;
 
     /**
@@ -116,6 +126,40 @@ public class CalendarService {
             return calendarStrategy.isSlotAvailable(safeRequest);
         } catch (CalendarProviderConflictException ex) {
             throw new CalendarConflictException(SLOT_OCCUPIED, ex);
+        } catch (CalendarProviderUnavailableException ex) {
+            throw new CalendarUnavailableException(CALENDAR_UNAVAILABLE, ex);
+        }
+    }
+
+    public CalendarView getTeamCalendar(UUID teamId) {
+        if (teamId == null) {
+            throw new IllegalArgumentException("teamId must not be null.");
+        }
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException(teamId));
+
+        try {
+            return calendarStrategy.getTeamCalendar(team);
+        } catch (CalendarProviderUnavailableException ex) {
+            throw new CalendarUnavailableException(CALENDAR_UNAVAILABLE, ex);
+        }
+    }
+
+    public CalendarView getMentorCalendar(UUID mentorAssignmentId) {
+        if (mentorAssignmentId == null) {
+            throw new IllegalArgumentException("mentorAssignmentId must not be null.");
+        }
+
+        StaffAssignment mentorAssignment = staffAssignmentRepository.findById(mentorAssignmentId)
+                .orElseThrow(() -> new StaffMemberNotFoundException(mentorAssignmentId));
+
+        if (mentorAssignment.getStaffRole() != StaffRole.MENTOR) {
+            throw new IllegalArgumentException("mentorAssignmentId must belong to a mentor assignment.");
+        }
+
+        try {
+            return calendarStrategy.getMentorCalendar(mentorAssignment);
         } catch (CalendarProviderUnavailableException ex) {
             throw new CalendarUnavailableException(CALENDAR_UNAVAILABLE, ex);
         }

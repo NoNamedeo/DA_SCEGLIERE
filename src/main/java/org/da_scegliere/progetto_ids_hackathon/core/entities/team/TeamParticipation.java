@@ -38,6 +38,7 @@ import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Entity
@@ -55,10 +56,19 @@ public class TeamParticipation extends Participation {
     )
     private List<Submission> submissions = new ArrayList<>();
 
+    private boolean disqualified;
+
+    private LocalDate disqualifiedAt;
+
+    private String disqualificationReason;
+
     public TeamParticipation(LocalDate entryDate, String nickName, Hackathon hackathon, Team team, List<Submission> submissions) {
         super(entryDate, nickName, hackathon);
         this.team = team;
         this.submissions = submissions;
+        this.disqualified = false;
+        this.disqualifiedAt = null;
+        this.disqualificationReason = null;
     }
 
     public TeamParticipation() {
@@ -76,5 +86,17 @@ public class TeamParticipation extends Participation {
         if (submission != null && submissions.remove(submission)) {
             submission.setTeamParticipation(null);
         }
+    }
+
+    public void disqualify(String reason, LocalDate referenceDate) {
+        if (disqualified) {
+            throw new IllegalStateException("Team participation is already disqualified.");
+        }
+        if (reason == null || reason.isBlank()) {
+            throw new IllegalArgumentException("reason must not be blank.");
+        }
+        this.disqualified = true;
+        this.disqualifiedAt = Objects.requireNonNull(referenceDate, "referenceDate must not be null.");
+        this.disqualificationReason = reason.trim();
     }
 }

@@ -39,7 +39,9 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.t
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.SubmissionEvaluationNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.SubmissionNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamAlreadyParticipatingException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamParticipationAlreadyDisqualifiedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamParticipationNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamParticipationReportAlreadyProcessedException;
 import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.DuplicateTeamMemberException;
 import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.NullTeamMemberException;
 import org.da_scegliere.progetto_ids_hackathon.core.exceptions.team.TeamMembersEmptyException;
@@ -128,6 +130,8 @@ public class GlobalExceptionHandler {
             InvalidSupportRequestStateTransitionException.class,
             SubmissionDeadlineExceededException.class,
             TeamAlreadyParticipatingException.class,
+            TeamParticipationAlreadyDisqualifiedException.class,
+            TeamParticipationReportAlreadyProcessedException.class,
             CalendarConflictException.class,
             CalendarProviderConflictException.class,
             WinnerNotProclaimedException.class

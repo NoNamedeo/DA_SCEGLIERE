@@ -31,13 +31,19 @@ package org.da_scegliere.progetto_ids_hackathon.presentation.controller.staff;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.da_scegliere.progetto_ids_hackathon.application.services.StaffService;
+import org.da_scegliere.progetto_ids_hackathon.application.services.moderation.ModerationReportService;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffMember;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.StaffRole;
+import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.staff.CreateStaffMemberRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.staff.UpdateStaffMemberRequest;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.teamParticipation.DisqualifyTeamParticipationFromReportRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.hackathon.HackathonSummaryResponse;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.moderation.ModerationReportResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.staff.StaffMemberResponse;
+import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.ModerationReportMapper;
 import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.StaffMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -62,6 +68,7 @@ import java.util.UUID;
 public class StaffController {
 
     private final StaffService staffService;
+    private final ModerationReportService moderationReportService;
 
     @PostMapping
     public ResponseEntity<Void> createStaffMember(@Valid @RequestBody CreateStaffMemberRequest request) {
@@ -140,6 +147,34 @@ public class StaffController {
         Map<StaffRole, List<HackathonSummaryResponse>> response =
                 StaffMapper.toGroupedResponse(staffService.getHackathonsManagedPerRole());
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{staffMemberId}/team-reports/{reportId}/disqualifications")
+    public ResponseEntity<Void> disqualifyTeamParticipationFromReport(
+            @PathVariable UUID staffMemberId,
+            @PathVariable UUID reportId,
+            @Valid @RequestBody DisqualifyTeamParticipationFromReportRequest request
+    ) {
+        staffService.disqualifyTeamParticipationFromReport(
+                staffMemberId,
+                reportId,
+                request.disqualificationReason(),
+                request.reportResolutionNotes()
+        );
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{staffMemberId}/hackathons/{hackathonId}/team-reports")
+    public ResponseEntity<List<ModerationReportResponse>> getTeamParticipationReportsByHackathon(
+            @PathVariable UUID staffMemberId,
+            @PathVariable UUID hackathonId
+    ) {
+        staffService.getStaffMemberById(staffMemberId);
+        return ResponseEntity.ok(
+                moderationReportService.getReportsByHackathonId(hackathonId).stream()
+                        .map(ModerationReportMapper::toResponse)
+                        .toList()
+        );
     }
 
     @DeleteMapping("/{staffMemberId}")

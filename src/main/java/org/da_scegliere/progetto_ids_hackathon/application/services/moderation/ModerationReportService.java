@@ -30,18 +30,26 @@ package org.da_scegliere.progetto_ids_hackathon.application.services.moderation;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IBugReportRepository;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IHackathonRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IManagerRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IModerationReportRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffMemberRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IStaffReportRepository;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamParticipationReportRepository;
+import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.ITeamParticipationRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserReportRepository;
 import org.da_scegliere.progetto_ids_hackathon.application.ports.repositories.IUserRepository;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.hackathon.HackathonNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.ManagerNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.moderation.ReportNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.user.UserNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.staff.StaffMemberNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamParticipationNotFoundException;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.BugReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.StaffReport;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.TeamParticipationReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.UserReport;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.report.ReporterType;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
@@ -61,11 +69,15 @@ import java.util.UUID;
 public class ModerationReportService {
 
     private final IModerationReportRepository moderationReportRepository;
+    private final IBugReportRepository bugReportRepository;
     private final IUserReportRepository userReportRepository;
     private final IStaffReportRepository staffReportRepository;
+    private final ITeamParticipationReportRepository teamParticipationReportRepository;
     private final IUserRepository userRepository;
     private final IStaffMemberRepository staffMemberRepository;
+    private final ITeamParticipationRepository teamParticipationRepository;
     private final IManagerRepository managerRepository;
+    private final IHackathonRepository hackathonRepository;
 
     /**
      * Retrieves all moderation reports, regardless of target type.
@@ -108,6 +120,26 @@ public class ModerationReportService {
     }
 
     /**
+     * Retrieves all bug reports.
+     */
+    public List<BugReport> getAllBugReports() {
+        log.debug("Retrieving all bug moderation reports.");
+        List<BugReport> reports = List.copyOf(bugReportRepository.findAll());
+        log.debug("Retrieved {} bug moderation reports.", reports.size());
+        return reports;
+    }
+
+    /**
+     * Retrieves open bug reports.
+     */
+    public List<BugReport> getOpenBugReports() {
+        log.debug("Retrieving open bug moderation reports.");
+        List<BugReport> reports = List.copyOf(bugReportRepository.findByState(UserReportState.OPEN));
+        log.debug("Retrieved {} open bug moderation reports.", reports.size());
+        return reports;
+    }
+
+    /**
      * Retrieves all staff reports.
      */
     public List<StaffReport> getAllStaffReports() {
@@ -125,6 +157,59 @@ public class ModerationReportService {
         List<StaffReport> reports = List.copyOf(staffReportRepository.findByState(UserReportState.OPEN));
         log.debug("Retrieved {} open staff moderation reports.", reports.size());
         return reports;
+    }
+
+    /**
+     * Retrieves all team participation reports.
+     */
+    public List<TeamParticipationReport> getAllTeamParticipationReports() {
+        log.debug("Retrieving all team participation moderation reports.");
+        List<TeamParticipationReport> reports = List.copyOf(teamParticipationReportRepository.findAll());
+        log.debug("Retrieved {} team participation moderation reports.", reports.size());
+        return reports;
+    }
+
+    /**
+     * Retrieves open team participation reports.
+     */
+    public List<TeamParticipationReport> getOpenTeamParticipationReports() {
+        log.debug("Retrieving open team participation moderation reports.");
+        List<TeamParticipationReport> reports = List.copyOf(teamParticipationReportRepository.findByState(UserReportState.OPEN));
+        log.debug("Retrieved {} open team participation moderation reports.", reports.size());
+        return reports;
+    }
+
+    /**
+     * Retrieves reports related to a specific team participation.
+     */
+    public List<TeamParticipationReport> getReportsByTeamParticipationId(UUID teamParticipationId) {
+        if (teamParticipationId == null) {
+            throw new IllegalArgumentException("teamParticipationId must not be null.");
+        }
+        ensureTeamParticipationExists(teamParticipationId);
+        return List.copyOf(teamParticipationReportRepository.findByReportedTeamParticipationId(teamParticipationId));
+    }
+
+    /**
+     * Retrieves team participation reports related to a specific hackathon.
+     */
+    public List<TeamParticipationReport> getReportsByHackathonId(UUID hackathonId) {
+        if (hackathonId == null) {
+            throw new IllegalArgumentException("hackathonId must not be null.");
+        }
+        ensureHackathonExists(hackathonId);
+
+        List<UUID> teamParticipationIds = teamParticipationRepository.findByHackathon_id(hackathonId).stream()
+                .map(teamParticipation -> teamParticipation.getId())
+                .toList();
+
+        if (teamParticipationIds.isEmpty()) {
+            return List.of();
+        }
+
+        return teamParticipationReportRepository.findAll().stream()
+                .filter(report -> teamParticipationIds.contains(report.getReportedTeamParticipationId()))
+                .toList();
     }
 
     /**
@@ -233,6 +318,71 @@ public class ModerationReportService {
         return savedReport;
     }
 
+    /**
+     * Creates a report targeting a bug.
+     *
+     * @throws IllegalArgumentException if the provided ids are not valid
+     * @throws UserNotFoundException if the user is not found
+     * @throws ManagerNotFoundException if the manager is not found
+     * @throws StaffMemberNotFoundException if the staff member is not found
+     */
+    @Transactional
+    public BugReport createBugReport(
+            UUID reporterId,
+            ReporterType reporterType,
+            String title,
+            String description
+    ) {
+        log.info(
+                "Creating bug moderation report reporterId={} reporterType={}.",
+                reporterId,
+                reporterType
+        );
+        ensureReporterExists(reporterId, reporterType);
+
+        BugReport report = new BugReport(
+                reporterId,
+                reporterType,
+                title,
+                description
+        );
+        BugReport savedReport = bugReportRepository.save(report);
+        log.info("Created bug moderation report reportId={}.", savedReport.getId());
+        return savedReport;
+    }
+
+    /**
+     * Creates a report targeting one team participation in one hackathon.
+     */
+    @Transactional
+    public TeamParticipationReport createTeamParticipationReport(
+            UUID reporterId,
+            ReporterType reporterType,
+            UUID reportedTeamParticipationId,
+            String title,
+            String description
+    ) {
+        log.info(
+                "Creating team participation moderation report reporterId={} reporterType={} reportedTeamParticipationId={}.",
+                reporterId,
+                reporterType,
+                reportedTeamParticipationId
+        );
+        ensureReporterExists(reporterId, reporterType);
+        ensureTeamParticipationExists(reportedTeamParticipationId);
+
+        TeamParticipationReport report = new TeamParticipationReport(
+                reporterId,
+                reporterType,
+                reportedTeamParticipationId,
+                title,
+                description
+        );
+        TeamParticipationReport savedReport = teamParticipationReportRepository.save(report);
+        log.info("Created team participation moderation report reportId={}.", savedReport.getId());
+        return savedReport;
+    }
+
     private void ensureReporterExists(UUID reporterId, ReporterType reporterType) {
         if (reporterId == null) {
             throw new IllegalArgumentException("reporterId must not be null.");
@@ -267,6 +417,24 @@ public class ModerationReportService {
         }
         if (!staffMemberRepository.existsById(staffMemberId)) {
             throw new StaffMemberNotFoundException(staffMemberId);
+        }
+    }
+
+    private void ensureTeamParticipationExists(UUID teamParticipationId) {
+        if (teamParticipationId == null) {
+            throw new IllegalArgumentException("teamParticipationId must not be null.");
+        }
+        if (teamParticipationRepository.findById(teamParticipationId).isEmpty()) {
+            throw new TeamParticipationNotFoundException(teamParticipationId);
+        }
+    }
+
+    private void ensureHackathonExists(UUID hackathonId) {
+        if (hackathonId == null) {
+            throw new IllegalArgumentException("hackathonId must not be null.");
+        }
+        if (!hackathonRepository.existsById(hackathonId)) {
+            throw new HackathonNotFoundException(hackathonId);
         }
     }
 

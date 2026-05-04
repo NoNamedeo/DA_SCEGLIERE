@@ -8,6 +8,9 @@ public record TeamParticipationResponse(
         String nickname,
         LocalDate entryDate,
         UUID teamId,
-        UUID hackathonId
+        UUID hackathonId,
+        boolean disqualified,
+        LocalDate disqualifiedAt,
+        String disqualificationReason
 ) {
 }

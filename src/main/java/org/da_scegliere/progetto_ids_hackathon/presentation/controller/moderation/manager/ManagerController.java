@@ -31,8 +31,10 @@ package org.da_scegliere.progetto_ids_hackathon.presentation.controller.moderati
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.da_scegliere.progetto_ids_hackathon.application.services.moderation.manager.ManagerService;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.BugReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.StaffReport;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.TeamParticipationReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.UserReport;
 import org.da_scegliere.progetto_ids_hackathon.core.enums.state.report.UserReportState;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.moderation.ModerationActionRequest;
@@ -70,7 +72,9 @@ public class ManagerController {
             case "ALL" -> resolveAllReports(managerId, state);
             case "USER" -> resolveUserReports(managerId, state);
             case "STAFF" -> resolveStaffReports(managerId, state);
-            default -> throw new IllegalArgumentException("targetType must be one of: ALL, USER, STAFF.");
+            case "BUG" -> resolveBugReports(managerId, state);
+            case "TEAM" -> resolveTeamParticipationReports(managerId, state);
+            default -> throw new IllegalArgumentException("targetType must be one of: ALL, USER, STAFF, BUG, TEAM.");
         };
 
         return ResponseEntity.ok(reports.stream().map(ModerationReportMapper::toResponse).toList());
@@ -150,6 +154,22 @@ public class ManagerController {
         return allReports.stream()
                 .filter(StaffReport.class::isInstance)
                 .map(StaffReport.class::cast)
+                .toList();
+    }
+
+    private List<BugReport> resolveBugReports(UUID managerId, UserReportState state) {
+        List<ModerationReport> allReports = resolveAllReports(managerId, state);
+        return allReports.stream()
+                .filter(BugReport.class::isInstance)
+                .map(BugReport.class::cast)
+                .toList();
+    }
+
+    private List<TeamParticipationReport> resolveTeamParticipationReports(UUID managerId, UserReportState state) {
+        List<ModerationReport> allReports = resolveAllReports(managerId, state);
+        return allReports.stream()
+                .filter(TeamParticipationReport.class::isInstance)
+                .map(TeamParticipationReport.class::cast)
                 .toList();
     }
 }
