@@ -109,6 +109,63 @@ Per la creazione di hackathon:
 
 ---
 
+### 3. State Pattern
+
+Per modellare e validare le transizioni di stato del dominio senza concentrare tutta la logica in servizi monolitici o in blocchi condizionali ripetuti.
+
+Il pattern è utilizzato principalmente per:
+
+* ciclo di vita delle support request
+* ciclo di vita degli account utente
+
+Classi principali:
+
+* `SupportRequestLifecycleStateMachine`
+* `DefaultSupportRequestLifecycleStateMachine`
+* `SupportRequestLifecycleState`
+* `OpenSupportRequestState`
+* `InProgressSupportRequestState`
+* `ResolvedSupportRequestState`
+* `RejectedSupportRequestState`
+* `AccountLifecycleStateMachine`
+* `DefaultAccountLifecycleStateMachine`
+* `AccountLifecycleState`
+* `ActiveAccountState`
+* `SuspendedAccountState`
+* `RevokedAccountState`
+* `StateRegistry`
+
+Ogni stato concreto incapsula le transizioni consentite a partire da quello stato. Le state machine risolvono lo stato corrente tramite `StateRegistry` e delegano allo stato concreto la decisione sulla transizione richiesta.
+
+---
+
+### 4. Observer Pattern tramite Spring Events
+
+Per disaccoppiare le operazioni principali dalle reazioni secondarie, ad esempio la generazione di notifiche dopo eventi di dominio.
+
+In fase di analisi il pattern è stato rappresentato in stile GoF, con publisher e observer espliciti. Nell'implementazione concreta, la registrazione degli observer è demandata al container Spring:
+
+* `DomainEventPublisher` definisce la porta applicativa per pubblicare eventi
+* `SpringDomainEventPublisher` adatta la porta a `ApplicationEventPublisher`
+* `NotificationDomainEventListener` contiene i metodi listener
+* `@TransactionalEventListener` registra in modo dichiarativo i metodi che osservano specifici eventi
+
+Eventi osservati:
+
+* `TeamCreatedEvent`
+* `TeamDeletedEvent`
+* `TeamMemberAddedEvent`
+* `UserSuspendedEvent`
+* `WinnerPrizePaidEvent`
+* `HackathonConcludedEvent`
+* `SupportRequestCreatedEvent`
+* `SupportRequestAcceptedEvent`
+* `SupportRequestRejectedEvent`
+
+Questo approccio applica la logica dell'Observer Pattern, ma senza metodi manuali come `subscribe`, `unsubscribe` o `notifyObservers`, perché la sottoscrizione e il dispatch sono gestiti da Spring.
+
+---
+
 ## Prerequisiti
 - JDK 21
 - Maven (oppure wrapper `./mvnw`)
