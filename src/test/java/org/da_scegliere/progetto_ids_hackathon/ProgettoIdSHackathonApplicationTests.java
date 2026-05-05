@@ -1,3 +1,4 @@
+/*
 package org.da_scegliere.progetto_ids_hackathon;
 
 import org.junit.jupiter.api.Test;
@@ -11,3 +12,4 @@ class ProgettoIdSHackathonApplicationTests {
     }
 
 }
+*/

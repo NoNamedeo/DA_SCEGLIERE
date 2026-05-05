@@ -29,9 +29,17 @@
 package org.da_scegliere.progetto_ids_hackathon.infrastructure.strategies;
 
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.CalendarStrategy;
+import org.da_scegliere.progetto_ids_hackathon.application.services.views.calendar.CalendarBookedSlotView;
+import org.da_scegliere.progetto_ids_hackathon.application.services.views.calendar.CalendarView;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
+import org.da_scegliere.progetto_ids_hackathon.infrastructure.strategies.dto.ExternalCalendarBookedSlotPayload;
+import org.da_scegliere.progetto_ids_hackathon.infrastructure.strategies.dto.ExternalCalendarPayload;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Primary
 @Component
@@ -51,6 +59,65 @@ public class GoogleCalendarStrategy implements CalendarStrategy {
     @Override
     public void reserveCallSlot(SupportRequest request) {
         // Intentionally left blank until provider integration is implemented.
+    }
+
+    @Override
+    public CalendarView getTeamCalendar(Team team) {
+        ExternalCalendarPayload payload = fetchTeamCalendarPayload(team);
+        return mapToCalendarView("TEAM", team.getId(), team.getName(), payload);
+    }
+
+    @Override
+    public CalendarView getMentorCalendar(StaffAssignment mentorAssignment) {
+        String mentorName = mentorAssignment.getStaffMember() != null
+                ? mentorAssignment.getStaffMember().getName()
+                : "Mentor";
+        ExternalCalendarPayload payload = fetchMentorCalendarPayload(mentorAssignment);
+        return mapToCalendarView("MENTOR", mentorAssignment.getId(), mentorName, payload);
+    }
+
+    private ExternalCalendarPayload fetchTeamCalendarPayload(Team team) {
+        // TODO: replace stub with JSON returned by the external calendar provider.
+        return new ExternalCalendarPayload(team.getName(), List.of());
+    }
+
+    private ExternalCalendarPayload fetchMentorCalendarPayload(StaffAssignment mentorAssignment) {
+        // TODO: replace stub with JSON returned by the external calendar provider.
+        String mentorName = mentorAssignment.getStaffMember() != null
+                ? mentorAssignment.getStaffMember().getName()
+                : "Mentor";
+        return new ExternalCalendarPayload(mentorName, List.of());
+    }
+
+    private CalendarView mapToCalendarView(
+            String ownerType,
+            java.util.UUID ownerId,
+            String fallbackOwnerName,
+            ExternalCalendarPayload payload
+    ) {
+        String ownerName = payload.ownerName() == null || payload.ownerName().isBlank()
+                ? fallbackOwnerName
+                : payload.ownerName();
+
+        List<CalendarBookedSlotView> slots = payload.bookedSlots() == null
+                ? List.of()
+                : payload.bookedSlots().stream()
+                .map(this::mapSlot)
+                .toList();
+
+        return new CalendarView(ownerType, ownerId, ownerName, slots);
+    }
+
+    private CalendarBookedSlotView mapSlot(ExternalCalendarBookedSlotPayload payload) {
+        return new CalendarBookedSlotView(
+                payload.supportRequestId(),
+                payload.teamId(),
+                payload.mentorAssignmentId(),
+                payload.mentorName(),
+                payload.startAt(),
+                payload.endAt(),
+                payload.title()
+        );
     }
 
 }

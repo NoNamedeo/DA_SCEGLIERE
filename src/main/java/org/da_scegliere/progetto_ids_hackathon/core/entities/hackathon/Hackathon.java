@@ -314,6 +314,9 @@ public class Hackathon {
     private static List<Submission> collectSubmissions(List<TeamParticipation> teamParticipations) {
         return teamParticipations.stream()
                 .flatMap(participation -> {
+                    if (participation.isDisqualified()) {
+                        return Collections.<Submission>emptyList().stream();
+                    }
                     List<Submission> participationSubmissions = participation.getSubmissions();
                     if (participationSubmissions == null) {
                         return Collections.<Submission>emptyList().stream();

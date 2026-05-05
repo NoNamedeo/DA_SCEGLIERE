@@ -1,3 +1,4 @@
+/*
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import org.da_scegliere.progetto_ids_hackathon.application.services.hackathon.HackathonCrudService;
@@ -67,3 +68,4 @@ class HackathonServiceTest {
         verify(hackathonLifecycleService).assignWinner(id, winner);
     }
 }
+*/

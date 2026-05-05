@@ -1,7 +1,9 @@
 package org.da_scegliere.progetto_ids_hackathon.presentation.mapper;
 
+import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.BugReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.ModerationReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.StaffReport;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.TeamParticipationReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.UserReport;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.moderation.ModerationReportResponse;
 
@@ -22,12 +24,21 @@ public final class ModerationReportMapper {
         } else if (report instanceof StaffReport staffReport) {
             targetType = "STAFF";
             targetId = staffReport.getReportedStaffMemberId();
+        } else if (report instanceof BugReport) {
+            targetType = "BUG";
+            targetId = null;
+        } else if (report instanceof TeamParticipationReport teamParticipationReport) {
+            targetType = "TEAM";
+            targetId = teamParticipationReport.getReportedTeamParticipationId();
         } else {
             targetType = "UNKNOWN";
             targetId = null;
         }
 
         UUID processedByManagerId = report.getProcessedBy() != null ? report.getProcessedBy().getId() : null;
+        UUID processedByStaffMemberId = report.getProcessedByStaffMember() != null
+                ? report.getProcessedByStaffMember().getId()
+                : null;
         return new ModerationReportResponse(
                 report.getId(),
                 targetType,
@@ -40,6 +51,7 @@ public final class ModerationReportMapper {
                 report.getCreatedAt(),
                 report.getProcessedAt(),
                 processedByManagerId,
+                processedByStaffMemberId,
                 report.getProcessingNotes()
         );
     }

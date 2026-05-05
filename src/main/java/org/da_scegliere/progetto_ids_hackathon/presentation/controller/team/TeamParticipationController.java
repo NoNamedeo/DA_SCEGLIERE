@@ -31,12 +31,16 @@ package org.da_scegliere.progetto_ids_hackathon.presentation.controller.team;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.da_scegliere.progetto_ids_hackathon.application.services.TeamParticipationService;
+import org.da_scegliere.progetto_ids_hackathon.application.services.moderation.ModerationReportService;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.moderation.TeamParticipationReport;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Submission;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.team.TeamParticipation;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.submission.CreateSubmissionRequest;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.request.teamParticipation.CreateTeamParticipationRequest;
+import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.moderation.ModerationReportResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.submission.SubmissionResponse;
 import org.da_scegliere.progetto_ids_hackathon.presentation.dto.response.team.TeamParticipationResponse;
+import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.ModerationReportMapper;
 import org.da_scegliere.progetto_ids_hackathon.presentation.mapper.SubmissionMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,6 +61,7 @@ import java.util.UUID;
 public class TeamParticipationController {
 
     private final TeamParticipationService teamParticipationService;
+    private final ModerationReportService moderationReportService;
 
     @PostMapping
     public ResponseEntity<Void> createTeamParticipation(
@@ -90,6 +95,12 @@ public class TeamParticipationController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/{participationId}/moderation-reports")
+    public ResponseEntity<List<ModerationReportResponse>> getModerationReports(@PathVariable UUID participationId) {
+        List<TeamParticipationReport> reports = moderationReportService.getReportsByTeamParticipationId(participationId);
+        return ResponseEntity.ok(reports.stream().map(ModerationReportMapper::toResponse).toList());
+    }
+
     @PostMapping("/{participationId}/submissions")
     public ResponseEntity<Void> createSubmission(
             @PathVariable UUID participationId,
@@ -117,7 +128,10 @@ public class TeamParticipationController {
                 participation.getNickname(),
                 participation.getEntryDate(),
                 teamId,
-                hackathonId
+                hackathonId,
+                participation.isDisqualified(),
+                participation.getDisqualifiedAt(),
+                participation.getDisqualificationReason()
         );
     }
 }

@@ -82,7 +82,10 @@ INSERT INTO participation (
     entry_date,
     nickname,
     hackathon_id,
-    team_id
+    team_id,
+    disqualified,
+    disqualified_at,
+    disqualification_reason
 )
 VALUES
     (
@@ -91,7 +94,10 @@ VALUES
         DATE '2025-01-12',
         'alpha-entry',
         UUID '11111111-1111-1111-1111-111111111111',
-        UUID '22222222-2222-2222-2222-222222222222'
+        UUID '22222222-2222-2222-2222-222222222222',
+        FALSE,
+        NULL,
+        NULL
     ),
     (
         'TeamParticipation',
@@ -99,7 +105,10 @@ VALUES
         DATE '2025-01-12',
         'beta-entry',
         UUID '11111111-1111-1111-1111-111111111111',
-        UUID '33333333-3333-3333-3333-333333333333'
+        UUID '33333333-3333-3333-3333-333333333333',
+        FALSE,
+        NULL,
+        NULL
     );
 
 INSERT INTO submission (

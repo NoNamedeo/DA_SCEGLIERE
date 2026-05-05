@@ -18,6 +18,7 @@ public record ModerationReportResponse(
         LocalDateTime createdAt,
         LocalDateTime processedAt,
         UUID processedByManagerId,
+        UUID processedByStaffMemberId,
         String processingNotes
 ) {
 }

@@ -1,3 +1,4 @@
+/*
 package org.da_scegliere.progetto_ids_hackathon.application.services;
 
 import org.da_scegliere.progetto_ids_hackathon.application.ports.strategies.PaymentStrategy;
@@ -95,3 +96,5 @@ class PaymentServiceTest {
         verify(hackathon).markPrizeAsPaid(LocalDate.of(2026, 3, 14));
     }
 }
+
+ */

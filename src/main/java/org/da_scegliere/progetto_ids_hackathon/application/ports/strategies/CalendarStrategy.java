@@ -28,7 +28,10 @@
 
 package org.da_scegliere.progetto_ids_hackathon.application.ports.strategies;
 
+import org.da_scegliere.progetto_ids_hackathon.application.services.views.calendar.CalendarView;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.staff.StaffAssignment;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.support.SupportRequest;
+import org.da_scegliere.progetto_ids_hackathon.core.entities.team.Team;
 
 public interface CalendarStrategy {
 
@@ -41,4 +44,14 @@ public interface CalendarStrategy {
      * Reserves the requested call slot in the external provider.
      */
     void reserveCallSlot(SupportRequest request);
+
+    /**
+     * Fetches calendar information for one team.
+     */
+    CalendarView getTeamCalendar(Team team);
+
+    /**
+     * Fetches calendar information for one mentor assignment.
+     */
+    CalendarView getMentorCalendar(StaffAssignment mentorAssignment);
 }

@@ -41,6 +41,7 @@ import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.t
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.SubmissionEvaluationNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.SubmissionNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamAlreadyParticipatingException;
+import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamParticipationAlreadyDisqualifiedException;
 import org.da_scegliere.progetto_ids_hackathon.application.services.exceptions.teamParticipation.TeamParticipationNotFoundException;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.Hackathon;
 import org.da_scegliere.progetto_ids_hackathon.core.entities.hackathon.HackathonTimeline;
@@ -263,6 +264,7 @@ public class TeamParticipationService {
         log.info("Creating submission teamParticipationId={}, title={}", teamParticipationId, title);
 
         TeamParticipation participation = getTeamParticipationById(teamParticipationId);
+        ensureParticipationIsActive(participation);
         LocalDate today = LocalDate.now(clock);
         validateSubmissionWindow(participation, OP_CREATE_SUBMISSION, today);
         validateSubmissionContent(title, description);
@@ -298,6 +300,7 @@ public class TeamParticipationService {
         log.info("Updating submission submissionId={}", submissionId);
 
         SubmissionContext context = resolveSubmissionContext(submissionId);
+        ensureParticipationIsActive(context.teamParticipation());
         LocalDate today = LocalDate.now(clock);
         validateSubmissionWindow(context.teamParticipation(), OP_UPDATE_SUBMISSION, today);
         validateSubmissionContent(newTitle, newDescription);
@@ -326,6 +329,7 @@ public class TeamParticipationService {
         log.info("Evaluating submission submissionId={}, score={}", submissionId, score);
 
         SubmissionContext context = resolveSubmissionContext(submissionId);
+        ensureParticipationIsActive(context.teamParticipation());
         LocalDate today = LocalDate.now(clock);
         validateEvaluationWindow(context.teamParticipation(), OP_EVALUATE_SUBMISSION, today);
 
@@ -355,6 +359,7 @@ public class TeamParticipationService {
         log.info("Updating submission evaluation submissionId={}, score={}", submissionId, score);
 
         SubmissionContext context = resolveSubmissionContext(submissionId);
+        ensureParticipationIsActive(context.teamParticipation());
         LocalDate today = LocalDate.now(clock);
         validateEvaluationWindow(context.teamParticipation(), OP_UPDATE_SUBMISSION_EVALUATION, today);
 
@@ -379,6 +384,7 @@ public class TeamParticipationService {
         log.info("Deleting submission submissionId={}", submissionId);
 
         SubmissionContext context = resolveSubmissionContext(submissionId);
+        ensureParticipationIsActive(context.teamParticipation());
         context.teamParticipation().removeSubmission(context.submission());
 
         log.info("Deleted submission submissionId={}", submissionId);
@@ -403,6 +409,7 @@ public class TeamParticipationService {
         Submission submission = getSubmissionById(submissionId);
 
         TeamParticipation participation = getTeamParticipationById(teamParticipationId);
+        ensureParticipationIsActive(participation);
         validateSubmissionWindow(participation, OP_CREATE_SUBMISSION, LocalDate.now(clock));
         validateSubmissionContent(submission.getTitle(), submission.getDescription());
 
@@ -431,6 +438,12 @@ public class TeamParticipationService {
     private static void requireNonBlank( String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(fieldName + " must not be blank.");
+        }
+    }
+
+    private static void ensureParticipationIsActive(TeamParticipation participation) {
+        if (participation.isDisqualified()) {
+            throw new TeamParticipationAlreadyDisqualifiedException(participation.getId());
         }
     }
 
