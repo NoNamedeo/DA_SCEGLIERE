@@ -1,6 +1,6 @@
 /*
- * Authors:  Alejandro Innocenzi, Matteo Vittori, Vladislav Gaspari
- * Copyright (c) 2026 Alejandro Innocenzi, Matteo Vittori, Vladislav Gaspari. All rights reserved.
+ * Authors:  Alejandro Innocenzi, Matteo Vittori
+ * Copyright (c) 2026 Alejandro Innocenzi, Matteo Vittori. All rights reserved.
  *
  * This file is part of the DA_SCEGLIERE project. Unauthorized copying,
  * distribution, modification, or use of this file, via any medium,
