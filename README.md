@@ -277,7 +277,6 @@ Per usare il frontend con il backend locale:
 
 * Alejandro Innocenzi
 * Matteo Vittori
-* Vladislav Gaspari
 
 ---
 
